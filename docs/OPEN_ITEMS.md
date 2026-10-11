@@ -24,6 +24,12 @@ Values that are not in the source docs are left null in the seed data and tracke
 - [ ] Telangana net-metering cap.
 - [ ] NREL API key (`NREL_API_KEY`).
 
+## Calculation (packages/calc)
+
+- [ ] Minimum-charge shortfall in rupees: Doc 03 gives the kVAh gap only, no Rs conversion. `checkMinimumCharges` values the gap at the bill's energy rate and returns that as an `assumption` string. Confirm the TGSPDCL billing method.
+- [ ] Power factor plausibility range 0.5-1.0 (`checkPowerFactor` throws outside it) is a prototype sanity guard, not from Doc 03. Confirm or move to `tariff_rules`.
+- [ ] Footprint label when fuel factors mix CO2 and CO2e bases: Doc 03 is silent. `scope1GasBasis` is null and the label says "gas basis mixed or not stated".
+
 ## Reporting
 
 - [ ] BRSR Core field names.
