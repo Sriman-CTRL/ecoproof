@@ -21,3 +21,6 @@ export interface ResultMeta {
   formulaVersion: typeof FORMULA_VERSION;
   factorIds: string[];
 }
+
+/** Input quality tag (Doc 03 "Data quality tags"); mirrors QualityTag in @ecoproof/shared. */
+export type QualityTag = 'measured' | 'owner_entered' | 'estimated' | 'default';
