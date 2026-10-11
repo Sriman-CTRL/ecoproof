@@ -111,6 +111,17 @@ documentsRouter.post(
   },
 );
 
+documentsRouter.get('/sites/:siteId/documents/latest', requireAuth, async (req, res) => {
+  const { orgId } = req.auth;
+  const site = await loadSite(orgId, String(req.params.siteId));
+  const doc = await prisma.document.findFirst({
+    where: { orgId, siteId: site.id },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, status: true },
+  });
+  res.json(doc);
+});
+
 documentsRouter.get('/documents/:id', requireAuth, async (req, res) => {
   const { orgId } = req.auth;
   const doc = await loadDocument(orgId, String(req.params.id));

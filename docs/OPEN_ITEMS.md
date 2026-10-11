@@ -43,6 +43,11 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 - [ ] `last_checked_at` for all schemes (currently null). Rules older than 60 days show a warning per Doc 02.
 
+## Languages
+
+- [ ] `apps/web/src/locales/te.json` is machine-drafted: needs native speaker review (Doc 07 gate).
+- [ ] `apps/web/src/locales/hi.json` has only placeholder keys; the web app falls back to English for Hindi until it is written and reviewed.
+
 ## Doc conflicts - see handover review
 
 _Placeholder for the 8 doc conflicts. To be filled from the handover review._

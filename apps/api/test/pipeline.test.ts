@@ -231,6 +231,24 @@ describe('bill pipeline', () => {
     expect(c.status).toBe(200);
     expect(c.body.resultId).toBeTruthy();
   });
+
+  it('reports consent status and the latest document for a site', async () => {
+    const cs = await request(app).get('/consents/status').set(auth(tokenA));
+    expect(cs.status).toBe(200);
+    expect(cs.body.processing).toBe(true);
+    expect(typeof cs.body.noticeVersion).toBe('string');
+    expect((await request(app).get('/consents/status')).status).toBe(401);
+
+    const latest = await request(app).get(`/sites/${siteA}/documents/latest`).set(auth(tokenA));
+    expect(latest.status).toBe(200);
+    expect(latest.body.id).toBeTruthy();
+    expect(latest.body.status).toBeTruthy();
+    // another org's site is a 404, and a missing token a 401
+    expect(
+      (await request(app).get(`/sites/${siteB}/documents/latest`).set(auth(tokenA))).status,
+    ).toBe(404);
+    expect((await request(app).get(`/sites/${siteA}/documents/latest`)).status).toBe(401);
+  });
 });
 
 function expected_fields() {

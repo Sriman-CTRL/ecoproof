@@ -18,3 +18,12 @@ consentsRouter.post('/consents', requireAuth, async (req, res) => {
   });
   res.status(201).json({ id: consent.id, purpose: consent.purpose, grantedAt: consent.grantedAt });
 });
+
+consentsRouter.get('/consents/status', requireAuth, async (req, res) => {
+  const c = await prisma.consent.findFirst({
+    where: { orgId: req.auth.orgId, purpose: 'processing', withdrawnAt: null },
+    orderBy: { grantedAt: 'desc' },
+    select: { noticeVersion: true },
+  });
+  res.json(c ? { processing: true, noticeVersion: c.noticeVersion } : { processing: false });
+});

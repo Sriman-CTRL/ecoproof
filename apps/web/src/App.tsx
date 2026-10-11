@@ -1,34 +1,64 @@
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { LANGUAGES } from './i18n';
-import { formatInr, formatNumber } from './lib/format';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { Page } from './components/ui';
+import { api } from './lib/api';
+import { getSession } from './lib/session';
+import Confirm from './pages/Confirm';
+import Consent from './pages/Consent';
+import Home from './pages/Home';
+import NewBill from './pages/NewBill';
+import Results from './pages/Results';
+import Start from './pages/Start';
+
+/** Everything except /start needs a demo login. */
+function RequireSession() {
+  return getSession() ? <Outlet /> : <Navigate to="/start" replace />;
+}
+
+/** Nothing else is reachable without a "processing" consent (DPDP). */
+function RequireConsent() {
+  const { t } = useTranslation();
+  const status = useQuery({
+    queryKey: ['consent'],
+    queryFn: () => api<{ processing: boolean; noticeVersion?: string }>('/consents/status'),
+  });
+  if (status.isLoading) {
+    return (
+      <Page>
+        <p>{t('common.loading')}</p>
+      </Page>
+    );
+  }
+  if (status.isError) {
+    return (
+      <Page>
+        <p role="alert">{t('common.networkError')}</p>
+        <button className="min-h-12 underline" onClick={() => void status.refetch()}>
+          {t('common.retry')}
+        </button>
+      </Page>
+    );
+  }
+  return status.data?.processing ? <Outlet /> : <Navigate to="/consent" replace />;
+}
 
 export default function App() {
-  const { t, i18n } = useTranslation();
-
   return (
-    <main className="mx-auto max-w-xl p-6">
-      <h1 className="text-3xl font-bold">{t('app.title')}</h1>
-      <p className="mt-1 text-gray-600">{t('app.tagline')}</p>
-
-      <label className="mt-6 block text-sm font-medium" htmlFor="lang">
-        {t('language.label')}
-      </label>
-      <select
-        id="lang"
-        className="mt-1 rounded border px-2 py-1"
-        value={i18n.resolvedLanguage}
-        onChange={(e) => void i18n.changeLanguage(e.target.value)}
-      >
-        {LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code}>
-            {l.label}
-          </option>
-        ))}
-      </select>
-
-      <p className="mt-6">
-        {t('placeholder.body')} {formatInr(100000)} ({formatNumber(10000000)})
-      </p>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/start" element={<Start />} />
+        <Route element={<RequireSession />}>
+          <Route path="/consent" element={<Consent />} />
+          <Route element={<RequireConsent />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/bills/new" element={<NewBill />} />
+            <Route path="/bills/:documentId/confirm" element={<Confirm />} />
+            <Route path="/results/:resultId" element={<Results />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
