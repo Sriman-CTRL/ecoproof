@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SAMPLE HT ELECTRICITY BILL (synthetic)</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #fff;
+      }
+      body {
+        width: 794px;
+        height: 1123px;
+        position: relative;
+        overflow: hidden;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+        padding: 48px 56px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 6px;
+        border-bottom: 3px solid #111;
+        padding-bottom: 10px;
+      }
+      .sub {
+        font-size: 13px;
+        color: #333;
+        margin-bottom: 22px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 16px;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #555;
+        padding: 9px 12px;
+        text-align: left;
+      }
+      th {
+        background: #eee;
+        width: 55%;
+        font-weight: 600;
+      }
+      td.n {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      tr.total th,
+      tr.total td {
+        font-size: 19px;
+        font-weight: 700;
+        background: #f3f3f3;
+      }
+      .wm {
+        position: absolute;
+        left: -63px;
+        top: 520px;
+        width: 920px;
+        text-align: center;
+        font-size: 34px;
+        font-weight: 800;
+        color: rgba(200, 0, 0, 0.22);
+        transform: rotate(-35deg);
+        letter-spacing: 2px;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .foot {
+        font-size: 12px;
+        color: #444;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SAMPLE HT ELECTRICITY BILL (synthetic, Telangana-style layout)</h1>
+    <div class="sub">
+      DISCOM: TGSPDCL &nbsp;|&nbsp; Category: HT-I(A) &nbsp;|&nbsp; Not a real bill
+    </div>
+    <table>
+      <tr>
+        <th>Consumer number</th>
+        <td>{{consumerNo}}</td>
+      </tr>
+      <tr>
+        <th>Billing period</th>
+        <td>{{periodFrom}} to {{periodTo}}</td>
+      </tr>
+      <tr>
+        <th>Bill number</th>
+        <td>{{billNo}}</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <th>Energy consumed (kWh)</th>
+        <td class="n">{{kwh}}</td>
+      </tr>
+      <tr>
+        <th>Energy consumed (kVAh)</th>
+        <td class="n">{{kvah}}</td>
+      </tr>
+      <tr>
+        <th>Recorded maximum demand (kVA)</th>
+        <td class="n">{{md}}</td>
+      </tr>
+      <tr>
+        <th>Contracted demand (kVA)</th>
+        <td class="n">{{cd}}</td>
+      </tr>
+      <tr>
+        <th>Power factor</th>
+        <td class="n">{{pf}}</td>
+      </tr>
+      <tr>
+        <th>ToD peak units (kWh)</th>
+        <td class="n">{{peak}}</td>
+      </tr>
+    </table>
+    <table>
+      <tr>
+        <th>Energy charges (Rs)</th>
+        <td class="n">{{energyCharges}}</td>
+      </tr>
+      <tr>
+        <th>Demand charges (Rs)</th>
+        <td class="n">{{demandCharges}}</td>
+      </tr>
+      <tr>
+        <th>low_pf_surcharge</th>
+        <td class="n">0</td>
+      </tr>
+      <tr class="total">
+        <th>Total (Rs)</th>
+        <td class="n">{{total}}</td>
+      </tr>
+    </table>
+    <div class="foot">
+      SYNTHETIC DEMO DATA for EcoProof. Rates from apps/api/prisma/demo/assumptions.json.
+    </div>
+    <div class="wm">SAMPLE - SYNTHETIC - NOT A REAL BILL</div>
+  </body>
+</html>

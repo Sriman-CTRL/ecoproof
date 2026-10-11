@@ -1,0 +1,15 @@
+{
+  "_label": "SYNTHETIC DEMO DATA - not a real unit or bill",
+  "energyRatePerKvah": 7.5,
+  "energyRateSource": "Doc 03 illustrative example rate",
+  "demandRatePerKva": 400,
+  "demandRateSource": "PLACEHOLDER - replace with TGSPDCL value from research R7",
+  "contractedDemandKva": 500,
+  "sanctionedLoadKw": 450,
+  "mdKva": 300,
+  "dieselLitresPerMonth": 1200,
+  "peakSharePct": 25,
+  "pfBefore": 0.92,
+  "pfAfter": 0.99,
+  "efficiencyGainAfterPct": 6
+}

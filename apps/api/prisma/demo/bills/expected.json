@@ -1,0 +1,21 @@
+{
+  "_label": "SYNTHETIC DEMO DATA - answer key for extraction tests",
+  "consumer_no": "SAMPLE-HT-0001",
+  "bill_no": "SAMPLE-2026-10",
+  "period_start": "2026-10-01",
+  "period_end": "2026-10-31",
+  "kwh": 92000,
+  "kvah": 100000,
+  "md_kva": 300,
+  "contracted_demand_kva": 500,
+  "pf": 0.92,
+  "tod_peak_kwh": 23000,
+  "energy_charges": 750000,
+  "demand_charges": 160000,
+  "other_charges": {
+    "low_pf_surcharge": 0
+  },
+  "total": 910000,
+  "production_tonnes": 100,
+  "diesel_litres": 1200
+}
