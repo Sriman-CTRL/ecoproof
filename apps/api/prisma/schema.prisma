@@ -107,6 +107,8 @@ model Site {
   consumerNo          String?  @map("consumer_no")
   tariffCategory      String?  @map("tariff_category")
   contractedDemandKva Decimal? @map("contracted_demand_kva") @db.Decimal(10, 2)
+  /// ADDITION: not in Doc 07, needed by Doc 03 validation rule (kWh <= sanctioned load x hours)
+  sanctionedLoadKw    Decimal? @map("sanctioned_load_kw") @db.Decimal(10, 2)
   createdAt           DateTime @default(now()) @map("created_at")
 
   org                   Organisation           @relation(fields: [orgId], references: [id])

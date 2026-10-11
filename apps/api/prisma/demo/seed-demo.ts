@@ -12,15 +12,10 @@ import {
   type Baseline,
   type Factor,
 } from '@ecoproof/calc';
+import { DEMO_ORG_IDS, ORG_A, ORG_B, SITE_A, SITE_B, USER_A, USER_B } from '../../src/demo/ids.js';
 
 // ---- fixed demo identifiers (the only rows --reset may delete are those with these org ids)
-export const ORG_A = '5d3a0a10-0000-4000-8000-00000000000a';
-export const ORG_B = '5d3a0a10-0000-4000-8000-00000000000b';
-const SITE_A = '5d3a0a10-0000-4000-8000-0000000000a1';
-const SITE_B = '5d3a0a10-0000-4000-8000-0000000000b1';
-const USER_A = '5d3a0a10-0000-4000-8000-0000000000a2';
-const USER_B = '5d3a0a10-0000-4000-8000-0000000000b2';
-export const DEMO_ORG_IDS = [ORG_A, ORG_B];
+export { ORG_A, ORG_B, DEMO_ORG_IDS };
 
 const prisma = new PrismaClient();
 
@@ -131,6 +126,7 @@ async function seedOrg(opts: {
     consumerNo: 'SAMPLE-HT-0001',
     tariffCategory: 'HT-I(A)',
     contractedDemandKva: cd,
+    sanctionedLoadKw: num('sanctionedLoadKw'),
   };
   await prisma.site.upsert({
     where: { id: siteId },

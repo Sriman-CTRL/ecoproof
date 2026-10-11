@@ -8,11 +8,12 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "prisma generate && tsc -p tsconfig.json",
-    "test": "echo \"no tests in @ecoproof/api yet\"",
+    "test": "vitest run",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/demo/seed-demo.ts",
     "db:demo:reset": "tsx prisma/demo/seed-demo.ts --reset",
-    "bills:render": "tsx prisma/demo/bills/render-bills.ts"
+    "bills:render": "tsx prisma/demo/bills/render-bills.ts",
+    "smoke:gemini": "tsx scripts/smoke-gemini.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -20,18 +21,27 @@
   "dependencies": {
     "@ecoproof/calc": "workspace:*",
     "@ecoproof/shared": "workspace:*",
+    "@google/genai": "^2.28.0",
     "@prisma/client": "^6.19.0",
+    "@supabase/supabase-js": "^2.117.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.3.0",
     "@types/node": "^24.0.0",
+    "@types/supertest": "^7.2.1",
     "playwright": "^1.64.0",
     "prisma": "^6.19.0",
-    "tsx": "^4.20.0"
+    "supertest": "^7.3.1",
+    "tsx": "^4.20.0",
+    "vitest": "^3.2.7"
   }
 }
