@@ -1,0 +1,539 @@
+// EcoProof prototype schema. Table/field names follow docs/text/07-tech-stack.txt "Data model".
+// Prisma bypasses Supabase RLS: the API must filter by org_id on every query.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum QualityTag {
+  measured
+  owner_entered
+  estimated
+  default
+}
+
+enum FactorStatus {
+  confirmed
+  confirmed_replace
+  verify
+  estimate_only
+  rule
+}
+
+enum GasBasis {
+  CO2
+  CO2e
+}
+
+enum Enduse {
+  electricity
+  fuel
+}
+
+enum OrgType {
+  msme
+  household
+}
+
+enum MembershipRole {
+  owner
+  accountant
+  supervisor
+}
+
+enum DocumentKind {
+  power_bill
+  fuel
+  invoice
+  quote
+}
+
+enum DocumentSource {
+  web
+  whatsapp
+}
+
+enum SavingsStatus {
+  early
+  verified
+}
+
+// ---------------------------------------------------------------- business tables
+
+model Organisation {
+  id        String   @id @default(uuid()) @db.Uuid
+  type      OrgType
+  name      String
+  udyamNo   String?  @map("udyam_no")
+  gstin     String?
+  sector    String?
+  state     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sites                 Site[]
+  memberships           Membership[]
+  consents              Consent[]
+  documents             Document[]
+  extractions           Extraction[]
+  energyMonths          EnergyMonth[]
+  fuelEntries           FuelEntry[]
+  productionMonths      ProductionMonth[]
+  results               Result[]
+  baselines             Baseline[]
+  siteActions           SiteAction[]
+  savingsLedger         SavingsLedger[]
+  reports               Report[]
+  shares                Share[]
+  auditLog              AuditLog[]
+  nonRoutineAdjustments NonRoutineAdjustment[]
+  siteEquipment         SiteEquipment[]
+
+  @@map("organisations")
+}
+
+model Site {
+  id                  String   @id @default(uuid()) @db.Uuid
+  orgId               String   @map("org_id") @db.Uuid
+  address             String?
+  lat                 Decimal? @db.Decimal(9, 6)
+  lng                 Decimal? @db.Decimal(9, 6)
+  discom              String?
+  consumerNo          String?  @map("consumer_no")
+  tariffCategory      String?  @map("tariff_category")
+  contractedDemandKva Decimal? @map("contracted_demand_kva") @db.Decimal(10, 2)
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  org                   Organisation           @relation(fields: [orgId], references: [id])
+  documents             Document[]
+  energyMonths          EnergyMonth[]
+  fuelEntries           FuelEntry[]
+  productionMonths      ProductionMonth[]
+  results               Result[]
+  baselines             Baseline[]
+  siteActions           SiteAction[]
+  savingsLedger         SavingsLedger[]
+  nonRoutineAdjustments NonRoutineAdjustment[]
+  siteEquipment         SiteEquipment[]
+
+  @@index([orgId])
+  @@map("sites")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  phone     String   @unique
+  language  String   @default("en")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memberships    Membership[]           @relation("MembershipUser")
+  invitations    Membership[]           @relation("MembershipInvitedBy")
+  consents       Consent[]
+  nonRoutineLogs NonRoutineAdjustment[]
+
+  @@map("users")
+}
+
+model Membership {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  orgId     String         @map("org_id") @db.Uuid
+  role      MembershipRole
+  invitedBy String?        @map("invited_by") @db.Uuid
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user    User         @relation("MembershipUser", fields: [userId], references: [id])
+  inviter User?        @relation("MembershipInvitedBy", fields: [invitedBy], references: [id])
+  org     Organisation @relation(fields: [orgId], references: [id])
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+  @@map("memberships")
+}
+
+model Consent {
+  id            String    @id @default(uuid()) @db.Uuid
+  orgId         String    @map("org_id") @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  noticeVersion String    @map("notice_version")
+  purpose       String
+  grantedAt     DateTime  @map("granted_at")
+  withdrawnAt   DateTime? @map("withdrawn_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  user User         @relation(fields: [userId], references: [id])
+
+  @@index([orgId])
+  @@map("consents")
+}
+
+model Document {
+  id        String         @id @default(uuid()) @db.Uuid
+  orgId     String         @map("org_id") @db.Uuid
+  siteId    String         @map("site_id") @db.Uuid
+  kind      DocumentKind
+  fileKey   String         @map("file_key")
+  sha256    String
+  source    DocumentSource
+  status    String         @default("received")
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  org         Organisation @relation(fields: [orgId], references: [id])
+  site        Site         @relation(fields: [siteId], references: [id])
+  extractions Extraction[]
+  siteActions SiteAction[]
+
+  @@unique([siteId, sha256])
+  @@index([orgId])
+  @@map("documents")
+}
+
+model Extraction {
+  id             String    @id @default(uuid()) @db.Uuid
+  orgId          String    @map("org_id") @db.Uuid
+  documentId     String    @map("document_id") @db.Uuid
+  model          String
+  fieldsJson     Json      @map("fields_json")
+  confidenceJson Json?     @map("confidence_json")
+  confirmedBy    String?   @map("confirmed_by") @db.Uuid
+  confirmedAt    DateTime? @map("confirmed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  org      Organisation @relation(fields: [orgId], references: [id])
+  document Document     @relation(fields: [documentId], references: [id])
+
+  @@index([orgId])
+  @@map("extractions")
+}
+
+model EnergyMonth {
+  id               String     @id @default(uuid()) @db.Uuid
+  orgId            String     @map("org_id") @db.Uuid
+  siteId           String     @map("site_id") @db.Uuid
+  periodStart      DateTime   @map("period_start") @db.Date
+  periodEnd        DateTime   @map("period_end") @db.Date
+  kwh              Decimal?   @db.Decimal(14, 2)
+  kvah             Decimal?   @db.Decimal(14, 2)
+  pf               Decimal?   @db.Decimal(5, 4)
+  mdKva            Decimal?   @map("md_kva") @db.Decimal(10, 2)
+  peakKwh          Decimal?   @map("peak_kwh") @db.Decimal(14, 2)
+  solarHoursKwh    Decimal?   @map("solar_hours_kwh") @db.Decimal(14, 2)
+  energyCharges    Decimal?   @map("energy_charges") @db.Decimal(14, 2)
+  demandCharges    Decimal?   @map("demand_charges") @db.Decimal(14, 2)
+  otherChargesJson Json?      @map("other_charges_json")
+  qualityTag       QualityTag @map("quality_tag")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@unique([siteId, periodStart])
+  @@index([orgId])
+  @@map("energy_months")
+}
+
+model FuelEntry {
+  id         String     @id @default(uuid()) @db.Uuid
+  orgId      String     @map("org_id") @db.Uuid
+  siteId     String     @map("site_id") @db.Uuid
+  date       DateTime   @db.Date
+  fuelType   String     @map("fuel_type")
+  quantity   Decimal    @db.Decimal(14, 3)
+  unit       String
+  qualityTag QualityTag @map("quality_tag")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@index([orgId])
+  @@map("fuel_entries")
+}
+
+model ProductionMonth {
+  id         String     @id @default(uuid()) @db.Uuid
+  orgId      String     @map("org_id") @db.Uuid
+  siteId     String     @map("site_id") @db.Uuid
+  month      DateTime   @db.Date
+  quantity   Decimal    @db.Decimal(14, 3)
+  unit       String
+  qualityTag QualityTag @map("quality_tag")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@unique([siteId, month])
+  @@index([orgId])
+  @@map("production_months")
+}
+
+model Result {
+  id             String   @id @default(uuid()) @db.Uuid
+  orgId          String   @map("org_id") @db.Uuid
+  siteId         String   @map("site_id") @db.Uuid
+  month          DateTime @db.Date
+  scope1         Decimal? @db.Decimal(14, 3)
+  scope2         Decimal? @db.Decimal(14, 3)
+  scope3Metals   Decimal? @map("scope3_metals") @db.Decimal(14, 3)
+  intensity      Decimal? @db.Decimal(14, 4)
+  factorIds      String[] @map("factor_ids") @db.Uuid
+  formulaVersion String   @map("formula_version")
+  inputIds       String[] @map("input_ids") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@unique([siteId, month])
+  @@index([orgId])
+  @@map("results")
+}
+
+model Baseline {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
+  start     DateTime @db.Date
+  end       DateTime @db.Date
+  a         Decimal  @db.Decimal(18, 6)
+  b         Decimal  @db.Decimal(18, 6)
+  cvRmse    Decimal? @map("cv_rmse") @db.Decimal(8, 4)
+  nmbe      Decimal? @db.Decimal(8, 4)
+  method    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@index([orgId])
+  @@map("baselines")
+}
+
+model SiteAction {
+  id              String    @id @default(uuid()) @db.Uuid
+  orgId           String    @map("org_id") @db.Uuid
+  siteId          String    @map("site_id") @db.Uuid
+  actionId        String    @map("action_id") @db.Uuid
+  status          String    @default("suggested")
+  plannedAt       DateTime? @map("planned_at")
+  doneAt          DateTime? @map("done_at")
+  actualCost      Decimal?  @map("actual_cost") @db.Decimal(14, 2)
+  quoteDocumentId String?   @map("quote_document_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  org           Organisation  @relation(fields: [orgId], references: [id])
+  site          Site          @relation(fields: [siteId], references: [id])
+  action        ActionLibrary @relation(fields: [actionId], references: [id])
+  quoteDocument Document?     @relation(fields: [quoteDocumentId], references: [id])
+
+  @@index([orgId])
+  @@map("site_actions")
+}
+
+model SavingsLedger {
+  id        String        @id @default(uuid()) @db.Uuid
+  orgId     String        @map("org_id") @db.Uuid
+  siteId    String        @map("site_id") @db.Uuid
+  month     DateTime      @db.Date
+  actionId  String        @map("action_id") @db.Uuid
+  kwhSaved  Decimal       @map("kwh_saved") @db.Decimal(14, 2)
+  inrSaved  Decimal       @map("inr_saved") @db.Decimal(14, 2)
+  co2Saved  Decimal       @map("co2_saved") @db.Decimal(14, 3)
+  status    SavingsStatus
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  org    Organisation  @relation(fields: [orgId], references: [id])
+  site   Site          @relation(fields: [siteId], references: [id])
+  action ActionLibrary @relation(fields: [actionId], references: [id])
+
+  @@index([orgId])
+  @@map("savings_ledger")
+}
+
+model Report {
+  id           String   @id @default(uuid()) @db.Uuid
+  orgId        String   @map("org_id") @db.Uuid
+  snapshotId   String   @map("snapshot_id") @db.Uuid
+  type         String
+  language     String
+  fileKey      String?  @map("file_key")
+  sha256       String?
+  snapshotJson Json     @map("snapshot_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  org    Organisation @relation(fields: [orgId], references: [id])
+  shares Share[]
+
+  @@index([orgId])
+  @@map("reports")
+}
+
+model Share {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  reportId  String   @map("report_id") @db.Uuid
+  recipient String
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  org    Organisation @relation(fields: [orgId], references: [id])
+  report Report       @relation(fields: [reportId], references: [id])
+
+  @@index([orgId])
+  @@map("shares")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  actor     String
+  action    String
+  target    String?
+  at        DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  org Organisation @relation(fields: [orgId], references: [id])
+
+  @@index([orgId])
+  @@map("audit_log")
+}
+
+/// ADDITION: not in Doc 07, needed by VER-2 (non-routine adjustments to verified savings)
+model NonRoutineAdjustment {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  siteId    String   @map("site_id") @db.Uuid
+  month     DateTime @db.Date
+  kwhEffect Decimal  @map("kwh_effect") @db.Decimal(14, 2)
+  reason    String
+  loggedBy  String   @map("logged_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  org    Organisation @relation(fields: [orgId], references: [id])
+  site   Site         @relation(fields: [siteId], references: [id])
+  logger User         @relation(fields: [loggedBy], references: [id])
+
+  @@index([orgId])
+  @@map("non_routine_adjustments")
+}
+
+/// ADDITION: not in Doc 07, needed by the s_enduse term in Doc 03 action savings
+model SiteEquipment {
+  id          String     @id @default(uuid()) @db.Uuid
+  orgId       String     @map("org_id") @db.Uuid
+  siteId      String     @map("site_id") @db.Uuid
+  equipment   String
+  enduseShare Decimal    @map("enduse_share") @db.Decimal(5, 4)
+  qualityTag  QualityTag @map("quality_tag")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@index([orgId])
+  @@map("site_equipment")
+}
+
+// ---------------------------------------------------------------- reference tables (no org_id)
+
+model Factor {
+  id           String       @id @default(uuid()) @db.Uuid
+  sourceType   String       @map("source_type")
+  value        Decimal      @db.Decimal(18, 6)
+  unit         String
+  source       String
+  sourceUrl    String?      @map("source_url")
+  version      String?
+  /// ADDITION: not in Doc 07, needed by Doc 03 Emission factor table (nullable valid_from)
+  validFrom    DateTime?    @map("valid_from") @db.Date
+  supersededBy String?      @map("superseded_by") @db.Uuid
+  /// ADDITION: not in Doc 07, needed by Doc 03 Emission factor table "Status" column
+  status       FactorStatus
+  /// ADDITION: not in Doc 07, needed by the Doc 03 note that grid is CO2-only and fuels are CO2e
+  gasBasis     GasBasis?    @map("gas_basis")
+  /// ADDITION: not in Doc 07, needed by Doc 03 Emission factor table "Basis" column
+  basisNote    String?      @map("basis_note")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  @@index([sourceType, version])
+  @@map("factors")
+}
+
+model TariffRule {
+  id         String    @id @default(uuid()) @db.Uuid
+  discom     String
+  category   String
+  ruleType   String    @map("rule_type")
+  paramsJson Json      @map("params_json")
+  validFrom  DateTime? @map("valid_from") @db.Date
+  /// ADDITION: not in Doc 07, needed by Doc 03 Bill health check (source and "inferred from FY" note)
+  source     String
+  basisNote  String?   @map("basis_note")
+  status     String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@unique([discom, category, ruleType])
+  @@map("tariff_rules")
+}
+
+model ActionLibrary {
+  id         String   @id @default(uuid()) @db.Uuid
+  /// ADDITION: not in Doc 07, needed by seed/runtime lookup of bill-health actions
+  code       String   @unique
+  sector     String
+  equipment  String
+  savingLow  Decimal? @map("saving_low") @db.Decimal(14, 2)
+  savingHigh Decimal? @map("saving_high") @db.Decimal(14, 2)
+  costLow    Decimal? @map("cost_low") @db.Decimal(14, 2)
+  costHigh   Decimal? @map("cost_high") @db.Decimal(14, 2)
+  sourceUrl  String?  @map("source_url")
+  /// ADDITION: not in Doc 07, needed by Doc 03 action savings (zero-cost vs capex, end-use, provenance)
+  isZeroCost Boolean  @map("is_zero_cost")
+  enduse     Enduse
+  status     String
+  source     String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  siteActions SiteAction[]
+  ledger      SavingsLedger[]
+
+  @@map("action_library")
+}
+
+model Scheme {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String    @unique
+  rulesJson     Json      @map("rules_json")
+  rateRange     String?   @map("rate_range")
+  lastCheckedAt DateTime? @map("last_checked_at")
+  /// ADDITION: not in Doc 07, needed by ADM-1 / Schemes (ended schemes, source, status)
+  active        Boolean
+  statusNote    String?   @map("status_note")
+  source        String
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("schemes")
+}
+
+/// ADDITION: not in Doc 07, needed by Doc 03 Benchmarks (sector intensity ranges)
+model Benchmark {
+  id        String   @id @default(uuid()) @db.Uuid
+  sector    String
+  metric    String
+  low       Decimal  @db.Decimal(14, 3)
+  high      Decimal  @db.Decimal(14, 3)
+  unit      String
+  source    String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([sector, metric])
+  @@map("benchmarks")
+}

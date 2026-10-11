@@ -1,0 +1,32 @@
+[
+  {
+    "name": "SIDBI green loan (energy efficiency)",
+    "rules": { "min_years_operation": 3, "cash_profits": true, "gst_compliant": true },
+    "rate_range": "7.5-8.6%",
+    "source": "Mercom",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": null
+  },
+  {
+    "name": "SIDBI MSE-GIFT",
+    "rules": {},
+    "rate_range": null,
+    "source": "HelloBanker",
+    "active": false,
+    "status_note": "ended 31 March 2026 (HelloBanker)",
+    "last_checked_at": null
+  },
+  {
+    "name": "PM Surya Ghar (household)",
+    "rules": {
+      "subsidy_inr": { "1kW": 30000, "2kW": 60000, "3kW": 78000 },
+      "free_units_per_month": 300
+    },
+    "rate_range": null,
+    "source": "LAEX summary",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": null
+  }
+]

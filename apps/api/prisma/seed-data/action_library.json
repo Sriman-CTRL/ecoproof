@@ -1,0 +1,49 @@
+{
+  "_comment": "Capex measures pending: source from a BEE SME foundry cluster manual.",
+  "rows": [
+    {
+      "code": "fix_power_factor",
+      "sector": "foundry",
+      "equipment": "capacitor bank",
+      "is_zero_cost": false,
+      "enduse": "electricity",
+      "status": "rule",
+      "source": "Doc 03 Bill health check: saving computed from the bill at runtime",
+      "cost_low": null,
+      "cost_high": null
+    },
+    {
+      "code": "shift_peak_use_to_solar_hours",
+      "sector": "foundry",
+      "equipment": "operations scheduling",
+      "is_zero_cost": true,
+      "enduse": "electricity",
+      "status": "rule",
+      "source": "Doc 03 Bill health check: saving computed from the bill at runtime",
+      "cost_low": null,
+      "cost_high": null
+    },
+    {
+      "code": "reduce_contracted_demand",
+      "sector": "foundry",
+      "equipment": "contracted demand",
+      "is_zero_cost": true,
+      "enduse": "electricity",
+      "status": "rule",
+      "source": "Doc 03 Bill health check: saving computed from the bill at runtime",
+      "cost_low": null,
+      "cost_high": null
+    },
+    {
+      "code": "avoid_minimum_charges",
+      "sector": "foundry",
+      "equipment": "billing",
+      "is_zero_cost": true,
+      "enduse": "electricity",
+      "status": "rule",
+      "source": "Doc 03 Bill health check: saving computed from the bill at runtime",
+      "cost_low": null,
+      "cost_high": null
+    }
+  ]
+}

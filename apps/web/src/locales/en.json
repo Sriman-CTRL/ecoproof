@@ -1,0 +1,5 @@
+{
+  "app": { "title": "EcoProof", "tagline": "Energy and carbon pre-assessment for MSMEs" },
+  "language": { "label": "Language" },
+  "placeholder": { "body": "Phase 0 scaffold. Sample bill amount:" }
+}

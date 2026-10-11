@@ -1,0 +1,74 @@
+[
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "kvah_billing",
+    "params": { "pf_flag_below": 0.98 },
+    "source": "TGSPDCL tariff FY 2025-26 (Doc 03)",
+    "valid_from": "2025-04-01",
+    "basis_note": "valid_from inferred from FY 2025-26",
+    "status": null
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "tod",
+    "params": {
+      "peak_windows": ["06:00-10:00", "18:00-22:00"],
+      "peak_surcharge_inr_per_kwh": 1.5,
+      "solar_window": "10:00-18:00",
+      "solar_rebate_inr_per_kwh": 0.5
+    },
+    "source": "Mercom, FY 2026-27",
+    "valid_from": "2026-04-01",
+    "basis_note": "valid_from inferred from FY 2026-27",
+    "status": null
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "night_rebate",
+    "params": { "rebate_inr_per_kwh": 1.5, "status": "withdrawn", "withdrawn": "2025-11" },
+    "source": "Power Peak Digest",
+    "valid_from": null,
+    "basis_note": "No start date given in source; withdrawn 2025-11",
+    "status": "withdrawn"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "billing_demand",
+    "params": {
+      "rule": "max(recorded_md, 0.8*contracted_demand)",
+      "flag_if_md_below_pct_of_cd": 80,
+      "flag_months": 6
+    },
+    "source": "TGSPDCL tariff FY 2024-25 (Doc 03)",
+    "valid_from": "2024-04-01",
+    "basis_note": "valid_from inferred from FY 2024-25",
+    "status": null
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "minimum_charge",
+    "params": { "kvah_per_kva_billing_demand_per_month": 50 },
+    "source": "TGSPDCL tariff FY 2024-25 (Doc 03)",
+    "valid_from": "2024-04-01",
+    "basis_note": "valid_from inferred from FY 2024-25",
+    "status": null
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-III",
+    "rule_type": "surcharges_from_bill",
+    "params": {
+      "read_line_items": ["low_pf_surcharge", "capacitor_surcharge"],
+      "flag_if_nonzero": true
+    },
+    "source": "TGSPDCL tariff FY 2026-27 (Doc 03)",
+    "valid_from": "2026-04-01",
+    "basis_note": "valid_from inferred from FY 2026-27",
+    "status": null
+  }
+]

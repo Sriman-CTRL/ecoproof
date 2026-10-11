@@ -1,0 +1,122 @@
+[
+  {
+    "source_type": "grid_electricity_india",
+    "value": 0.727,
+    "unit": "t CO2 per MWh",
+    "source": "CEA CO2 Baseline Database v20.0, FY 2023-24 (via Climatiq)",
+    "source_url": null,
+    "status": "confirmed_replace",
+    "gas_basis": "CO2",
+    "valid_from": "2023-04-01",
+    "version": "v20.0",
+    "basis_note": "Replace with v22.0 value at build time (see docs/OPEN_ITEMS.md)"
+  },
+  {
+    "source_type": "diesel_litre",
+    "value": 2.675,
+    "unit": "kg CO2e per litre",
+    "source": "India Default GHG Emission Values v1.0, 2025 (via Climatiq)",
+    "source_url": null,
+    "status": "confirmed",
+    "gas_basis": "CO2e",
+    "valid_from": null,
+    "version": null,
+    "basis_note": null
+  },
+  {
+    "source_type": "diesel_kg",
+    "value": 3.186,
+    "unit": "kg CO2 per kg",
+    "source": "IPCC 2006: NCV 43.0 TJ/Gg x 74,100 kg/TJ",
+    "source_url": null,
+    "status": "confirmed",
+    "gas_basis": "CO2",
+    "valid_from": null,
+    "version": null,
+    "basis_note": null
+  },
+  {
+    "source_type": "lpg_kg",
+    "value": 2.985,
+    "unit": "kg CO2 per kg",
+    "source": "IPCC 2006 default: 47.3 TJ/Gg x 63,100 kg/TJ",
+    "source_url": null,
+    "status": "verify",
+    "gas_basis": "CO2",
+    "valid_from": null,
+    "version": null,
+    "basis_note": "Verify against IPCC tables before launch"
+  },
+  {
+    "source_type": "furnace_oil_kg",
+    "value": 3.127,
+    "unit": "kg CO2 per kg",
+    "source": "IPCC 2006 residual fuel oil: 40.4 TJ/Gg x 77,400 kg/TJ",
+    "source_url": null,
+    "status": "verify",
+    "gas_basis": "CO2",
+    "valid_from": null,
+    "version": null,
+    "basis_note": "Verify before launch"
+  },
+  {
+    "source_type": "foundry_coke_kg",
+    "value": 3.017,
+    "unit": "kg CO2 per kg",
+    "source": "IPCC 2006 coke oven coke: 28.2 TJ/Gg x 107,000 kg/TJ",
+    "source_url": null,
+    "status": "verify",
+    "gas_basis": "CO2",
+    "valid_from": null,
+    "version": null,
+    "basis_note": "Verify before launch"
+  },
+  {
+    "source_type": "natural_gas_tj",
+    "value": 56100,
+    "unit": "kg CO2 per TJ",
+    "source": "IPCC 2006 default; energy from bill calorific value",
+    "source_url": null,
+    "status": "verify",
+    "gas_basis": "CO2",
+    "valid_from": null,
+    "version": null,
+    "basis_note": "Verify before launch"
+  },
+  {
+    "source_type": "rooftop_solar_self_used",
+    "value": 0,
+    "unit": "-",
+    "source": "Location-based Scope 2 rule",
+    "source_url": null,
+    "status": "rule",
+    "gas_basis": null,
+    "valid_from": null,
+    "version": null,
+    "basis_note": null
+  },
+  {
+    "source_type": "pig_iron_cbam_india_default",
+    "value": 2.53,
+    "unit": "t CO2 per t",
+    "source": "EU India default, IR (EU) 2025/2621 (GreenSutra)",
+    "source_url": null,
+    "status": "estimate_only",
+    "gas_basis": null,
+    "valid_from": null,
+    "version": null,
+    "basis_note": "CBAM output: estimate, not verified"
+  },
+  {
+    "source_type": "pig_iron_cbam_fallback",
+    "value": 3.48,
+    "unit": "t CO2 per t",
+    "source": "EU fallback default (GreenSutra)",
+    "source_url": null,
+    "status": "estimate_only",
+    "gas_basis": null,
+    "valid_from": null,
+    "version": null,
+    "basis_note": "CBAM output: estimate, not verified"
+  }
+]

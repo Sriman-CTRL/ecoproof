@@ -1,0 +1,11 @@
+[
+  {
+    "sector": "foundry_induction",
+    "metric": "kwh_per_tonne",
+    "low": 700,
+    "high": 2000,
+    "unit": "kWh per tonne",
+    "source": "BEE range via Down To Earth",
+    "status": "confirmed"
+  }
+]
