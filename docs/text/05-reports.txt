@@ -1,0 +1,246 @@
+05 Reports and Document Generation
+
+
+
+
+  05 Reports and Document Generation
+    Oct 11, 2026       · ​@Sriman
+
+
+  Report catalogue
+  Eight reports, each answering one audience's single deciding question; all are built from
+  the same frozen data snapshot, so they never disagree.
+
+
+     Report                     Audience            Their deciding         Format            When
+                                                    question
+
+     Monthly                    Owner               "Did I save money      In-app +          Every
+     energy and                                     this month, and        WhatsApp + 1-     confirmed
+     savings report                                 what next?"            page PDF          bill
+
+     Loan-ready                 Bank, NBFC, SIDBI   "Can this unit         PDF + expiring    On demand
+     pack                                           repay from the         link
+                                                    saving?"
+
+     CBAM                       EU importer         "What embedded         Excel in the EU   On request
+     supplier                                       emissions do I         template's
+     emissions                                      declare for these      structure + PDF
+     sheet                                          goods?"
+
+     BRSR value-                Indian listed       "What are this         Excel in BRSR     On request,
+     chain sheet                customer            supplier's energy      Core fields       yearly
+                                                    and emission
+                                                    figures?"
+
+     Progress                   Any outside party   "Is this unit really   PDF with QR       Quarterly
+     statement                                      improving, and is      verification      and yearly
+                                                    this document
+                                                    genuine?"
+
+     Scheme                     Government          "Does the unit         PDF               On demand
+     support                    scheme desks        meet the
+     summary                    (ZED, state         scheme's energy
+                                subsidy, DIC)       and environment
+                                                    data needs?"
+
+
+
+
+                                                                                                     Page 1 of 5
+05 Reports and Document Generation
+
+
+
+
+     Report                     Audience           Their deciding        Format            When
+                                                   question
+
+     Cluster                    Industry           "How is the cluster   Dashboard +       Monthly
+     summary                    association,       doing overall?"       PDF, aggregates
+                                government                               only
+
+     Household                  Homeowner, solar   "What size, what      PDF               On demand
+     solar report               vendor             subsidy, what
+                                                   saving?"
+
+
+
+
+  Why each report wins its audience
+  Each report leads with the one number its reader decides on; everything else is
+  supporting evidence.
+
+  Lenders: repayment from savings. Lenders want cash-flow comfort. The pack's first line
+  is "monthly saving ₹X vs EMI ₹Y" (doc 03), backed by 12 months of DISCOM bills, which
+  are third-party documents. RBI is already steering lenders to judge MSMEs on digital
+  records, including utility records, through the Unified Lending Interface (RBI Governor,
+  June 2026), so bill-based evidence matches where lending is heading.
+
+  EU buyers: avoiding default values. Without supplier data, EU importers must use
+  country default values that carry a mark-up (GreenSutra); verified data roughly halves the
+  bill (GreenSutra). The buyer's cost logic is:
+
+     Cost_{buyer} = T \times SEE \times Price_{cert} \times Factor_{year}
+
+
+  Illustration with published figures: 500 t of flat-rolled steel at the India default of 4.28 t
+  CO₂ per tonne, at the Q1 2026 certificate price of €75.36 (GreenSutra calculator), is
+  €161,270 at the full rate. The payable share is only 2.5% in 2026 (about €4,030) but reaches
+  100% by 2034 (same source). Our sheet shows the buyer where the supplier stands now,
+  as an estimate, and the path to verified data.
+
+  Indian listed customers: value-chain data. The top 250 listed companies report on value-
+  chain partners that make up 2% or more of their purchases, voluntary from FY 2025–26
+  (Vinod Kothari); unlisted suppliers are already receiving BRSR-shaped questionnaires
+  (GreenSutra). A ready sheet saves the supplier time and makes them easier to keep.
+
+
+
+
+                                                                                                     Page 2 of 5
+05 Reports and Document Generation
+
+
+
+
+  Government desks: scheme evidence. Scheme applications ask for energy and
+  environment data the unit rarely has in one place; the summary collects it with sources.
+  We never submit on the owner's behalf.
+
+
+  Report contents
+  Field lists for the five reports that leave the platform most often; every field maps to a
+  stored value with a data quality tag.
+
+  Loan-ready pack (PDF, 4–6 pages)
+
+   1. Cover: business name, Udyam number, GSTIN, years in operation, site address, report
+      ID and date.
+   2. Headline box: proposed measure, cost, monthly saving range, EMI at the owner's
+      chosen terms, monthly net cash effect.
+   3. Energy baseline: 12 months of kWh, kVAh, PF, demand and ₹, each linked to its bill;
+      baseline fit statistics.
+   4. Bill health findings already fixed or pending, in ₹ per month.
+   5. Measure detail: equipment, vendor quotes compared, chosen quote, saving range with
+      source, payback.
+   6. Carbon impact: CO₂ per year avoided; intensity before and after.
+   7. Data quality score and the label "summary for the lender's own assessment".
+   8. After the measure: a link that later shows verified savings to the lender (with consent).
+
+  CBAM supplier emissions sheet (Excel + PDF), sections ordered like the EU
+  communication template (EU CBAM training):
+
+   1. Installation: name, address, coordinates, contact.
+   2. Goods: description and CN code per product, production route (e.g. induction
+      melting).
+   3. Reporting period: calendar year, as required for goods imported from 2026 (DQS
+      template).
+   4. Direct emissions: fuels and quantities with factors (doc 03).
+   5. Precursors: tonnes of pig iron, steel or aluminium bought, with specific embedded
+      emissions and whether each is supplier-verified or a default.
+   6. Specific embedded emissions per product (direct; indirect shown separately for
+      information).
+   7. Share of embedded emissions resting on default values.
+
+
+                                                                                               Page 3 of 5
+05 Reports and Document Generation
+
+
+
+
+   8. Carbon price paid in India: none recognised as of June 2026 (GreenSutra).
+   9. Status line: "Estimate, not verified. Verified data must be confirmed by an accredited
+       verifier."
+
+  BRSR value-chain sheet (Excel): total energy use (GJ) split into grid, fuels and renewable;
+  Scope 1 and Scope 2 emissions (t CO₂e); energy and emission intensity per ₹ crore of
+  turnover and per tonne of output; reporting year; data quality score. Confirm field names
+  against SEBI's latest BRSR Core format before release.
+
+  Progress statement (PDF, 1 page): period, intensity trend, verified ₹ and CO₂ saved,
+  actions completed, Green Progress Score, data quality score, QR code to the verification
+  page.
+
+  Monthly report (1 page): ₹ saved this month and to date, kWh per tonne, CO₂ per tonne,
+  bill health findings, the next action, and the data quality score.
+
+
+  Generation pipeline
+  Every report goes through the same seven steps, so any number in any document can be
+  traced back and verified.
+
+   1. Request: owner (or an approved buyer request) picks a report type, period and
+       language.
+   2. Snapshot: freeze the inputs, results, factor versions and data quality score into a read-
+       only snapshot with an ID.
+   3. Compute: run any report-specific calculations (e.g. per-product CBAM figures) on the
+       snapshot only.
+   4. Render: fill an HTML template and convert to PDF with a headless browser; fill an Excel
+      template for spreadsheets. Templates exist in Telugu, Hindi and English; numbers use
+       Indian grouping.
+   5. Seal: compute a SHA-256 hash of the file, store it with the snapshot ID, and print a QR
+      code linking to a public verification page.
+   6. Store and share: save the file in object storage; sharing creates a signed link with an
+      expiry (30 days by default) and a named recipient.
+   7. Log: record generation, every view and every download; the owner sees the log.
+
+  Verification page: anyone scanning the QR sees the report ID, issue date, business name
+  and headline figures, plus a check: upload the PDF and the page confirms the hash
+  matches. No other business data is shown.
+
+
+
+                                                                                           Page 4 of 5
+05 Reports and Document Generation
+
+
+
+
+  Regeneration: a report is never edited. A new snapshot makes a new version; old versions
+  stay valid with their own hash.
+
+
+  Wording and labelling rules
+  Fixed phrases keep reports honest and legally safe; templates use these and nothing
+  stronger.
+
+
+     Situation                       Always say                           Never say
+
+     Energy analysis                 "Energy and carbon pre-              "Energy audit" (reserved for
+                                     assessment"                          accredited auditors)
+
+     Loan pack                       "Summary for the lender's own        "Approved", "sanctioned",
+                                     assessment"                          "eligible for loan"
+
+     CBAM sheet                      "Estimate, not verified"             "CBAM certified", "compliant"
+
+     Savings before                  "Too early to confirm"               "Saved"
+     significance
+
+     Default-based                   "Based on EU default value"          Unlabelled numbers
+     values
+
+     Scheme eligibility              "Likely eligible; confirm with the   "Eligible"
+                                     scheme office"
+
+
+  Every report also prints: the snapshot ID, the factor versions used, the data quality score,
+  and the date the scheme or tariff rules were last checked.
+
+
+  Sources
+       RBI Governor's remarks on ULI, June 2026
+       GreenSutra, CBAM solutions and default mark-ups · GreenSutra, CBAM in 2026 ·
+       GreenSutra, CBAM cost calculator
+       EU CBAM training, communication template for embedded emissions · DQS, CBAM
+       emission report template
+       Vinod Kothari, BRSR value-chain partners · GreenSutra, BRSR in 2026
+
+
+
+
+                                                                                                          Page 5 of 5
+

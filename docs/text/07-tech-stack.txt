@@ -1,0 +1,462 @@
+07 Tech Stack and System Design
+
+
+
+
+  07 Tech Stack and System Design
+    Oct 11, 2026       · ​@Sriman
+
+
+  Tech stack
+  One TypeScript codebase on Postgres with a job queue covers v1 and scales to about 1
+  lakh units without a rewrite; each external AI or messaging service sits behind an adapter
+  so it can be swapped.
+
+
+     Layer                        v1 choice                 Why                      Scale-up option
+
+     Web app                      React + TypeScript,       Team knows React;        React Native app if
+                                  Vite, installable PWA,    PWA avoids an app-       owners ask for it
+                                  Tailwind, i18next         store install
+
+     API                          Node.js + TypeScript,     Team knows Express;      Split into services only
+                                  Express, Zod              one language end to      where load demands
+                                  validation                end
+
+     Database                     PostgreSQL via Prisma     Relational data, row-    AWS RDS in the
+                                  (Supabase in v1)          level security per       Mumbai region, read
+                                                            organisation             replica
+
+     Jobs and                     Redis + BullMQ            Retries, rate limits     Managed Redis;
+     schedules                                              and cron for             separate queues per
+                                                            extraction, reports      job type
+                                                            and messages
+
+     File storage                 Supabase Storage (S3-     Bills and reports;       Amazon S3 Mumbai
+                                  compatible),              signed URLs              with lifecycle to cold
+                                  encrypted                                          storage
+
+     Document                     Gemini 2.5 Flash vision   Free tier for            Adapter allows
+     reading                      returning JSON            prototyping; about       switching model or
+                                  checked against a         ₹0.16 per bill on paid   provider per document
+                                  schema                    use (see research        type
+                                                            report)
+
+     Speech                       Sarvam speech-to-         Telugu–English           Same adapter pattern
+                                  text and text-to-         mixing (Sarvam)
+                                  speech
+
+
+
+                                                                                                           Page 1 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Layer                        v1 choice                Why                     Scale-up option
+
+     Messaging                    WhatsApp Business        97% WhatsApp use        Business solution
+                                  Platform (Meta Cloud     among surveyed          provider for higher
+                                  API) + SMS OTP           MSMEs                   volume
+                                  provider
+
+     Calculation                  Pure TypeScript          Unit-testable against   Python service later for
+     engine                       module, deterministic,   doc 03 examples         forecasting models
+                                  no I/O
+
+     PDF and Excel                HTML templates           Same templates in       Dedicated report
+                                  rendered by headless     three languages         worker pool
+                                  Chromium
+                                  (Playwright); ExcelJS
+
+     Solar yield                  NREL PVWatts API for     Location-specific       Cache yields per grid
+                                  site yield               instead of a fixed      cell
+                                                           guess
+
+     Auth                         Phone OTP, short-lived   Owners use phones,      Add SSO for lenders
+                                  JWT, role-based          not email               and buyers
+                                  access
+
+     Hosting                      Static web on a CDN;     Low cost, fast start    AWS Mumbai
+                                  API and workers on a                             (containers) for data
+                                  managed container                                residency and scale
+                                  host
+
+     Observability                Sentry for errors,       Catch extraction        OpenTelemetry tracing
+                                  structured logs,         failures early
+                                  uptime checks
+
+     CI/CD                        GitHub Actions,          Every change tested     Staged rollouts
+                                  preview deployments,
+                                  migrations in pipeline
+
+
+
+
+  System architecture
+  All channels go through one API, and all slow work runs as queued jobs, so each worker
+  type can be scaled on its own.
+
+
+
+
+                                                                                                         Page 2 of 10
+07 Tech Stack and System Design
+
+
+
+
+  system architecture · 3 channels, 1 API, 5 worker types
+
+  The API never calls an AI model directly; it only creates jobs, which keeps owner-facing
+  responses fast and lets failed model calls retry without the owner noticing.
+
+
+  Data model
+  Twenty-six core tables; every business row carries an organisation ID so row-level
+  security keeps each MSME's data separate.
+
+
+     Table                        Purpose                   Key fields
+
+     organisations                One MSME or               id, type (msme/household), name,
+                                  household                 udyam_no, gstin, sector, state,
+                                                            created_at
+
+
+
+
+                                                                                               Page 3 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Table                        Purpose                 Key fields
+
+     sites                        A plant with its own    id, org_id, address, lat, lng, discom,
+                                  meter                   consumer_no, tariff_category,
+                                                          contracted_demand_kva
+
+     users                        A person                id, phone, language, created_at
+
+     memberships                  User's role in an       user_id, org_id, role
+                                  organisation            (owner/accountant/supervisor),
+                                                          invited_by
+
+     consents                     Consent records         org_id, user_id, notice_version, purpose,
+                                                          granted_at, withdrawn_at
+
+     documents                    Uploaded files          id, site_id, kind
+                                                          (power_bill/fuel/invoice/quote), file_key,
+                                                          sha256, source (web/whatsapp), status
+
+     extractions                  Model output per        document_id, model, fields_json,
+                                  document                confidence_json, confirmed_by,
+                                                          confirmed_at
+
+     energy_months                Confirmed electricity   site_id, period_start, period_end, kwh,
+                                  data                    kvah, pf, md_kva, peak_kwh,
+                                                          solar_hours_kwh, energy_charges,
+                                                          demand_charges, other_charges_json,
+                                                          quality_tag
+
+     fuel_entries                 Fuel use                site_id, date, fuel_type, quantity, unit,
+                                                          quality_tag
+
+     purchases                    Metals bought           site_id, date, hsn, material, tonnes,
+                                                          supplier_gstin, supplier_see
+
+     production_months            Output                  site_id, month, quantity, unit, quality_tag
+
+     factors                      Emission factors        id, source_type, value, unit, source_url,
+                                                          version, valid_from, superseded_by
+
+     tariff_rules                 DISCOM rules            discom, category, rule_type,
+                                                          params_json, valid_from
+
+     results                      Calculated monthly      site_id, month, scope1, scope2,
+                                  results                 scope3_metals, intensity, factor_ids,
+                                                          formula_version, input_ids
+
+
+
+
+                                                                                                   Page 4 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Table                        Purpose                 Key fields
+
+     baselines                    Fitted models           site_id, start, end, a, b, cv_rmse, nmbe,
+                                                          method
+
+     action_library               Sector actions          id, sector, equipment, saving_low,
+                                                          saving_high, cost_low, cost_high,
+                                                          source_url
+
+     site_actions                 Owner's plan            site_id, action_id, status, planned_at,
+                                                          done_at, actual_cost,
+                                                          quote_document_id
+
+     savings_ledger               Verified savings        site_id, month, action_id, kwh_saved,
+                                                          inr_saved, co2_saved, status
+                                                          (early/verified)
+
+     schemes                      Loans and subsidies     id, name, rules_json, rate_range,
+                                                          last_checked_at
+
+     report_snapshots /           Frozen inputs and       snapshot_id, org_id, type, language,
+     reports                      generated files         file_key, sha256, created_at
+
+     shares / share_views         Who can see what        share_id, report_id, recipient, expires_at;
+                                                          view time, ip, user agent
+
+     buyer_requests               Buyer asks a supplier   buyer_org_id, supplier_org_id,
+                                                          report_type, status
+
+     notifications /              Messages and history    template, sent_at, status; actor, action,
+     audit_log                                            target, at
+
+
+
+
+  Key flow: one bill, upload to summary
+  The bill flow is asynchronous: the owner gets an instant "received", and every later step is
+  a queued job that can retry safely.
+
+   1. Receive. Web upload or WhatsApp webhook (signature checked). Compress, compute
+       SHA-256; if the hash exists, reply "already received" and stop.
+   2. Store. Save the file to object storage; create a documents row with status received ;
+       enqueue extract .
+
+
+
+
+                                                                                                    Page 5 of 10
+07 Tech Stack and System Design
+
+
+
+
+   3. Extract. Worker sends the image to the document model with the field schema;
+       validate the JSON with Zod; save to extractions ; status extracted . On failure, retry
+       up to 3 times, then status needs_manual and ask the owner to type the 3 key values.
+   4. Validate. Run rules from doc 03 (PF range, kWh ≤ kVAh, no overlapping period,
+       consumer number matches). Mark failing fields low-confidence.
+   5. Confirm. Send the confirm screen (web) or one-tap buttons (WhatsApp). On confirm,
+      write energy_months with quality tag measured ; status confirmed .
+   6. Calculate. Enqueue calculate for the site and month: results row, intensity, baseline
+       refit if a new month completes 9+, savings ledger update.
+   7. Insights. Run bill health checks; refresh the action plan ranking; update the Green
+      Progress Score.
+   8. Notify. Enqueue the monthly WhatsApp summary (respecting caps) and any alerts.
+
+  Every job is idempotent: keyed by document ID or site-month, so a retry never double-
+  counts.
+
+
+  Security and privacy
+  Security follows the DPDP obligations described in the research report: consent, deletion
+  on withdrawal, and breach reporting within 72 hours.
+
+
+     Area                          Design
+
+     Tenancy                       Row-level security on every table by org_id; API
+                                   checks role on every request
+
+     Data in transit and at rest   TLS everywhere; database and storage encrypted
+                                   at rest
+
+     Files                         Private buckets; access only through signed URLs
+                                   that expire in minutes
+
+     Shares                        Separate share tokens with expiry and named
+                                   recipient; every view logged
+
+     Webhooks                      Verify WhatsApp signatures; reject replays
+
+     Secrets                       Stored in the host's secret manager, never in code;
+                                   rotated quarterly
+
+
+
+
+                                                                                            Page 6 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Area                         Design
+
+     AI providers                 Send only the document image and field schema;
+                                  no names or phone numbers in prompts; use paid
+                                  tiers for real customer data (free tiers may train on
+                                  inputs)
+
+     Consent and deletion         Consent stored per purpose and notice version;
+                                  deletion removes files, extractions and personal
+                                  fields within 30 days and keeps only anonymised
+                                  aggregates
+
+     Location                     Move production data to an Indian region (e.g. AWS
+                                  Mumbai) before scaling beyond the pilot
+
+     Abuse                        Rate limits per phone number and IP; OTP attempt
+                                  limits
+
+     Backups                      Daily database backups, 30-day retention; restore
+                                  tested monthly
+
+     Breach response              Runbook to assess and notify within 72 hours
+
+
+
+
+  Scalability plan
+  The load is light and bursty: bills arrive on DISCOM cycle dates, so the design scales by
+  adding queue workers, not by redesigning.
+
+  Capacity at 1 lakh units (3 documents per unit per month):
+
+       Documents: 3,00,000 a month, about 10,000 a day on average; assume 5× on billing
+       peaks, about 50,000 a day, under 1 per second. A few workers handle this.
+       Document-reading cost: 3,00,000 × ₹0.16 ≈ ₹48,000 a month on paid model rates.
+       Storage: 3,00,000 × 300 KB ≈ 90 GB of new files a month; move files older than 18
+       months to cold storage.
+       Database: about 1 lakh new monthly rows per table; well within one Postgres instance
+       for years.
+
+
+
+
+                                                                                           Page 7 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Stage                        Units       Setup                           Trigger to move on
+
+     Ideathon and                 Up to 100   One API, one worker, managed    Paying users or 100+ units
+     pilot                                    Postgres and Redis, free or
+                                              starter tiers
+
+     Growth                       1,000–      API and workers scaled          p95 job wait above 5
+                                  10,000      separately; managed Redis;      minutes on peak days
+                                              read replica; Indian region
+
+     Scale                        1 lakh+     Worker pools per job type;      Reporting queries slowing
+                                              tables partitioned by month;    the main database
+                                              analytics copy in a column
+                                              store; model batch calls
+
+
+  What does not change across stages: the data model, the calculation module, the
+  adapters, and the report pipeline.
+
+
+  Integration roadmap
+  Each integration replaces a manual upload with a direct data feed, in order of value and
+  ease.
+
+
+     Order         Integration                           Replaces            Needs
+
+     1             Udyam verification through a          Typed Udyam         Commercial account; per-call
+                   vendor API (e.g. Cashfree)            number              fee
+
+     2             GST e-invoice import through          Invoice photos      GSP partner; taxpayer OTP
+                   a GST Suvidha Provider                                    consent (IRIS GST)
+
+     3             Tally or accounting export            Invoice and fuel    File format mapping
+                   import                                photos
+
+     4             Smart-meter data from                 Bill photos         Agreement per DISCOM; 7.24
+                   DISCOMs                                                   crore smart meters installed
+                                                                             by June 2026 (T&D India)
+
+     5             Lender connection through             Emailed loan        Become a data provider; ULI
+                   RBI's Unified Lending                 packs               already carries GST, bank and
+                   Interface                                                 utility records (RBI Governor,
+                                                                             June 2026)
+
+
+
+                                                                                                       Page 8 of 10
+07 Tech Stack and System Design
+
+
+
+
+     Order         Integration                        Replaces             Needs
+
+     6             Verified data hand-off to          Estimate-only        Verifier partners
+                   accredited CBAM verifiers          CBAM sheets
+
+
+  Build every integration behind the same documents and energy_months tables, so
+  downstream calculations and reports never change.
+
+
+  Testing and quality gates
+  No release ships unless the calculation tests pass and extraction accuracy holds on the
+  test set.
+
+
+     Gate                         Test                                 Pass mark
+
+     Calculation                  Unit tests reproducing every         100% pass
+     correctness                  worked example in doc 03
+                                  (footprint, PF loss, EMI, savings)
+
+     Extraction                   50 real Telangana bills with hand-   95% of fields exact; 100% of kWh
+     accuracy                     checked values                       and period fields
+
+     Validation rules             Synthetic bad inputs (duplicate,     All rejected or flagged
+                                  PF above 1, overlapping period)
+
+     Report integrity             Generate, hash, re-verify each       Hash matches; numbers equal
+                                  report type                          the app's
+
+     Access control               Tests that one organisation          Zero leaks
+                                  cannot read another's rows or
+                                  files
+
+     Load                         Simulate a billing-peak day at 10×   p95 extraction under 2 minutes
+                                  current volume
+
+     Translations                 Native speakers review Telugu        No untranslated strings
+                                  and Hindi strings
+
+
+  Keep a growing "bill zoo" of real bill layouts from each DISCOM; any extraction miss in
+  production adds that bill to the test set.
+
+
+
+
+                                                                                                   Page 9 of 10
+07 Tech Stack and System Design
+
+
+
+
+  Sources
+       Sarvam AI, Telugu speech-to-text
+       Cashfree, Udyam verification API
+       IRIS GST, consent to get GST data
+       T&D India, smart meters installed
+       RBI Governor's remarks on ULI, June 2026
+       Costs and DPDP obligations: see the Platform design tab of the gap research report.
+
+
+
+
+                                                                                       Page 10 of 10
+

@@ -1,0 +1,461 @@
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  03 Calculation Logic: Carbon, Savings, Scores
+     Oct 11, 2026        · ​@Sriman
+
+
+  Rules every calculation follows
+  Every number the platform shows must be traceable to an input, a factor and a formula
+  version; these eight rules enforce that.
+
+    1. Activity-based, never spend-based. Use physical quantities from bills (kWh, kVAh,
+       litres, kg, tonnes). Rupee amounts are used only for money, never to estimate
+       emissions.
+    2. Versioned factors. Each factor row stores value, unit, source, version and valid-from
+       date. Each result stores the factor row IDs it used.
+    3. Recalculation is explicit. When a new factor version arrives (CEA publishes yearly),
+       past results stay as published; a recalculated series is shown side by side and labelled.
+    4. Location-based Scope 2. Grid electricity uses the national CEA factor. Self-generated
+       rooftop solar counts as zero.
+    5. Ranges, not false precision. Action savings are shown as low–high ranges; verified
+       savings carry an uncertainty band.
+    6. Owner confirms inputs. No extracted value enters a calculation until the owner
+       confirms it or it passes validation rules.
+    7. Per-unit intensity is the main metric. Totals rise when business grows; kWh or kg CO₂
+       per tonne of output shows real efficiency.
+    8. Estimates are labelled. Anything using a default value (e.g. CBAM precursor defaults)
+        is tagged "estimate" on every screen and report.
+
+
+  Emission factor table
+  Start with these factors; grid electricity matters most because about 90% of a foundry's
+  emissions come from electricity (Down To Earth, Kolhapur auditors).
+
+
+
+
+                                                                                            Page 1 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+     Source                             Factor     Unit        Basis                     Status
+
+     Grid electricity,                  0.727      t CO₂       CEA CO₂ Baseline          Confirmed; replace
+     India                                         per         Database v20.0, FY        with v22.0 value at
+                                                   MWh         2023–24 (Climatiq)        build time
+
+     Diesel (DG sets,                   2.675      kg CO₂e     India Default GHG         Confirmed
+     vehicles)                                     per litre   Emission Values v1.0,
+                                                               2025 (Climatiq)
+
+     Diesel, by mass                    3.186      kg CO₂      IPCC 2006: NCV 43.0       Confirmed
+                                                   per kg      TJ/Gg × 74,100 kg/TJ
+                                                               (IPCC summary)
+
+     LPG                                2.985      kg CO₂      IPCC 2006 default: 47.3   Verify against IPCC
+                                                   per kg      TJ/Gg × 63,100 kg/TJ      tables before launch
+
+     Furnace oil                        3.127      kg CO₂      IPCC 2006 default for     Verify before launch
+                                                   per kg      residual fuel oil: 40.4
+                                                               TJ/Gg × 77,400 kg/TJ
+
+     Foundry coke                       3.017      kg CO₂      IPCC 2006 default for     Verify before launch
+                                                   per kg      coke oven coke: 28.2
+                                                               TJ/Gg × 107,000 kg/TJ
+
+     Indian coal                        India-     kg CO₂      Use CSIR-CIMFR            Fetch the published
+                                        specific   per kg      country NCV and           values
+                                                               carbon factors
+                                                               (CIMFR)
+
+     Piped natural                      56,100 ×   kg CO₂      IPCC 2006 default;        Verify before launch
+     gas                                energy     per TJ      energy from the bill's
+                                                               calorific value
+
+     Rooftop solar,                     0          —           Location-based Scope      Rule
+     self-used                                                 2 rule
+
+     Pig iron bought                    2.53       t CO₂       EU India default, IR      Confirmed; estimate
+     (CBAM                                         per t       (EU) 2025/2621            only
+     precursor)                                                (GreenSutra)
+
+     Pig iron, no                       3.48       t CO₂       EU fallback default       Confirmed; estimate
+     country value                                 per t       (GreenSutra)              only
+
+
+
+
+                                                                                                          Page 2 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  The grid factor is CO₂-only, so label totals "t CO₂ (grid) + t CO₂e (fuels)" until CH₄ and N₂O
+  factors are added.
+
+
+  Carbon footprint formulas
+  The footprint is fuels plus grid power, divided by output; purchased metals are added only
+  for CBAM estimates.
+
+  Scope 1 (fuels burned on site):
+
+     S_1 = \sum_{f} Q_f \times EF_f
+
+
+  Q is the confirmed quantity of fuel f in the month (litres or kg); EF from the factor table.
+
+  Scope 2 (grid electricity, location-based):
+
+     S_2 = \frac{E_{grid,kWh}}{1000} \times EF_{grid}
+
+
+  Use kWh, not kVAh, from the bill. If the unit has rooftop solar with net metering, grid kWh
+  = imported kWh; exported units are not subtracted.
+
+  Scope 3 (only purchased CBAM metals in v1):
+
+     S_{3,metals} = \sum_{m} T_m \times SEE_m
+
+
+  T = tonnes of pig iron, steel or aluminium bought (from GST invoices, matched by HSN
+  code); SEE = supplier's verified value if given, else the EU India default.
+
+  Intensity (the headline metric):
+
+     I = \frac{S_1 + S_2}{P}
+
+
+  P = tonnes of good castings (or pieces) produced that month. Also show energy intensity:
+  kWh per tonne.
+
+  CBAM estimate for an iron or steel good (follows the EU structure; direct emissions only
+  are priced for iron and steel (GreenSutra)):
+
+     SEE_{direct} = \frac{S_{1,attributed} + \sum_{p} T_p \times SEE_p}{P}
+
+
+  Show indirect emissions (S₂ ÷ P) separately for information. Label the result "estimate, not
+  verified"; under EU rules up to 20% of a complex good's embedded emissions may rest on
+  defaults (GreenSutra). Whether scrap carries embedded emissions is under EU review
+
+
+
+                                                                                            Page 3 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  (GTRI), so keep scrap as a separate, configurable line.
+
+  Worked example (illustrative): a foundry uses 90,000 kWh and 1,200 litres of diesel in a
+  month and makes 100 t of castings. S₂ = 90 × 0.727 = 65.4 t; S₁ = 1,200 × 2.675 ÷ 1,000 = 3.2 t;
+  intensity = 68.6 ÷ 100 = 0.69 t CO₂ per tonne; energy intensity = 900 kWh per tonne, inside
+  BEE's 700–2,000 kWh/t range for induction foundries (Down To Earth).
+
+
+  Bill health check logic (Telangana)
+  Four zero-cost checks run on every bill; each turns a tariff rule into a rupee figure the
+  owner can act on this month. Rates come from the bill itself or the tariff table, never hard-
+  coded.
+
+
+     Check                             Rule                         Formula                Flag when
+
+     Power factor                      HT industrial is billed in   Loss = (kVAh − kWh)    PF = kWh ÷ kVAh
+     loss                              kVAh (TGSPDCL tariff         × energy rate          below 0.98
+                                       FY 2025–26), so low PF
+                                       raises billed units
+
+     Peak-hour use                     HT-I(A) pays +               Shift saving =         Peak kWh above
+                                       ₹1.50/kWh from 6–10          shiftable peak kWh ×   20% of total
+                                       am and 6–10 pm, and          (1.50 + 0.50)
+                                       gets ₹0.50/kWh off
+                                       from 10 am–6 pm in FY
+                                       2026–27 (Mercom)
+
+     Contracted                        Billing demand = higher      Overpay = (0.8 × CD    Recorded MD below
+     demand too high                   of recorded maximum          − max MD over 12       80% of CD for 6+
+                                       demand or 80% of             months) × demand       months
+                                       contracted demand            rate
+                                       (TGSPDCL FY 2024–
+                                       25)
+
+     Paying minimum                    HT-I(A) minimum of 50        Gap = 50 × billing     Actual kVAh below
+     charges                           kVAh per kVA of billing      demand − actual        the minimum
+                                       demand per month             kVAh
+                                       (same source)
+
+
+
+
+                                                                                                             Page 4 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  LT industrial (up to 75 kW / 100 HP) bills can carry low-power-factor and capacitor
+  surcharges (TGSPDCL FY 2026–27); read their amounts directly from the bill line items
+  and flag any non-zero value.
+
+  Example: a unit bills 1,00,000 kVAh for 92,000 kWh (PF 0.92) at ₹7.50 per unit: loss = 8,000
+  × 7.50 = ₹60,000 a month. A capacitor bank fixes this; it is the first action shown.
+
+  The night-time rebate of ₹1.50/kWh was withdrawn in November 2025 (Power Peak
+  Digest); keep tariff rules in a dated table so such changes need no code change.
+
+
+  Baseline and verified savings
+  Savings are measured against what the unit would have used at today's production level,
+  not against last year's raw bill.
+
+  Step 1. Baseline model (12 months before the first action). Fit energy against production:
+
+     E_m = a + b \times P_m
+
+
+  E = monthly kWh, P = monthly output. With fewer than 9 months of production data, fall
+  back to average intensity (kWh per tonne).
+
+  Step 2. Accept the model only if it fits. Use the monthly thresholds of ASHRAE Guideline
+  14: CV(RMSE) at most 15% and net mean bias within ±5%. If it fails, show raw intensity
+  trends and label savings "indicative".
+
+  Step 3. Adjusted baseline for each reporting month:
+
+     \hat{E}_m = a + b \times P_{m}^{reporting}
+
+
+  Step 4. Savings:
+
+     \Delta E_m = \hat{E}_m - E_{m}^{actual} \pm NRA_m
+
+
+  NRA = non-routine adjustment the owner declares (a new machine, a new shift). Each one
+  is logged with a reason.
+
+  Step 5. Convert to money and carbon:
+
+        ₹ saved = ΔE × effective energy rate, where effective rate = energy charges ÷ kWh on
+        that bill (fixed and demand charges excluded unless demand fell).
+        CO₂ saved = ΔE ÷ 1,000 × 0.727 + fuel saved × fuel factor.
+
+
+
+
+                                                                                         Page 5 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  Step 6. Significance: show "verified saving" only when cumulative savings exceed twice
+  the model's standard error over the same months; otherwise "too early to confirm".
+
+  The same logic powers the monthly "₹ saved" message, the lender report and the
+  leaderboard, so all three always agree.
+
+
+  Action savings, payback, loan EMI and solar sizing
+  Every recommended action shows a savings range, a payback period and whether a loan
+  EMI is smaller than the monthly saving.
+
+  Estimated saving of an action (before it is done):
+
+     \Delta E_{a} = E_{baseline} \times s_{enduse} \times [r_{low}, r_{high}]
+
+
+  s = share of energy used by the affected equipment (from the sector template or the
+  owner's equipment list); r = saving rate range from the action library. Each library row
+  cites its source, e.g. foundry measures saving 9–45% of energy in audits (Down To Earth)
+  and BEE cluster manuals for capital costs.
+
+  Ranking: sort by simple payback (capex ÷ mid-range annual ₹ saving), zero-cost actions
+  first, then CO₂ saved as tie-breaker.
+
+  Loan EMI and the cash test:
+
+     EMI = \frac{L \, r (1+r)^n}{(1+r)^n - 1}
+
+
+  L = loan amount, r = monthly rate, n = months. The platform shows "cash-positive from
+  month 1" when the low-end monthly saving exceeds the EMI.
+
+  Example (illustrative): a ₹10 lakh loan at 8% a year for 5 years (SIDBI green loans have
+  been offered at 7.5–8.6% (Mercom)) has an EMI of about ₹20,276. A measure saving
+  ₹30,000 a month leaves the owner about ₹9,700 better off every month; simple payback is
+  2.8 years.
+
+  Rooftop solar size:
+
+     kW_p = \min\left(\frac{A_{roof}}{a_{kWp}},\; \frac{E_{daytime,yr}}
+     {Y_{site}},\; kW_{cap}\right)
+
+
+  A = usable roof area entered by the owner; a = area needed per kWp; E = yearly daytime
+  consumption (10 am–6 pm units if the bill shows them, else an assumed share); Y = site
+  yield in kWh per kWp per year from a solar model such as NREL PVWatts for the GPS
+
+
+
+                                                                                             Page 6 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  location; cap = the DISCOM's net-metering limit from the tariff table. Solar ₹ saved = solar
+  kWh × (energy rate − any solar-hour rebate already received). All default values for a and
+  Y are assumptions until replaced by the site model.
+
+
+  Benchmarks, Green Progress Score and leaderboard
+  Rank units by how much they improve against their own past, not by size, so a small
+  foundry can beat a large one.
+
+  Benchmark position: energy intensity (kWh per tonne) compared with peers in the same
+  sector and cluster. Until 10 peers exist, compare with BEE's published range for induction
+  foundries, 700–2,000 kWh per tonne of finished casting (Down To Earth).
+
+  Green Progress Score (0–100):
+
+
+     Part                        Points         Formula
+
+     Improvement                 40             40 × min(1, intensity reduction vs own baseline ÷
+                                                20%)
+
+     Data habit                  20             20 × months with bill uploaded within 10 days, out
+                                                of the last 6
+
+     Actions                     20             20 × min(1, verified actions ÷ 3)
+
+     Peer position               20             20 × (1 − intensity percentile among peers); before
+                                                10 peers, 20 × (2,000 − kWh/t) ÷ 1,300, clipped to 0–
+                                                20
+
+
+  Leaderboard rules:
+
+        Rank by % intensity improvement against own baseline, within the same sector and
+        cluster.
+        Show only when 10 or more units take part; names hidden by default, shown only with
+        the owner's consent.
+        Show each unit its own rank and the gap to the unit just above it, not the full list.
+        Refresh monthly, after bills are confirmed, never in real time.
+
+  Why this design: social comparison cut household use by 2% on average, but by 6.3% for
+  the heaviest users and only 0.3% for the lightest (Allcott, 2011). People respond more
+  when the comparison point is close to their own level (Callery et al., 2021), hence "gap to
+
+
+
+
+                                                                                                        Page 7 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+  the unit above". Comparison alone did little where people did not pay the bill (Myers et al.,
+  2020), so the score always sits next to rupees saved.
+
+
+  Time-saved logic
+  Time saved is measured in the pilot, not assumed; until then the platform shows the
+  formula with clearly labelled starting assumptions.
+
+     H_{saved,yr} = \sum_{t} N_t \times \frac{m_{t,manual} - m_{t,platform}}{60}
+
+
+  N = number of tasks of type t per year; m = minutes per task done by hand vs on the
+  platform.
+
+
+     Task type                                  How the platform measures       How manual time is measured
+                                                its own time
+
+     Entering a bill                            Time from upload to confirm,    Ask 10 pilot owners to time
+                                                logged automatically            one manual spreadsheet
+                                                                                entry
+
+     Answering a buyer                          Time to generate the supplier   Owner's estimate of last
+     emissions questionnaire                    sheet                           questionnaire, recorded at
+                                                                                onboarding
+
+     Preparing loan paperwork                   Time to generate the loan-      Owner's or consultant's
+                                                ready summary                   estimate, recorded at
+                                                                                onboarding
+
+     Monthly energy review                      Time spent on the monthly       Owner's estimate at
+                                                report screen                   onboarding
+
+
+  Show time saved only after at least one real measurement per task type; until then show
+  "time saved: measuring". Use the median of pilot measurements, never the best case.
+
+
+  Data quality tags and uncertainty
+  Every input carries a quality tag, and reports state how much of the total rests on each
+  tag.
+
+
+
+
+                                                                                                              Page 8 of 9
+03 Calculation Logic: Carbon, Savings, Scores
+
+
+
+
+     Tag                        Meaning                          Example              Allowed in lender and
+                                                                                      buyer reports
+
+     Measured                   Read from an official bill and   DISCOM kWh           Yes
+                                confirmed by the owner
+
+     Owner-                     Typed by the owner without       Monthly output in    Yes, labelled
+     entered                    a document                       tonnes
+
+     Estimated                  Calculated from a typical        Equipment share of   Yes, labelled, with
+                                value                            energy               range
+
+     Default                    Regulatory default value         CBAM India default   Yes, labelled
+                                                                 for pig iron         "estimate, not
+                                                                                      verified"
+
+
+  Data quality score = share of total emissions resting on measured inputs. Show it on
+  every report; a report below 70% measured carries a warning banner.
+
+  Validation rules before a value is accepted: month-on-month change above 50% needs
+  owner confirmation; PF must be between 0.5 and 1.0; kWh must not exceed sanctioned
+  load × hours in the billing period; duplicate bill numbers are rejected.
+
+
+  Sources
+        Emission factors: CEA grid factor v20.0, via Climatiq · CEA CO₂ Baseline Database
+        v22.0 user guide · India Default GHG Emission Values, diesel, via Climatiq · IPCC 2006
+        energy guideline summary · CSIR-CIMFR, Indian coal NCV and CEF
+        CBAM: GreenSutra, embedded emissions method · GreenSutra, steel default values ·
+        GTRI, April 2026
+        Foundry benchmarks: Down To Earth, Kolhapur foundries
+        Telangana tariffs: TGSPDCL FY 2025–26 schedule · TGSPDCL FY 2026–27 schedule ·
+        TGSPDCL FY 2024–25 schedule · Mercom, FY 2026–27 ToD · Power Peak Digest, night
+        rebate
+        Lending: Mercom, SIDBI rates
+        Behaviour research: Allcott, 2011 · Callery et al., 2021 · Myers et al., 2020
+
+
+
+
+                                                                                                            Page 9 of 9
+

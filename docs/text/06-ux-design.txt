@@ -1,0 +1,256 @@
+06 UX Design for Indian MSME Owners
+
+
+
+
+  06 UX Design for Indian MSME Owners
+    Oct 11, 2026       · ​@Sriman
+
+
+  Who we design for
+  The owner is busy, lives on WhatsApp, distrusts new software, and knows energy as a bill
+  amount, not as kWh; design every screen for that person.
+
+
+     Fact                             Number                   Design principle
+
+     WhatsApp use among               97% (PayNearby, via      WhatsApp is a full channel,
+     surveyed MSMEs                   Storyboard18)            not just notifications
+
+     Owners aged 18–30 using          87% (same source)        Mobile-first; desktop is
+     smartphones for business                                  secondary
+
+     Owners resisting new             36% (BW                  No new app to install for the
+     technology                       Businessworld)           core loop
+
+     Owners spending under ₹500       Over 51%                 Small images, light pages
+     a month on internet              (Storyboard18)
+
+     MSMEs aware of sustainability    13% (D&B)                Lead with rupees; explain
+     benefits                                                  carbon only when asked
+
+     MSMEs citing know-how as the     45% (Outlook Planet)     Say exactly what to do, not
+     biggest barrier                                           just what is wrong
+
+
+  The PayNearby survey covered 10,000+ retail MSMEs; manufacturing owners may differ,
+  so the pilot must check these assumptions.
+
+  Five principles:
+
+   1. Rupees first. Every screen leads with ₹; kWh second; CO₂ third.
+   2. No typing. Photos, voice notes and one-tap confirms replace forms.
+   3. One screen, one job. Each screen has a single primary button.
+   4. Show the source. Every number can be tapped to see the bill it came from.
+   5. Their language. Telugu, Hindi or English per user, with mixed Telugu–English voice
+      accepted.
+
+
+
+
+                                                                                             Page 1 of 5
+06 UX Design for Indian MSME Owners
+
+
+
+
+  Channels
+  The monthly loop runs entirely in WhatsApp; the web app is for deciding, planning and
+  sharing.
+
+
+     Task                                WhatsApp                            Web app (installable, works in
+                                                                             the phone browser)
+
+     Send a bill, receipt or             Yes: forward the photo or PDF       Yes: upload
+     invoice
+
+     Confirm extracted                   Yes: one-tap buttons for up to 3    Yes: full confirm screen
+     values                              fields; link for more
+
+     Monthly output                      Yes: reply with a number or         Yes
+                                         voice note
+
+     Monthly summary                     Yes                                 Yes
+
+     Action plan and                     Short version with a link           Full
+     details
+
+     Loan pack, vendor                   Link only                           Full
+     quotes, reports
+
+     Sharing with buyers                 Approve requests with a tap         Full share manager
+     and lenders
+
+     Settings, consent,                  No                                  Yes
+     team
+
+
+  A WhatsApp message can only carry a few buttons, so anything with more than three
+  choices opens the web app through a signed one-time link that logs the owner in.
+
+
+  Key screens
+  Ten screens cover the whole owner journey; each has one primary action.
+
+
+     Screen                       Shows first                                              Primary action
+
+     Home                         ₹ saved this month and in total; one next action         Do the next action
+                                  card
+
+
+
+
+                                                                                                            Page 2 of 5
+06 UX Design for Indian MSME Owners
+
+
+
+
+     Screen                       Shows first                                         Primary action
+
+     Add a bill                   Camera, gallery, "forward on WhatsApp" hint         Take photo
+
+     Confirm values               Bill photo with each value highlighted beside its   Confirm all
+                                  field
+
+     Bill health                  Each finding in ₹ per month with a one-line fix     Start the top fix
+
+     Action plan                  Top 3 actions: ₹ saved a year, cost, payback        Open an action
+
+     Action detail                Saving range, cost range, EMI vs saving, quotes     Plan this action
+
+     Loan pack                    Headline box: saving vs EMI                         Share with a lender
+
+     Reports                      List of reports with last generated date            Generate
+
+     Sharing                      Who can see what, until when; pending buyer         Approve or revoke
+                                  requests
+
+     Settings                     Language, team, consent, delete data                —
+
+
+  Household mode uses three screens: bill upload, solar plan (size, subsidy, saving), and
+  after-installation savings.
+
+  Empty states teach: the home screen before the first bill shows a sample foundry's
+  results and says "Forward your latest electricity bill to see yours in 2 minutes."
+
+
+  Interaction rules
+  These rules apply to every screen and message; designers and developers check against
+  them in review.
+
+
+     Area                      Rule
+
+     Input                     Photo, PDF, voice or a single number; no field asks
+                               for free text unless optional
+
+     Confirmation              Highlight low-confidence fields only; others are
+                               pre-accepted unless tapped
+
+     Numbers                   Indian grouping (1,00,000); lakh and crore in words
+                               for amounts over ₹1 lakh
+
+
+
+
+                                                                                                          Page 3 of 5
+06 UX Design for Indian MSME Owners
+
+
+
+
+     Area                      Rule
+
+     Units                     ₹ first; kWh written as "units" in Telugu and Hindi,
+                               as on the bill
+
+     Jargon                    kVAh, power factor and maximum demand always
+                               come with a one-line explanation on tap
+
+     Language                  Per user; switching never changes stored data
+
+     Images                    Compress uploads on the phone to under 300 KB
+                               before sending; keep the original only if the owner
+                               chooses
+
+     Offline                   Photos queue on the phone and send when the
+                               network returns
+
+     Speed                     Home screen usable within 3 seconds on a low-end
+                               Android phone on a 3G-quality connection
+
+     Touch                     Buttons at least 48 px tall; primary button at the
+                               bottom, within thumb reach
+
+     Errors                    Say what happened and what to do: "Photo is
+                               blurry. Retake in good light."
+
+     Trust                     Show "your data is shared with nobody" until the
+                               first share; show every viewer afterwards
+
+
+
+
+  Accessibility and low literacy
+  An owner who reads little should still complete the monthly loop by voice and pictures.
+
+       Listen button on the monthly summary and action cards, reading the text aloud in
+       Telugu or Hindi using a text-to-speech service (for example Sarvam's Bulbul, listed at
+       about ₹30 per 10,000 characters (UsagePricing)).
+       Voice in: voice notes for output, fuel and questions, transcribed by Indian-language
+       speech-to-text that handles Telugu–English mixing (Sarvam).
+       Icons with words, never icons alone; colour always paired with a word ("saved", "loss").
+       Text size follows the phone's setting; layouts tested at 130% text size.
+       Helper role: an accountant or family member can do every step on the owner's behalf
+       with their own login, and the log shows who did what.
+
+
+
+                                                                                           Page 4 of 5
+06 UX Design for Indian MSME Owners
+
+
+
+
+  Usability testing plan
+  Test with five real owners before the pilot and after each major change; five per round
+  finds most usability problems cheaply.
+
+
+     Task given to the owner                         Pass when
+
+     Send your latest electricity bill and confirm   Done in under 3 minutes without help
+     the values
+
+     Tell us how much you could save on power        Owner reads the ₹ figure aloud correctly
+     factor
+
+     Plan the top action and see the EMI vs          Done in under 2 minutes
+     saving
+
+     Share the loan pack with a lender               Correct recipient, owner can say when the
+                                                     link expires
+
+     Approve a buyer's data request                  Owner can say exactly what the buyer will
+                                                     see
+
+
+  Record time on task, errors and every point where the owner asks a question. Fix
+  anything that fails for 2 or more of 5 owners before the next round.
+
+
+  Sources
+       PayNearby MSME Digital Index 2024, via Storyboard18 · BW Businessworld on the same
+       survey
+       Dun & Bradstreet, first SPeX survey · Outlook Planet, D&B survey findings
+       Sarvam AI, Telugu speech-to-text · UsagePricing, Sarvam AI prices
+
+
+
+
+                                                                                                Page 5 of 5
+

@@ -1,0 +1,265 @@
+04 Engagement and Retention Design
+
+
+
+
+  04 Engagement and Retention Design
+    Oct 11, 2026       · ​@Sriman
+
+
+  Principle
+  Make the platform a monthly money ritual tied to the electricity bill, not an app people
+  open out of compulsion; owners stay because every visit shows rupees they would
+  otherwise lose.
+
+       The bill is the trigger. It arrives every month whether or not the owner thinks about
+       carbon, so the habit needs no new behaviour, only a forward on WhatsApp.
+       Money is the reward. Comparison nudges barely worked where people did not pay
+       their own bills (Myers et al., 2020); MSME owners pay theirs, so lead with rupees.
+       History is the lock-in. After 12 months, the baseline, loan pack and buyer approvals live
+       only here; leaving means losing them.
+       The research problem to beat: carbon apps cut emissions at first, then the effect
+       fades as use drops (Fosgaard et al., 2024; Enlund et al., 2023). A monthly bill ritual is the
+       counter to that fade.
+
+
+  The core monthly loop
+  The whole product is built around one loop that the electricity bill restarts every month.
+
+
+
+
+  monthly engagement loop · 4 steps plus outside pull
+
+
+
+                                                                                               Page 1 of 6
+04 Engagement and Retention Design
+
+
+
+
+  The action step must take under a minute, the reward must be in rupees, and each turn of
+  the loop adds stored value that makes leaving costly; buyers and lenders asking for
+  updates restart the loop even if the owner forgets.
+
+
+  Retention mechanics
+  Seven mechanics, each matched to evidence and to one measurable signal.
+
+
+     Mechanic                        Evidence                    How we build it           Signal to watch
+
+     Repeated                        Repeated energy             One summary per           % of units with a
+     monthly feedback                reports kept working        confirmed bill, every     confirmed bill each
+                                     for 2+ years; people        month                     month
+                                     were slow to tune
+                                     them out, and effects
+                                     decayed only 10–20%
+                                     a year after reports
+                                     stopped (Allcott &
+                                     Rogers, 2014)
+
+     Comparison with                 Comparison cut use          Show the gap to the       Change in intensity
+     close peers                     2% on average and           unit just above, within   after first
+                                     6.3% for the heaviest       the same cluster and      comparison
+                                     users (Allcott, 2011);      sector
+                                     closer reference
+                                     points worked better
+                                     (Callery et al., 2021)
+
+     Rewards tied to                 Points, badges and          Milestones in rupees      Milestones
+     real milestones                 rewards improved real       saved, not in clicks      reached per unit
+                                     bill savings vs a control
+                                     group (Mulcahy et al.,
+                                     2021)
+
+     Leaderboards                    Leaderboards raised         Cluster leaderboard       Opt-in rate for
+                                     saving intentions,          by % improvement          showing names
+                                     more so with a higher       (doc 03)
+                                     comparison standard
+                                     (Zhang et al., 2021)
+
+
+
+
+                                                                                                             Page 2 of 6
+04 Engagement and Retention Design
+
+
+
+
+     Mechanic                        Evidence                   How we build it           Signal to watch
+
+     Steer to high-                  Users finish easy, low-    Top 3 actions ranked      Share of savings
+     impact actions                  impact challenges and      by rupees, never by       from top-3 actions
+                                     skip high-impact ones      ease alone
+                                     (Halonen et al., 2026)
+
+     Stored value                    Owners invest data         12-month history, loan    Units with 12+
+                                     and approvals they         pack, buyer approvals,    months of history
+                                     would lose by leaving      progress statements
+
+     Other people pull               Buyers and lenders         Buyer requests and        Active units with at
+     them back                       ask for updated data       lender views notify       least one outside
+                                                                the owner                 viewer
+
+
+  The gamified office study that reported 20% electricity savings (Iria et al., 2020)
+  combined information, competition and tailored messages; we use the same combination,
+  with money in front.
+
+
+  Monthly message calendar
+  At most four WhatsApp messages a month per owner, each carrying a number or a one-
+  tap task.
+
+
+     When                                       Message                                  One-tap action
+
+     Day 1 of the month                         "How many tonnes did you make in         Reply with a number
+                                                September?"
+
+     2 days after the DISCOM                    "Your new bill should be out; forward    Forward the bill
+     bill date                                  it here"
+
+     After the bill is confirmed                "September: ₹18,400 saved; total ₹1.6    Open the action
+                                                lakh. Next: fix power factor, saves
+                                                ₹60,000 a month."
+
+     Mid-month, only if an action               "Quote for the capacitor bank:           Upload a quote
+     is planned                                 compare 2 quotes here"
+
+     Every 3 months                             Progress statement ready                 Share with a buyer
+                                                                                         or lender
+
+
+
+
+                                                                                                            Page 3 of 6
+04 Engagement and Retention Design
+
+
+
+
+  Caps and rules:
+
+       No more than 4 messages a month and never between 9 pm and 8 am.
+       Only utility templates, sent after opt-in. India's utility rate is about ₹0.145 per message
+       from October 2026 (AiSensy), so four a month costs under ₹1 per owner.
+       If two messages in a row are ignored, drop to the bill reminder only until the owner
+       replies.
+
+
+  Milestones and leaderboard
+  Milestones mark real business outcomes, so celebrating them never rewards empty
+  activity.
+
+
+     Milestone                       Trigger                     Reward shown
+
+     First footprint                 First confirmed bill        Footprint card + first bill health finding
+
+     Baseline ready                  9 months of bills           "You can now track verified savings"
+
+     First ₹10,000                   Verified savings ledger     Shareable card for the owner's
+     saved                                                       WhatsApp status
+
+     First action done               Action marked done with a   Savings tracking starts for it
+                                     cost
+
+     Loan pack sent                  Pack shared with a lender   Status tracker
+
+     ₹1 lakh saved                   Verified savings ledger     Progress statement highlight
+
+     Buyer approved                  First buyer request         "Your EU buyer now has your data"
+                                     approved
+
+     Top 3 in cluster                Leaderboard rank (opt-in)   Badge on progress statement
+
+
+  Leaderboard details (scoring rules in doc 03):
+
+       Monthly refresh after bills close; cluster and sector only; at least 10 units.
+       Default view: own rank, gap to the next unit, and the "efficient peer" (top-20%
+       intensity) as a target.
+       Names hidden by default; a unit can reveal only its own name.
+       No negative ranks shown publicly; bottom positions are visible only to the unit itself.
+
+
+
+
+                                                                                                          Page 4 of 6
+04 Engagement and Retention Design
+
+
+
+
+  Guardrails
+  We aim for a strong habit, not compulsion; these rules protect trust, which is what keeps a
+  business owner for years.
+
+       No streak-loss shaming, fake urgency or countdown timers.
+       No inflated savings to keep people engaged; every number follows doc 03 and shows
+       its data quality.
+       No notifications outside the caps above; one-tap opt-out in every message.
+       No public ranking without consent; no unit-level data to associations or government.
+       No pay-to-rank and no sponsored actions inside the ranked list; vendor offers, if any,
+       appear separately and are labelled.
+       Consent and deletion follow the DPDP rules (see the platform design tab of the
+       research report).
+
+
+  Retention metrics and targets
+  These targets are starting hypotheses for the pilot; revise them after 3 months of real
+  data.
+
+
+     Metric                          Definition                                  Pilot target
+
+     Monthly bill rate               Units with a confirmed bill this month ÷    60% without being chased
+                                     active units
+
+     Second-bill rate                Units confirming a second month ÷ units     75%
+                                     that confirmed one
+
+     Baseline                        Units with 9+ months of bills ÷ all units   50% by month 3 (through
+     completion                                                                  backfill)
+
+     Action rate                     Units with at least one action marked       30% by month 6
+                                     done ÷ active units
+
+     Loan packs sent                 Packs shared with a lender                  5 in the first pilot
+
+     Outside viewers                 Units with a buyer or lender viewing        20% by month 6
+                                     their data
+
+     Time to first value             Minutes from sign-up to first bill health   Under 10 minutes
+                                     finding
+
+
+
+
+                                                                                                        Page 5 of 6
+04 Engagement and Retention Design
+
+
+
+
+  Sources
+       Allcott, 2011, Social norms and energy conservation
+       Allcott & Rogers, 2014, Short-run and long-run effects of behavioral interventions
+       Callery et al., 2021, Norm proximity and social comparisons
+       Myers et al., 2020, Social comparison without monetary incentives
+       Mulcahy et al., 2021, Gamification field study
+       Zhang et al., 2021, Leaderboards and saving intentions
+       Iria et al., 2020, Gamification platform in office buildings
+       Halonen et al., 2026, Mobile app interventions
+       Fosgaard et al., 2024 · Enlund et al., 2023
+       AiSensy, WhatsApp pricing October 2026
+
+
+
+
+                                                                                            Page 6 of 6
+

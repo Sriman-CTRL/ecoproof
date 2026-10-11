@@ -1,0 +1,615 @@
+Gap research report
+
+
+
+
+  MSME Carbon Tracking in India: Gap
+  Research Report (SDG 13)
+    Oct 11, 2026      · ​@Sriman
+
+
+  Executive summary
+  Indian MSMEs want to go green, free carbon calculators already exist, and still fewer than
+  1% act: the missing piece is turning a carbon number into a funded, proven saving.
+
+        Size of the problem: 8.84 crore registered MSMEs use about 25% of India's industrial
+        energy and produce about 25% of industrial emissions. Energy costs them 5–20% of
+        operating expenses, against under 2% for large firms.
+        Pressure is real: the EU's CBAM entered its definitive phase in 2026 and the EU plans
+        to add about 180 more steel and aluminium products from 2028.
+        Intent is high, action is near zero: 66% of MSMEs plan to expand environmental
+        policies, yet about 0.8% hold ZED certification and below 0.5% use sustainability
+        measurement schemes.
+        Existing tools stop too early: SME Climate Hub, ICAI, IIM Bangalore, Vishwa Carbon
+        and enterprise ESG software measure or report. None we found links a measurement
+        to a loan or proves the saving afterwards.
+        What we build: bills in, a ranked savings plan and a loan-ready summary out, then
+        monthly proof of savings from later bills. Households use the same engine to size
+        rooftop solar under PM Surya Ghar.
+        Impact scenario: 1 lakh small manufacturers acting would save about ₹1,800 crore and
+        1.6 Mt CO₂ a year.
+
+  Features, feasibility, legal check and build cost: ​Platform design
+
+
+  Problem statement and focus
+  We target small Indian businesses first, because that is where measurement exists but
+  action does not.
+
+  SDG 13 problem statement: Develop a platform that helps individuals and businesses
+  track and reduce their carbon footprint, offering actionable insights and incentives.
+
+  Why MSMEs are the main focus:
+
+
+                                                                                            Page 1 of 13
+Gap research report
+
+
+
+
+        Scale: over 8.84 crore enterprises were registered on the Udyam platforms as of 30
+        June 2026 (KNN India).
+        Economic weight: MSMEs contribute 31.1% of GDP, 35.4% of manufacturing output
+        and 48.58% of exports, and employ over 38.9 crore people (official fact-sheet, via
+        AskFuzz).
+        Pressure is rising: EU buyers now need emissions data under CBAM, and India's own
+        carbon market is starting (section 3).
+        The gap is widest here: large firms have consultants and ESG teams; MSMEs have bills
+        and no time.
+
+  Individuals are covered as a second audience: the same bill-reading engine works on a
+  household electricity bill.
+
+
+  The Indian MSME landscape in numbers
+  MSMEs use about a quarter of India's industrial energy, pay far more for it relative to their
+  size, and are now being pulled into carbon rules.
+
+
+     Indicator                    Value                             Source
+
+     Energy use                   About 50 Mtoe a year, roughly     OECD, Clean Energy
+                                  25% of industrial energy          Finance Roadmap
+
+     Emissions                    About 25% of India's industrial   CSEP, via KNN India
+                                  emissions
+
+     Energy cost burden           5–20% of operating expenses, vs   Outlook Business
+                                  under 2% for large firms (ORF)
+
+     Energy cost, energy-         20–30% of total production cost   UNIDO evaluation ToR
+     intensive sectors
+
+     Green technology             31% use energy-efficient          CSEP, via KNN India
+     adoption                     products; 21% use renewable
+                                  energy
+
+     Savings left on the table    Simple measures could save        IDR / Good Business Lab
+                                  about 20% of fuel in Kolkata
+                                  dyeing units (audits of 60+
+                                  MSMEs)
+
+
+
+
+                                                                                           Page 2 of 13
+Gap research report
+
+
+
+
+  Carbon rules are reaching MSMEs:
+
+        27% of India's iron, steel and aluminium exports, worth $8.2 billion in 2022, went to the
+        EU (GTRI).
+        GTRI expects some exporters to cut steel and aluminium prices by 15–22% to stay
+        competitive. Exports of these metals to the EU fell 24.4% in FY25 (AL Circle).
+        Large producers often don't share plant-level emissions data with the MSMEs that buy
+        steel or aluminium from them, according to GTRI's founder (same source). Downstream
+        MSMEs are left without numbers.
+        The EU plans to tax about 180 more steel- and aluminium-based products from January
+        2028, moving CBAM into manufactured parts, where MSMEs sit (GTRI, April 2026).
+        India's own carbon market (CCTS) obliges only about 490 large units, so most MSMEs
+        are outside it (SolarQuarter).
+
+
+  Why carbon calculators fail: peer-reviewed evidence
+  Research shows calculators raise awareness but rarely produce lasting cuts, for four
+  reasons.
+
+
+     Failure                           Evidence                                Study
+
+     Numbers are not trusted           Ten calculators given similar inputs    Padgett et al.,
+                                       differed by several tonnes of CO₂ a     2008
+                                       year for one activity; most hid their
+                                       methods
+
+     Numbers are not trusted           Six models gave one household 4.0 to    Kenny et al., 2009
+                                       9.1 t CO₂ per person a year, a gap of
+                                       over 5 t
+
+     Numbers are not trusted           Free corporate calculators gave low     Harangozó et al.,
+                                       reliability on identical company data   2017
+
+     Spend-based method is             About a 4× difference between           Emborg et al.,
+     inaccurate                        spend-based and process-based           2024
+                                       results for purchased goods
+
+     Spend-based method is             Electricity: 1.07 kg CO₂/kWh spend-     Smith et al., 2026
+     inaccurate                        based vs about 0.72 activity-based
+
+
+
+
+                                                                                                 Page 3 of 13
+Gap research report
+
+
+
+
+     Failure                        Evidence                                 Study
+
+     Effect fades                   Feedback cut emissions 23% in an         Hoffmann et al.,
+                                    app trial (216 users)                    2023
+
+     Effect fades                   About 10% cut in the first weeks, then   Enlund et al.,
+                                    faded (bank-transaction calculator,      2023
+                                    Sweden)
+
+     Effect fades                   27% cut in grocery emissions in          Fosgaard et al.,
+                                    month one, faded as app use dropped      2024
+
+     Users pick easy, low-impact    6,240 users completed short, low-        Halonen et al.,
+     actions                        impact challenges and skipped high-      2026
+                                    impact ones
+
+     Manual entry blocks adoption   Adoption depends on ease of use and      Hoffmann et al.,
+                                    willingness to share data                2022
+
+     SMEs need records turned       SMEs engaged only when existing          Lin, 2026
+     into accounts                  operating records could become
+                                    auditable carbon accounts
+
+     Badges are not enough          Government subsidies alone barely        Zhao et al., 2021
+                                    moved consumers; private-partner
+                                    rewards worked better
+
+
+  Design rules we take from this: read physical quantities (kWh, litres, tonnes), not rupee
+  spend; show every emission factor's source; rank actions by impact and rupees; keep
+  users returning with a monthly money benefit, not a one-time score.
+
+
+  Existing platforms and the gaps they leave
+  Every existing tool stops at a carbon number or a compliance report; none we found turns
+  an MSME's bills into a funded, verified saving.
+
+
+
+
+                                                                                              Page 4 of 13
+Gap research report
+
+
+
+
+     Platform             Who it serves         What it does              Gap it leaves
+
+     SME Climate Hub      Small businesses      Free GHG Protocol         Manual entry,
+     calculators          worldwide, India      calculators; the          English-first; no link
+                          page since 2023       advanced one is a         to finance; 200+
+                                                spreadsheet filled        Indian MSMEs
+                                                from utility bills and    committed at launch
+                                                fuel records
+
+     ICAI Carbon          SMEs and              GHG statements for        Compliance-
+     Emission             businesses, via       reporting and             oriented; no action
+     Calculator           chartered             assurance                 plan or money
+                          accountants                                     benefit
+
+     IIM Bangalore        Indian businesses,    India-specific Scope 1,   Measurement only;
+     carbon accounting    especially MSMEs      2, 3 calculation          manual inputs
+     tool
+
+     Vishwa Carbon        MSMEs, launched       Carbon accounting in      Report and
+     (Bharat Carbon)      Aug 2026              ~2 weeks, ESG             consultancy model;
+                                                reports, AI-assisted      does not fund or
+                                                CBAM reports              verify savings
+
+     Enterprise ESG       Mid-to-large          Automated ESG data        Built for
+     SaaS: Breathe ESG,   enterprises (BRSR,    and Scope 1–3             sustainability teams;
+     Sprih, KarbonWise    GRI)                  reporting                 Sprih reported ~20
+                                                                          customers in Feb
+                                                                          2025
+
+     Greenly              SMEs, mostly          Auto data from 100+       Assumes software-
+                          Europe                accounting, billing and   connected firms;
+                                                cloud sources             about €1,800 a year
+
+     Cogo                 Bank customers        Footprint from bank       Spend-based
+                          (UK, Australia, NZ)   transactions, inside      (inaccurate, section
+                                                banking apps              4); not in India
+
+     Meri LiFE            Individuals, mainly   Gamified pledges and      Pledges, not a
+                          youth                 events; 25.2 million      measured footprint
+                                                participants
+
+     CBAM consultants,    Exporters in CBAM     Measure, verify and       Paid services; only
+     e.g. GreenSutra      sectors               report CBAM data          CBAM goods
+
+
+
+
+                                                                                            Page 5 of 13
+Gap research report
+
+
+
+
+     Platform                Who it serves            What it does                 Gap it leaves
+
+     BEE / World Bank        Energy-intensive         Energy audits,               Human-heavy;
+     cluster programme       MSME clusters            implementation help,         ~5,000 units reached
+                                                      finance links; ~18-          through awareness,
+                                                      month average                50 given hands-on
+                                                      payback                      support
+
+
+  What nobody combines: reading bills automatically, ranking actions by rupees saved,
+  linking each action to a loan or subsidy, and proving the saving from later bills.
+
+
+
+  Adoption: how many MSMEs actually act
+  About 0.8% of registered MSMEs hold any ZED certification, and about 0.013% reached
+  the externally assessed Silver or Gold levels.
+
+
+
+
+  KNN India (Udyam, June 2026; ZED, July 2026); SME Climate Hub India launch (2023). Silver and Gold rounded
+  to 11,500.
+
+  Intent is far higher: 66% plan to expand environmental policies (SIDBI–D&B, Apr–Jun
+  2025) and 85% planned more measures in late 2024 (Sustainability Online). Research
+  puts use of sustainability measurement schemes below 0.5% (Chandra et al., 2026). ZED
+  covers quality and environment, not carbon, so it is a proxy; no Indian carbon calculator
+  publishes usage figures.
+
+
+
+
+                                                                                                      Page 6 of 13
+Gap research report
+
+
+
+
+  Finalized gaps we will tackle
+  Six gaps, all backed by numbers; together they explain why intent stays high and action
+  stays below 1%.
+
+
+     #          Gap                      Evidence                         What we build
+
+     1          Intent does not turn     66% plan to expand               Every report ends in 1–3
+                into action              environmental policies           specific actions with cost,
+                                         (SIDBI–D&B, Apr–Jun 2025),       ₹ saved and payback
+                                         yet about 0.8% hold ZED
+                                         certification (section 6)
+
+     2          Know-how                 Technical know-how and           Plain-language advice in
+                                         procedures are the biggest       Telugu, Hindi and English
+                                         challenge for 45% (Outlook
+                                         Planet); only 13% knew the
+                                         benefits (D&B)
+
+     3          No energy baseline       The MSME Ministry keeps          A 12-month baseline read
+                                         no data on MSME energy           automatically from
+                                         use as a share of cost (Rajya    electricity bills, fuel
+                                         Sabha answer); missing           receipts and GST invoices
+                                         performance data is a
+                                         significant barrier (CEEW,
+                                         429 firms)
+
+     4          Finance is not reached   45% seek finance for             A loan-ready summary
+                                         sustainability (Sustainability   matched to SIDBI green
+                                         Online); 51.7% of those who      loans and bank products
+                                         applied for green loans were
+                                         funded (Kinara Capital)
+
+     5          Measuring earns          ZED units get no separate        Every step tied to rupees:
+                nothing                  extra procurement or export      lower bills, cheaper loans,
+                                         incentives (KNN India)           buyer and CBAM data
+
+     6          Proof of savings is      BEE programmes needed            Each new monthly bill
+                costly; help does not    post-implementation audits       shows real before-and-
+                scale                    and reached ~5,000 units         after savings, at no extra
+                                         (BEE)                            cost
+
+
+
+
+                                                                                                  Page 7 of 13
+Gap research report
+
+
+
+
+  Downstream data gap (exporters): large steel and aluminium producers often don't pass
+  plant-level emissions data to the MSMEs that buy from them (AL Circle, citing GTRI). Our
+  records of purchased tonnes, with sourced default factors, give these MSMEs a first
+  estimate to share with buyers.
+
+
+  Proposed solution: how the platform works
+  The platform turns bills an MSME already has into a ranked plan, a route to money, and
+  monthly proof that the saving happened.
+
+
+
+
+  platform flow · 8 steps, 1 monthly loop
+
+  The highlighted step is what no existing tool does; the monthly loop is what keeps owners
+  coming back, which research says one-time calculators fail to do.
+
+  Build for the demo: bill extraction with an LLM plus a manual-entry fallback; a rules engine
+  over CEA and IPCC factor tables; action ranking from sector templates; a PDF loan-ready
+  summary; a household mode for PM Surya Ghar sizing.
+
+
+  Usefulness: what an MSME and a household get
+  An MSME gets a ranked savings plan and a path to the money for it; a household gets a
+  rooftop-solar case with its subsidy.
+
+  For an MSME
+
+
+
+
+                                                                                        Page 8 of 13
+Gap research report
+
+
+
+
+     Benefit                                   How it is delivered
+
+     Knows its footprint without hiring        Bills read automatically; every factor sourced
+     anyone                                    (CEA grid factor 0.727 tCO₂/MWh, CEA v20.0 via
+                                               Climatiq)
+
+     Knows what to do first                    Actions ranked by ₹ saved, cost, payback and
+                                               CO₂
+
+     Can pay for it                            Loan-ready summary for SIDBI green finance,
+                                               offered at 7.5–8.6% under its energy-efficiency
+                                               model
+
+     Keeps EU buyers                           Shareable emissions estimate for CBAM
+                                               questionnaires
+
+     Sees proof                                Monthly before-and-after savings from new bills
+
+
+  Worked example (illustrative assumptions, not measured data): a small unit uses 12,500
+  kWh a month (150 MWh a year) at an assumed ₹8 per kWh.
+
+        Grid emissions: 150 MWh × 0.727 = about 109 t CO₂ a year.
+        A 15% efficiency saving, below the ~20% found in cluster audits, saves 22.5 MWh:
+        about ₹1.8 lakh and 16 t CO₂ a year.
+        BEE's cluster programme saw an average payback of about 18 months on such
+        measures (BEE).
+
+  For a household
+
+        The same engine reads a home electricity bill and estimates the footprint (300 units a
+        month ≈ 2.6 t CO₂ a year at 0.727).
+        It sizes a rooftop system under PM Surya Ghar, which pays ₹30,000 (1 kW), ₹60,000 (2
+        kW) or ₹78,000 (3 kW) and offers up to 300 free units a month (LAEX summary).
+        The money is real: over 12 lakh households earned ₹421 crore selling surplus power in
+        FY 2024–25, about ₹3,500 each (Swarajya).
+
+
+  Scalability
+  The platform scales on data India is already digitising, so growth needs software and
+  partners, not field auditors.
+
+
+
+
+                                                                                              Page 9 of 13
+Gap research report
+
+
+
+
+     Data rail or      Size today                            How we use it
+     channel
+
+     Udyam registry    8.84 crore MSMEs (KNN India)          Target base; Udyam number as the
+                                                             account identity
+
+     Smart meters      7.24 crore installed by 30 June       Interval consumption data where
+                       2026; 20.33 crore sanctioned          the DISCOM shares it; bill photo
+                       under RDSS to March 2028 (T&D         otherwise
+                       India)
+
+     GST e-invoices    Mandatory above ₹5 crore              Structured purchase data with
+                       turnover; a ₹2 crore threshold is     HSN codes and quantities
+                       proposed but not notified
+                       (Accountune)
+
+     Industrial        Nearly 400 clusters using ~25% of     Roll out cluster by cluster with
+     clusters          industrial energy (IDR)               sector templates (foundry, forging,
+                                                             textiles)
+
+     Lenders           19 financial institutions already     Referral partners; loan-ready
+                       give ZED units fee and rate           summaries
+                       concessions (NewKerala); SIDBI
+                       green finance
+
+     Warm audience     9.83 lakh MSMEs registered for        First users: already engaged with
+                       ZED (KNN India)                       sustainability
+
+     Households        50.06 lakh rooftop installations      Second audience on the same bill
+                       under PM Surya Ghar; target 1         engine
+                       crore (Business Today)
+
+
+  Rollout path:
+
+   1. Pilot: one Hyderabad industrial cluster, bill photos only.
+   2. Partner: one lender accepts our loan-ready summary as a pre-screen.
+   3. Integrate: smart-meter and e-invoice data where access is granted.
+   4. Expand: sector templates for the next clusters; household module nationwide.
+
+
+
+
+                                                                                             Page 10 of 13
+Gap research report
+
+
+
+
+  Expected impact and after-effects
+  If 1 lakh units like the worked example act, they save about ₹1,800 crore and 16 lakh t CO₂
+  a year; this is a scenario, not a forecast.
+
+  Per unit (section 9 example): ₹1.8 lakh and 16 t CO₂ saved a year.
+
+
+     Units adopting     Share of registered MSMEs   Money saved a year      CO₂ avoided a year
+
+     10,000             0.011%                      ₹180 crore              1.6 lakh t
+
+     1,00,000           0.11%                       ₹1,800 crore            16 lakh t (1.6 Mt)
+
+
+  Most registered MSMEs are micro units using far less power than the example, so these
+  figures apply to small manufacturers, not the whole registry.
+
+  After-effects beyond the first saving:
+
+        MSMEs: lower costs, a repayment record on green loans, and emissions data that
+        helps keep EU buyers.
+        Lenders: a pipeline of pre-screened green loans for funds that need deploying, such as
+        the $215.6 million GCF–SIDBI facility and the $100 million AFD–SIDBI line (KNN India,
+        citing CSEP).
+        Policy: the first bottom-up dataset of MSME energy use, which the Ministry does not
+        hold today and CEEW recommends building.
+        Carbon market (later): verified savings could one day be bundled into CCTS offset
+        projects; BEE has an approved methodology for industrial energy efficiency and fuel
+        switching (Vision IAS). Whether small units can be bundled is not yet confirmed.
+        Households: more rooftop solar uptake toward PM Surya Ghar's 1 crore target.
+
+
+  Risks, limitations and judge questions
+  The biggest risks are trust in our numbers and lender uptake; each has a stated answer.
+
+
+     Question or risk                               Our answer
+
+     "Will a bank accept your report?"              Not as an audit. It is a pre-screen that sends
+                                                    lenders and BEE-certified auditors ready
+                                                    MSMEs; revenue comes from referral fees
+
+
+
+
+                                                                                                 Page 11 of 13
+Gap research report
+
+
+
+
+     Question or risk                                 Our answer
+
+     "SME Climate Hub, ICAI and Vishwa Carbon         They measure and report. We get the action
+     already exist."                                  financed and prove the saving each month
+
+     "Bill reading will make mistakes."               Manual entry fallback; the owner confirms
+                                                      each extracted value; factors and sources
+                                                      shown
+
+     "Your numbers are estimates."                    Yes, and labelled so. Activity-based with
+                                                      official factors; the latest CEA database
+                                                      (v22.0, Sept 2026) replaces v20.0 in the build
+
+     "Micro units use too little energy to matter."   Start with energy-intensive clusters, where
+                                                      energy is 20–30% of production cost
+
+     "Smart-meter and e-invoice access?"              Not assumed. Bill photos work today; APIs
+                                                      are added only where access is granted
+
+     Expired schemes                                  SIDBI's MSE-GIFT ended on 31 March 2026
+                                                      (HelloBanker); we cite only live products
+
+     Data privacy                                     Consent per upload; bills stay with the
+                                                      MSME unless it shares them with a lender
+
+
+  Limits of this research: SIDBI–D&B surveys measure what MSMEs say, not what they do.
+  ZED is a quality-and-environment scheme, not carbon accounting, so it is a proxy. No
+  public data exists on usage or outcomes of Indian carbon calculators; a short survey of
+  local MSME owners would fill that.
+
+
+
+  Sources
+  Peer-reviewed papers
+
+        A comparison of carbon calculators, Padgett et al., 2008
+        Comparative performance of six carbon footprint models for use in Ireland, Kenny et
+        al., 2009
+        Corporate carbon footprint analysis in practice, Harangozó et al., 2017
+        Process-based LCA for scope 3, petroleum case, Emborg et al., 2024
+        Carbon accounting for data center IT equipment, Smith et al., 2026
+        Carbon footprint tracking apps: does feedback help?, Hoffmann et al., 2023
+
+
+
+
+                                                                                               Page 12 of 13
+Gap research report
+
+
+
+
+        Carbon footprint tracking apps: adoption intention, Hoffmann et al., 2022
+        Individual carbon footprint reduction, Enlund et al., 2023
+        Carbon footprint information and grocery purchases, Fosgaard et al., 2024
+        Mobile app interventions and sustainable lifestyles, Halonen et al., 2026
+        Why capable SMEs disengage from carbon reporting, Lin, 2026
+        Incentives for personal carbon accounts, Zhao et al., 2021
+        Penetration gap of sustainability measurement among Indian MSMEs, Chandra et al.,
+        2026
+
+  Government and official data
+
+        Udyam registrations, 8.84 crore · ZED certification counts · ZED levels
+        Rajya Sabha answer on MSME green financing · Smart meters, 7.24 crore · PM Surya
+        Ghar, 50 lakh households
+        BEE–World Bank MSME programme · CCTS offset methodologies · CEA grid factor
+        v20.0 · CEA database v22.0
+
+  Research reports and surveys
+
+        OECD, Clean Energy Finance Roadmap of India · CSEP, via KNN India · CEEW, 429
+        enterprises
+        SIDBI–D&B SPeX Apr–Jun 2025 · SPeX Q4 2024 · First SPeX survey · Kinara Capital
+        report
+        GTRI CBAM report · GTRI, April 2026 · AL Circle on GTRI · IDR / Good Business Lab
+        audits
+
+  Platforms reviewed — listed with links in section 5.
+
+
+
+
+                                                                                          Page 13 of 13
+

@@ -1,0 +1,408 @@
+Platform design: features, feasibility, legal and cost
+ · 
+Bottom line
+The platform is buildable for the ideathon with no government approvals, about ₹0–1,000 in cash, and roughly 5–6 working days for a team of four.
+Feasibility: all 17 build-now features use public data and standard services. The one real risk is reading poor bill photos; the confirm screen and manual entry cover it.
+
+Approvals: none for the prototype. A real launch needs data-protection compliance by May 2027 and a written agreement with any lender that pays referral fees.
+
+Wording: say "energy and carbon pre-assessment", not "energy audit"; say "loan-ready summary", not "loan approval"; label buyer emissions sheets as estimates.
+
+Cost: the prototype runs on free tiers; a 3-month pilot with 100 MSMEs and 500 households costs about ₹17,000, mostly hosting.
+
+Feature list
+The build-now list has 17 features, 7 of them moved up from later because they are cheap to build and need no partner or approval.
+Build now (ideathon prototype)
+#
+ | Module
+ | Feature
+ | Status
+ | 
+1
+ | Onboarding
+ | Profile: Udyam number (typed), sector template, production unit, equipment checklist
+ | Core
+ | 
+2
+ | Onboarding
+ | Language choice: Telugu, Hindi, English
+ | Core
+ | 
+3
+ | Onboarding
+ | Consent screen: what is stored, who sees it, how to delete
+ | Core
+ | 
+4
+ | Data capture
+ | Electricity bill and fuel receipt upload (photo or PDF) with a confirm screen and manual fallback
+ | Core
+ | 
+5
+ | Data capture
+ | GST purchase invoice upload (photo or PDF, not API) for steel and aluminium inputs
+ | Moved up
+ | 
+6
+ | Data capture
+ | WhatsApp bill upload through a Meta test number
+ | Moved up
+ | 
+7
+ | Calculation
+ | Emission engine with CEA and IPCC factors and a "why this number" panel
+ | Core
+ | 
+8
+ | Baseline
+ | 12-month baseline and bill health check (power factor, maximum demand, tariff)
+ | Core
+ | 
+9
+ | Actions
+ | Ranked actions for one sector (foundry), plus rooftop solar sizing
+ | Core
+ | 
+10
+ | Actions
+ | Q&A assistant that answers only from the owner's own data and plan
+ | Moved up
+ | 
+11
+ | Finance
+ | Scheme and loan matcher with eligibility rules
+ | Core
+ | 
+12
+ | Finance
+ | Loan-ready summary PDF
+ | Core
+ | 
+13
+ | Verification
+ | Savings adjusted for production (energy per unit of output, before vs after)
+ | Moved up
+ | 
+14
+ | Engagement
+ | Missing-bill and consumption-spike alerts
+ | Moved up
+ | 
+15
+ | Reports
+ | Supplier emissions sheet for EU buyers, labelled as an estimate
+ | Moved up
+ | 
+16
+ | Reports
+ | Read-only share link for a lender, with an expiry date
+ | Moved up
+ | 
+17
+ | Household
+ | Bill → footprint → rooftop size → PM Surya Ghar subsidy estimate
+ | Core
+ | 
+Later (needs a partner, an agreement or more data)
+Feature
+ | Why it waits
+ | 
+Udyam verification API
+ | Paid third-party API and a commercial agreement
+ | 
+GST e-invoice API import
+ | Data reaches apps only through a GST Suvidha Provider (section 5)
+ | 
+Smart-meter data
+ | Needs a data-sharing arrangement with each DISCOM
+ | 
+Tally import
+ | Needs an integration partner or connector
+ | 
+Lender referral with fees
+ | Needs a written agreement with each lender (section 5)
+ | 
+Partner portal for lenders and clusters
+ | Needs partners first
+ | 
+Benchmarks from platform data
+ | Needs enough users
+ | 
+Bundling savings into carbon credits
+ | Needs BEE registration and accredited verification
+ | 
+Multi-sector action library
+ | One sector is enough to prove the model
+ | 
+Technical feasibility
+Every build-now feature can be built with public data and off-the-shelf services; the only real technical risk is reading messy bill photos, and it has a fallback.
+Feature
+ | How it works
+ | Feasibility
+ | Main risk and fallback
+ | 
+Bill and receipt reading
+ | Vision LLM returns fixed JSON fields; the owner confirms
+ | High
+ | Blurry photos or new bill layouts → confirm screen and manual entry; test on 10–20 real TGSPDCL bills first
+ | 
+GST invoice reading
+ | Same pipeline; picks item, HSN code, quantity
+ | High
+ | Handwritten invoices → manual entry
+ | 
+WhatsApp upload
+ | Meta Cloud API webhook receives the image and passes it to the same pipeline
+ | High
+ | Live use needs Meta business verification; the demo uses a test number
+ | 
+Emission engine
+ | Quantity × factor from versioned tables (CEA grid 0.727 t/MWh in v20.0)
+ | High
+ | Factor updates → store version and date on every result
+ | 
+Bill health check
+ | Rules on extracted fields (power factor below threshold, demand over sanctioned load)
+ | Medium–high
+ | Bill formats differ by DISCOM → start with one DISCOM's format
+ | 
+Action ranking
+ | Rules over a hand-built library of ~15 foundry measures from BEE cluster reports
+ | Medium
+ | Savings % are typical, not site-specific → show ranges, not single numbers
+ | 
+Rooftop solar sizing
+ | Load from bills + roof area typed by owner
+ | High
+ | Shading not known → label as indicative
+ | 
+Q&A assistant
+ | LLM answers only from the owner's stored data and plan
+ | Medium
+ | Wrong answers → restrict to stored data; show the source line for each answer
+ | 
+Loan matcher
+ | Eligibility rules typed from scheme pages (e.g. SIDBI: 3 years' operation, cash profits, GST compliance)
+ | High
+ | Schemes change or end → date-stamp every rule and recheck monthly
+ | 
+Loan-ready PDF
+ | Server-side PDF template
+ | High
+ | None significant
+ | 
+Production-adjusted savings
+ | Energy per unit of output, before vs after
+ | High
+ | Owner skips output entry → fall back to raw kWh with a warning
+ | 
+Alerts
+ | Scheduled job checks for a missing month or a jump above baseline
+ | High
+ | None significant
+ | 
+Share link
+ | Signed URL with expiry, read-only
+ | High
+ | None significant
+ | 
+Telugu and Hindi interface
+ | UI strings translated once; LLM replies in the chosen language
+ | Medium
+ | Technical terms → keep a reviewed glossary
+ | 
+Model choice: Gemini 2.5 Flash reads images, has a free tier of about 1,500 requests a day, and costs $0.30 input and $2.50 output per million tokens on paid use (RapidDev, July 2026). Free-tier prompts may be used by Google for training (Pasquale Pillitteri), so use sample bills, not real customer bills, on the free tier.
+Architecture
+One backend serves both the web app and WhatsApp, so every bill goes through the same reader, engine and data store.
+The reference tables are the trust layer: each emission factor, scheme rule and action carries its source and date, and every result stores which version it used. The stack (React, Express, Prisma, Postgres) is one your team can build quickly.
+Legal and regulatory check
+The ideathon prototype needs no government approval or licence; a real launch needs data-protection compliance and written agreements with lenders, and two words in the product must be avoided. This is a research summary, not legal advice; check with a lawyer before launch.
+Area
+ | Applies to
+ | What the rule says
+ | Ideathon
+ | Real launch
+ | 
+Data protection: DPDP Act 2023 and Rules 2025
+ | All user data; bills carry names and addresses
+ | Rules notified Nov 2025; consent-manager registration from Nov 2026; main consent, breach and other duties from 14 May 2027 (Anantam IAS). Notice must be standalone and clear (Mondaq); data deleted when consent is withdrawn; breaches reported within 72 hours (Hogan Lovells)
+ | No approval; show the consent screen anyway
+ | Comply by May 2027; no registration needed unless we become a consent manager
+ | 
+Lending: RBI Digital Lending Directions 2025
+ | Loan matcher, referrals
+ | An agent doing a lender's digital customer acquisition is a Lending Service Provider (RBI) and must work under a written contract with that lender (Vinod Kothari)
+ | No issue: the owner downloads the summary and applies directly
+ | Any paid referral needs a contract with each lender; never show "approval" or charge borrowers
+ | 
+GST data
+ | Purchase invoices
+ | Only GST Suvidha Providers connect to the GST system; apps reach data through a GSP with the taxpayer's OTP consent (IRIS GST)
+ | Use invoice photos and PDFs; no approval
+ | Partner with a GSP for API import
+ | 
+Energy Conservation Act 2001
+ | Wording of reports
+ | "Energy audit" is a defined term, and designated consumers must use accredited energy auditors (BEE)
+ | Call our output an "energy and carbon pre-assessment", never an energy audit
+ | Same; refer to BEE-certified auditors for real audits
+ | 
+CBAM
+ | Supplier emissions sheet
+ | Definitive-phase data needs verification, with on-site visits by verifiers in 2026 (The Sustainability Cloud)
+ | Label the sheet "estimate, not verified"
+ | Same; route to accredited verifiers
+ | 
+Carbon credits (CCTS)
+ | Future bundling
+ | Offset projects register with BEE and need accredited verification (Vision IAS)
+ | Not built; don't claim credits
+ | Only with BEE registration
+ | 
+WhatsApp
+ | Upload and reminders
+ | Per-message charges for templates; Indian accounts must move to INR billing by 31 Dec 2026 (Monty Mobile)
+ | Meta test number
+ | Business verification and user opt-in before messaging
+ | 
+Udyam verification
+ | Onboarding
+ | Verification is offered by private API vendors such as Cashfree
+ | Typed number, not verified
+ | Commercial agreement with a vendor
+ | 
+Government names and logos
+ | Branding, reports
+ | Using official emblems or scheme logos can imply endorsement
+ | Mention schemes by name only; no logos
+ | Same
+ | 
+Two words to avoid on screens and in the pitch: "energy audit" (use pre-assessment) and "loan approval" (use loan-ready summary).
+Cost of building
+The ideathon prototype costs ₹0 to about ₹1,000 in cash and about 22 person-days of work; a 3-month pilot with 100 MSMEs and 500 households costs about ₹17,000. Dollar prices are converted at an assumed ₹88 per US$.
+Ideathon prototype: cash cost
+Item
+ | Choice
+ | Cost
+ | 
+Vision LLM
+ | Gemini 2.5 Flash free tier, about 1,500 requests a day
+ | ₹0
+ | 
+Database, login, file storage
+ | Supabase Free: 500 MB database, 50,000 monthly users; pauses after a week idle (MakerKit)
+ | ₹0
+ | 
+Frontend hosting
+ | A free static hosting tier
+ | ₹0
+ | 
+WhatsApp
+ | Meta test number
+ | ₹0
+ | 
+Domain (optional)
+ | A .in domain
+ | About ₹600–1,000 a year (approximate)
+ | 
+Total
+ |  | ₹0 to about ₹1,000
+ | 
+Open the Supabase project before demo day so it is not paused.
+Cost of reading one document on paid use: about 2,000 input tokens × $0.30 per million + 500 output tokens × $2.50 per million = $0.00185, about ₹0.16 per bill.
+Ideathon prototype: team effort
+Work
+ | Person-days
+ | 
+Bill, receipt and invoice reading with confirm screen
+ | 4
+ | 
+Action library for foundry, ranking, solar sizing
+ | 3
+ | 
+Emission engine and "why this number" panel
+ | 2
+ | 
+Baseline and bill health check
+ | 2
+ | 
+Loan matcher and loan-ready PDF
+ | 2
+ | 
+Demo data and testing
+ | 2
+ | 
+Onboarding, language, consent
+ | 1.5
+ | 
+WhatsApp upload
+ | 1.5
+ | 
+Savings tracking and alerts
+ | 1.5
+ | 
+Q&A assistant
+ | 1
+ | 
+Reports and share link
+ | 1
+ | 
+Household mode
+ | 1
+ | 
+Total
+ | 22.5, about 5–6 working days for 4 people
+ | 
+3-month pilot: 100 MSMEs and 500 households
+Item
+ | Working
+ | Cost
+ | 
+Supabase Pro
+ | $25 a month × 3 (MakerKit)
+ | ₹6,600
+ | 
+Document reading
+ | 12,000 documents (12 months' backfill + 3 new, per user) × $0.00185
+ | ₹1,950
+ | 
+Q&A assistant
+ | Budget of $20
+ | ₹1,760
+ | 
+WhatsApp reminders
+ | 600 users × 6 utility messages × ₹0.145 (AiSensy) + 18% GST
+ | ₹616
+ | 
+Domain and email
+ | Approximate
+ | ₹1,000
+ | 
+Cluster field visits
+ | Assumption
+ | ₹5,000
+ | 
+Total
+ |  | About ₹16,900
+ | 
+The largest pilot cost is fixed hosting, not AI: reading every document for the whole pilot costs less than one month of a database plan.
+Sources
+Data protection: Anantam IAS, DPDP Rules timeline · Mondaq, DPDP obligations · Hogan Lovells, DPDP in force
+
+Lending: RBI Digital Lending Directions 2025 · Vinod Kothari analysis
+
+GST data access: IRIS GST, consent to get GST data · Tally, ASP and GSP access
+
+Energy audits: BEE, enforcement under the EC Act · EC Act definitions
+
+CBAM verification: The Sustainability Cloud
+
+Udyam verification API: Cashfree docs
+
+WhatsApp pricing: AiSensy, October 2026 update · Monty Mobile, INR billing and GST
+
+AI model pricing: RapidDev, Gemini 2.5 Flash · Pasquale Pillitteri, free-tier limits
+
+Hosting: MakerKit, Supabase pricing
+
+

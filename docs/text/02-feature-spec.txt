@@ -1,0 +1,466 @@
+02 Feature Specification and User Views
+
+
+
+
+  02 Feature Specification and User Views
+    Oct 11, 2026         · ​@Sriman
+
+  Calculation details live in 03 Calculation Logic; report layouts in 05 Reports.
+
+
+  User views
+  Nine kinds of user see the same data through different views; the MSME owner controls
+  every share, and outsiders only ever see what the owner approves.
+
+
+     View                           Who                 Sees              Can do          Access
+
+     Owner                          MSME                Everything for    Upload,         Full
+                                    proprietor or       their units       confirm, act,
+                                    director                              share, delete
+
+     Accountant or                  Invited by          Bills, reports,   Upload,         Owner invite,
+     consultant                     owner               loan pack         confirm,        revocable
+                                                                          generate
+                                                                          reports
+
+     Supervisor                     Plant floor staff   Monthly           Enter output,   Owner invite,
+                                                        production        upload bills    limited
+                                                        entry, alerts
+
+     Lender                         Bank or NBFC        Loan-ready pack   View,           Expiring link per
+                                    officer             and verified      download,       share
+                                                        savings           comment
+
+     Buyer                          EU importer or      Supplier          Request data,   Owner approval
+                                    Indian OEM          emissions sheet   view shared     per request
+                                                                          sheet
+
+     Cluster                        Industry            Anonymised        View only       Only clusters
+     association                    association         cluster totals                    with 10+ units
+                                                        and averages
+
+     Government or                  DIC, MSME-          Anonymised        View only       By agreement,
+     scheme officer                 DFO, BEE            aggregates                        aggregates only
+                                    programme
+                                    staff
+
+
+
+
+                                                                                                           Page 1 of 9
+02 Feature Specification and User Views
+
+
+
+
+     View                           Who             Sees                 Can do          Access
+
+     Household                      Individual      Own home bill        Upload, act,    Full for own
+                                    homeowner       and solar plan       share           home
+
+     Admin                          Platform team   Reference            Edit factors,   Internal, two-
+                                                    tables, audit logs   tariffs,        person approval
+                                                                         schemes,        for factor
+                                                                         actions         changes
+
+
+
+
+  Scope
+  Version 1 has 37 features in 7 groups; 6 of them are moved up from the earlier "later" list
+  because research shows real demand and they need no partner approval.
+
+  Moved up into v1
+
+
+     Feature                                            Why now
+
+     Telugu voice-note entry (CAP-6)                    WhatsApp is used by 97% of surveyed MSMEs
+                                                        (PayNearby, via Storyboard18); Sarvam's speech-
+                                                        to-text handles Telugu–English mixing (Sarvam)
+
+     Buyer data request (PART-2)                        EU buyers already ask MSME exporters for CBAM
+                                                        reports (The Wire); buyers inviting suppliers is
+                                                        also a growth channel
+
+     BRSR value-chain sheet (REP-3)                     Top 250 listed firms report value-chain partners
+                                                        above 2% of purchases, voluntary from FY 2025–
+                                                        26 (Vinod Kothari)
+
+     Lender view (PART-1)                               Only a read-only link; no lender agreement
+                                                        needed
+
+     Cluster association dashboard (PART-               Aggregates only; helps recruit units through
+     3)                                                 associations
+
+     Vendor quote compare (ACT-3)                       Needed for a real loan application
+
+
+  Still later
+
+
+
+
+                                                                                                        Page 2 of 9
+02 Feature Specification and User Views
+
+
+
+
+     Feature                                     Blocker
+
+     GST e-invoice API import                    Needs a GST Suvidha Provider partner
+
+     Smart-meter interval data                   Needs DISCOM data access
+
+     Udyam auto-verification                     Paid vendor API
+
+     Sharing verified energy data with lenders   ULI already lets lenders pull GST, bank and
+     through RBI's Unified Lending Interface     utility records with consent (RBI Governor,
+                                                 June 2026); we would need to become a
+                                                 data provider
+
+     Paid lender referrals                       Needs a contract with each lender
+
+     Carbon-credit bundling                      Needs BEE registration and accredited
+                                                 verification
+
+
+
+
+  Onboarding and data capture
+  The owner should reach a first footprint and a first rupee saving within 10 minutes of
+  signing up, using only bill photos.
+
+  ONB-1 Sign-in
+
+   1. Owner enters mobile number; OTP sent by SMS (WhatsApp OTP as alternative).
+   2. On success, create user and session; ask for language before anything else.
+   3. If the number was invited by another owner, attach the invited role instead of creating
+      a new business.
+
+  ONB-2 Business profile
+
+   1. Ask Udyam number (format check only in v1), business name, city, sector (foundry,
+      forging, fasteners, other).
+   2. Load the sector template: production unit (tonnes of castings, pieces), equipment
+      checklist, action library.
+   3. Ask DISCOM, consumer number and tariff category (HT-I(A), LT-III); prefilled later from
+      the first bill.
+   4. Save as an organisation with one site; more sites can be added.
+
+  ONB-3 Language
+
+
+
+
+                                                                                           Page 3 of 9
+02 Feature Specification and User Views
+
+
+
+
+   1. Telugu, Hindi or English; stored on the user, not the business, so a Telugu owner and an
+      English accountant share one account.
+   2. All UI text from a translation file; numbers always in Indian format (1,00,000).
+
+  ONB-4 Consent and team
+
+   1. Show a one-screen consent notice: what is stored, why, who can see it, how to delete.
+   2. Record consent with timestamp and notice version; nothing is processed before it.
+   3. Owner can invite an accountant or supervisor by phone number and pick their role.
+
+  CAP-1 Electricity bill
+
+   1. Owner photographs or uploads a PDF, or forwards it on WhatsApp.
+   2. Store the original file; compute a hash to block duplicates.
+   3. Send the image to the document reader with a fixed field list: consumer number, billing
+      period, kWh, kVAh, maximum demand, contracted demand, PF, ToD units, energy
+        charges, demand charges, other line items, total.
+   4. Validate: kWh ≤ kVAh, PF between 0.5 and 1.0, period not overlapping a saved bill,
+      consumer number matches the site.
+   5. Show the confirm screen with the photo beside each value; low-confidence fields
+      highlighted.
+   6. On confirm, save values tagged "measured", then trigger calculation and the bill health
+        check.
+
+  CAP-2 Fuel receipts: same pipeline; fields are fuel type, quantity, unit, date, amount. Unit
+  converted to kg or litres from a lookup.
+
+  CAP-3 GST purchase invoices
+
+   1. Extract supplier GSTIN, date, line items, HSN code, quantity, unit.
+   2. Map HSN chapters 72 (iron and steel), 73 (articles of iron or steel) and 76 (aluminium)
+      to CBAM material categories; ignore other lines.
+   3. Store tonnes per material per month for the Scope 3 and CBAM estimate.
+
+  CAP-4 Production entry
+
+   1. On the 1st of each month, a WhatsApp quick-reply asks "How many tonnes did you
+        make last month?"
+   2. The supervisor or owner replies with a number; it is saved as "owner-entered".
+   3. If no reply in 5 days, a reminder; savings then fall back to raw kWh with a warning.
+
+
+
+
+                                                                                             Page 4 of 9
+02 Feature Specification and User Views
+
+
+
+
+  CAP-5 Backfill: after the first bill, ask for the previous 11 months in one go; a progress bar
+  shows "8 of 12 months". The baseline unlocks at 9 months.
+
+  CAP-6 Telugu voice note
+
+   1. Owner records a voice note, e.g. "ee nela 95 tonnulu, diesel 1,200 litres".
+   2. Speech-to-text returns Telugu–English text; the language model maps it to fields.
+   3. Show the parsed values for one-tap confirm; never save unconfirmed voice values.
+
+
+  Calculations, insights and actions
+  Every confirmed bill triggers one pipeline: calculate, compare, check the bill, refresh the
+  action plan.
+
+  CALC-1 Emission engine
+
+   1. Triggered by a confirmed bill, receipt, invoice or production value.
+   2. Load the factor row valid for the bill period; compute Scope 1, 2 and metals Scope 3
+        (formulas in doc 03).
+   3. Save a result row with factor IDs, formula version and input IDs; never overwrite an
+        older result.
+   4. Recompute monthly and yearly totals and intensity.
+
+  CALC-2 Baseline and benchmark
+
+   1. When 9 or more months exist, fit energy vs production; store coefficients and fit
+      statistics.
+   2. If the fit fails the thresholds in doc 03, mark the baseline "intensity only".
+   3. Compute peer position against cluster peers (10+) or the BEE range.
+
+  INS-1 Bill health check
+
+   1. Run the four checks in doc 03 (power factor, peak use, contracted demand, minimum
+        charges) on each new bill.
+   2. Convert each finding into ₹ per month and a one-line fix.
+   3. Push findings to the top of the action plan as zero-cost actions.
+
+  INS-2 Monthly insight card
+
+   1. After calculation, compare this month with the same month last year and the baseline.
+   2. Pick the largest driver (production change, power factor, peak use, fuel) and state it in
+      one sentence.
+
+
+
+                                                                                             Page 5 of 9
+02 Feature Specification and User Views
+
+
+
+
+   3. Show ₹ change first, kWh second, CO₂ third.
+
+  ACT-1 Action plan
+
+   1. Filter the sector action library by the owner's equipment checklist.
+   2. Estimate each action's saving range, cost range and payback (doc 03).
+   3. Rank: zero-cost first, then by payback; show the top 3 with "see all".
+   4. Owner marks an action "planned", "in progress" or "done" with date and actual cost.
+
+  ACT-2 Solar sizing
+
+   1. Ask usable roof area and whether the roof is owned.
+   2. Compute size from roof, daytime use and the DISCOM net-metering cap; get site yield
+      from a solar model.
+   3. Show size, yearly generation, ₹ saved, cost range, payback, EMI comparison.
+
+  ACT-3 Vendor quote compare
+
+   1. Owner uploads 1–3 vendor quotations for a planned action.
+   2. Extract price, capacity and warranty; flag quotes outside the library's cost range.
+   3. The chosen quote feeds the loan-ready pack.
+
+  ACT-4 Assistant
+
+   1. Owner asks a question in any of the three languages, by text or voice.
+   2. Retrieve only that business's stored data, plan and the action library entry in question.
+   3. The language model answers with a source line ("from your September bill"); questions
+        outside the data get "I can only answer about your bills and plan".
+
+
+  Finance, verification and reports
+  This is where the platform differs from every existing calculator: it carries an action to a
+  lender and then proves the saving.
+
+  FIN-1 Scheme and loan matcher
+
+   1. Read the business profile (age, GST status, Udyam category, sector, state).
+   2. Evaluate each dated rule in the scheme table, e.g. SIDBI green loans need 3+ years of
+        operation, cash profits and GST compliance (Mercom).
+   3. Show "likely eligible", "check with lender" or "not eligible" with the reason and the rule's
+        last-checked date.
+
+
+
+
+                                                                                             Page 6 of 9
+02 Feature Specification and User Views
+
+
+
+
+  FIN-2 Loan-ready pack
+
+   1. Owner picks a planned action and a vendor quote.
+   2. Assemble: business profile, 12-month energy baseline, proposed measure, quote,
+        savings range, EMI vs saving, CO₂ impact, data quality score.
+   3. Generate a PDF and a read-only link (doc 05).
+   4. Never use the words "approved" or "sanctioned"; it is a summary for the owner to
+        submit.
+
+  FIN-3 EMI vs saving: for any loan amount, rate and tenure the owner types, show EMI,
+  low-end monthly saving and the monthly difference.
+
+  VER-1 Savings verification
+
+   1. After an action is marked done, each new month computes adjusted baseline minus
+      actual (doc 03).
+   2. Add to the savings ledger in ₹, kWh and CO₂.
+   3. Switch the label from "too early to confirm" to "verified" once the significance test
+      passes.
+
+  VER-2 Non-routine adjustments: owner logs events that change energy use (new
+  machine, extra shift, plant shutdown) with a date and an estimated kWh effect; each
+  adjustment appears in reports.
+
+  VER-3 Alerts
+
+   1. Missing bill: no bill 10 days after the expected date.
+   2. Spike: actual above adjusted baseline by more than 15% for a month.
+   3. New charge: a bill line item not seen before (e.g. a low power factor surcharge).
+
+  REP-1 Monthly report: one page; ₹ saved, kWh per tonne, CO₂ per tonne, top action, data
+  quality score.
+
+  REP-2 CBAM supplier sheet: fields mapped to the EU communication template's
+  structure (doc 05); every value labelled "estimate, not verified".
+
+  REP-3 BRSR value-chain sheet: energy, emissions and intensity in the BRSR Core format
+  for a listed customer.
+
+  REP-4 Progress statement: a yearly PDF with a QR code that opens a verification page
+  showing the same numbers, so a buyer or lender can check the document was not altered.
+
+
+
+
+                                                                                              Page 7 of 9
+02 Feature Specification and User Views
+
+
+
+
+  Engagement, household mode and partner views
+  These features keep owners returning every month and bring in new users through
+  buyers, lenders and associations.
+
+  ENG-1 Green Progress Score: computed monthly from improvement, data habit, actions
+  and peer position (doc 03); shown next to ₹ saved, never alone.
+
+  ENG-2 Leaderboard: cluster and sector only, 10+ units, names hidden unless the owner
+  opts in; shows own rank and gap to the unit above (doc 04).
+
+  ENG-3 Monthly WhatsApp summary
+
+   1. When a month's bill is confirmed, send one message: ₹ saved this month, total so far,
+      one next action.
+   2. Bill-due reminders follow the DISCOM's billing cycle for that consumer number.
+   3. All messages are utility templates sent only after opt-in.
+
+  HH-1 Household mode
+
+   1. Simplified sign-up; no Udyam or production questions.
+   2. Upload a home electricity bill; compute footprint at the grid factor.
+   3. Size rooftop solar, estimate PM Surya Ghar subsidy, link to the official portal.
+   4. After installation, read net-metering bills to show imported, exported and ₹ saved.
+
+  PART-1 Lender view
+
+   1. Owner shares a loan-ready pack with a lender's email or phone; link expires in 30 days
+      by default.
+   2. Lender sees the pack, the data quality score and, later, verified savings for that action.
+   3. Every view is logged and visible to the owner.
+
+  PART-2 Buyer data request
+
+   1. A buyer (EU importer or Indian OEM) creates a free account and requests emissions
+        data from a supplier by phone or GSTIN.
+   2. The supplier gets a WhatsApp invite; if new, they sign up through ONB-1.
+   3. Supplier approves the specific report to share; the buyer sees only that report.
+   4. Requests and approvals are logged; the owner can revoke at any time.
+
+  PART-3 Cluster association dashboard
+
+   1. Show only aggregates for clusters with 10+ participating units.
+
+
+
+
+                                                                                            Page 8 of 9
+02 Feature Specification and User Views
+
+
+
+
+   2. Totals: units active, average kWh per tonne, total ₹ and CO₂ saved, top actions taken.
+   3. No unit-level data, no names.
+
+
+  Admin and reference data
+  Four reference tables carry all rules that change over time, so a tariff or scheme change is
+  a data edit, not a code release.
+
+
+     Table                        Holds                            Updated when           Check
+
+     Emission                     Value, unit, source, version,    CEA publishes a new    Two-person approval
+     factors                      valid-from                       database (yearly)
+
+     Tariff rules                 DISCOM, category, ToD            TGERC tariff order     Two-person approval
+                                  windows and rates, PF            (yearly)
+                                  rules, demand rules, valid-
+                                  from
+
+     Schemes and                  Eligibility rules, rate range,   Monthly review         Rules older than 60
+     lenders                      documents, last-checked                                 days show a warning
+                                  date
+
+     Action library               Sector, equipment, saving        New cluster study or   Source link required
+                                  range, cost range, source        pilot result
+
+
+  ADM-1 Reference editor: admins edit rows; every edit stores who, when and why; nothing
+  is deleted, only superseded.
+
+  ADM-2 Audit log: append-only log of logins, shares, report generations, consent changes
+  and admin edits.
+
+
+
+  Sources
+        PayNearby MSME Digital Index 2024, via Storyboard18
+        Sarvam AI, Telugu speech-to-text
+        The Wire, CBAM and Indian MSMEs
+        Vinod Kothari, BRSR value-chain partners
+        RBI Governor's remarks on ULI, June 2026
+        Mercom, SIDBI green loan eligibility
+
+
+
+                                                                                                           Page 9 of 9
+

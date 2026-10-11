@@ -1,0 +1,186 @@
+01 Target Segment: Which MSMEs to Serve First
+
+
+
+
+  01 Target Segment: Which MSMEs to Serve
+  First
+    Oct 11, 2026        · ​@Sriman
+
+
+  Decision
+  Start with small and medium metal-engineering manufacturers: foundries, forging,
+  fasteners and auto components, beginning in Hyderabad's foundry and Balanagar–
+  Jeedimetla engineering clusters.
+
+       They pay big energy bills. Energy is 12–15% of a foundry's cost (IIF) and 20–30% in
+       energy-intensive MSME sectors (UNIDO). A saving is large in rupees, so the product
+       pays for itself.
+       They face a deadline. The EU plans to extend CBAM to about 180 downstream
+       products, including fasteners and machinery parts, from January 2028 (GTRI). Auto
+       components ship about 27% of output to the EU, and at least $1.1 billion of Indian
+       exports would come into scope (Outlook Business).
+       They are mostly MSMEs. About 90% of India's roughly 5,000 foundries are MSMEs
+       (IIF).
+       They are reachable. Hyderabad is a listed foundry cluster, and the team can visit units
+       in person and work in Telugu.
+
+  Size filter: small or medium category (investment up to ₹125 crore, turnover up to ₹500
+  crore under the April 2025 limits), plus larger micro manufacturers, with an own industrial
+  power connection, B2B buyers, and 3+ years of operation (the SIDBI green-loan
+  minimum).
+
+
+  Segment scoring
+  Metal engineering scores highest because it combines high energy cost, EU carbon
+  pressure and a known savings record; textiles come next.
+
+
+
+
+                                                                                          Page 1 of 4
+01 Target Segment: Which MSMEs to Serve First
+
+
+
+
+    Segment                       Evidence              Energy    Buyer and carbon     Savings record Fit for v1
+                                                        cost      pressure
+
+    Foundries                     ~5,000 units, ~90%    High      High: castings and   BEE cluster      First
+                                  MSME; Hyderabad                 machinery parts      audits and
+                                  is a listed cluster             in the 2028 CBAM     manuals exist
+                                  (IIF)                           expansion (The
+                                                                  Wire)
+
+    Forging,                      Auto components       High      High: fasteners      BEE forging      First
+    fasteners, auto               ship ~27% of                    named by GTRI;       cluster audits
+    components                    output to the EU                EU buyers already
+                                  (Outlook Business)              asking (The Wire)
+
+    Secondary steel               8,259 units with      Very      Very high: CBAM      Strong           Second wave:
+    (induction                    foundries in          high      primary goods                         processes are
+    furnace, re-rolling)          Maharashtra use                                                       complex
+                                  11.8 Mtoe and emit
+                                  58 Mt CO₂ (Deccan
+                                  Herald)
+
+    Textile dyeing and            ~20% fuel saving      High      Medium: brand        Strong           Second wave
+    processing                    found in audits of              buyer demands,
+                                  60+ units (IDR)                 no CBAM
+
+    Bulk drugs and                Large cluster in      High      Low: no CBAM,        Moderate         Later
+    pharma                        Jeedimetla (CPCB      (steam)   US-heavy exports
+    (Hyderabad)                   list)
+
+    Food processing,              Electricity-heavy     Medium    Low                  Moderate         Later
+    cold storage
+
+    Micro traders and             Most of the 8.84      Low       Low                  Small rupee      Avoid in v1
+    services                      crore registry                                       savings
+
+
+  Why foundry and forging first: they are the only segments where a saving, a loan and a
+  buyer deadline all apply at once, which gives three reasons to keep using the product.
+
+
+  Beachhead: Hyderabad clusters
+  Pilot with 30–50 units in Hyderabad's foundry and engineering clusters, where the team
+  can visit in person and speak Telugu.
+
+
+     Cluster                                    Why                                        Source
+
+     Hyderabad foundry cluster                  Listed among India's major foundry         IIF, UNIDO cluster list
+                                                clusters                                   via RBI
+
+
+
+                                                                                                                      Page 2 of 4
+01 Target Segment: Which MSMEs to Serve First
+
+
+
+
+     Cluster                                    Why                                 Source
+
+     Balanagar–Jeedimetla                       Listed cluster; a common facility   UNIDO cluster list via
+     engineering belt                           centre recommended for the          RBI, DC-MSME
+                                                Balanagar Engineering Cluster
+
+     Cherlapally industrial                     Listed in DC-MSME cluster           DC-MSME
+     estate                                     submissions
+
+
+  How to recruit the first units: through the cluster industry association, the SIDBI branch,
+  and units already registered for ZED. Ask each for 12 months of electricity bills and one
+  buyer contact.
+
+  Success test for the pilot: at least 60% of units upload a second month's bill without
+  being chased, and at least 5 units take a loan-ready summary to a lender.
+
+
+  Expansion order
+  Expand from Hyderabad to the clusters with the highest EU exposure before the January
+  2028 CBAM expansion.
+
+   1. Now to mid-2027: Hyderabad foundry and engineering pilot; one sector template
+      (foundry), then forging.
+   2. 2027, before CBAM expansion: Pune, Rajkot, Coimbatore and Faridabad, named as the
+      most exposed engineering belts (Outlook Business); Kolhapur, Batala–Jalandhar–
+      Ludhiana and Belgaum foundry clusters (IIF).
+   3. Next sector: secondary steel, then textile dyeing (Tiruppur, Kolkata), each with its own
+      template.
+   4. Households: nationwide from launch, because the bill-to-solar flow needs no field
+      work.
+
+  Each new cluster needs only a sector template, local tariff rules and a partner association;
+  the core platform stays the same.
+
+
+
+
+                                                                                                         Page 3 of 4
+01 Target Segment: Which MSMEs to Serve First
+
+
+
+
+  Who to avoid early
+
+     Group                                          Why not yet
+
+     Micro traders, shops and service units         Small bills mean small rupee savings; little
+                                                    reason to return monthly
+
+     Units in shared or rented sheds without        No bill of their own, so no baseline
+     their own meter
+
+     Mid-to-large firms with ESG teams              Already served by enterprise tools such as
+                                                    Breathe ESG and Sprih
+
+     Pharma bulk-drug units                         No CBAM pressure, regulated processes,
+                                                    sensitive data
+
+     Units under 3 years old                        Do not meet the SIDBI green-loan minimum,
+                                                    so the finance step fails
+
+
+
+
+  Sources
+       IIF Foundry Informatics Centre, profile of Indian foundry industry · IIF, energy cost
+       share
+       UNIDO evaluation terms of reference, MSME clusters
+       GTRI, CBAM expansion to 180 products · Outlook Business, CBAM and the FTA · The
+       Wire, CBAM and MSMEs
+       Deccan Herald, Maharashtra foundry and secondary steel · IDR, textile dyeing audits
+       UNIDO MSME cluster list, via RBI · DC-MSME cluster submissions · CPCB Telangana
+       industries
+       Deccan Herald, MSME classification limits from April 2025
+
+
+
+
+                                                                                                   Page 4 of 4
+
