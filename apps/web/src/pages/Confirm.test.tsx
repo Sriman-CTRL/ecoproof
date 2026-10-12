@@ -55,7 +55,7 @@ describe('confirm screen', () => {
     const kvah = screen.getByTestId('field-kvah');
     expect(kvah.dataset.low).toBe('true');
     expect(kvah.textContent).toContain('Please check');
-    expect(kvah.querySelector('input')?.className).toContain('border-amber-500');
+    expect(kvah.querySelector('input')?.className).toContain('border-copper-700');
     expect(screen.getByTestId('field-kwh').dataset.low).toBeUndefined();
   });
 

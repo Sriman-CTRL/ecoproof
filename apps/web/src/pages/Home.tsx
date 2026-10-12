@@ -1,10 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
-import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
+import { BUTTON_CLASS } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { EmptyState } from '../components/kit/EmptyState';
+import { RupeeHero } from '../components/kit/RupeeHero';
+import { Skeleton } from '../components/kit/Skeleton';
+import { SourceChip } from '../components/kit/SourceChip';
+import { YearStrip } from '../components/kit/YearStrip';
+import { MonthLedger } from '../components/MonthLedger';
+import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
-import { useActions, actionTitle } from './Actions';
+import { actionTitle, topActionByRupees, useActions } from './Actions';
 import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
@@ -12,17 +22,6 @@ import { getSession } from '../lib/session';
 interface LatestDoc {
   id: string;
   status: string;
-}
-
-export function Co2Line({ m }: { m: MonthRow }) {
-  const { t } = useTranslation();
-  if (!m.co2) return <span className="text-gray-500">{t('home.noCarbon')}</span>;
-  const total = (m.co2.scope2TCo2Grid ?? 0) + (m.co2.scope1TCo2eFuels ?? 0);
-  return (
-    <>
-      {formatDecimal(total)} <span className="text-gray-600">{m.co2.label}</span>
-    </>
-  );
 }
 
 /** "12.72 t CO2 more from grid electricity", plus the fuel part only when fuel CO2e changed. */
@@ -45,8 +44,8 @@ export function co2Parts(
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const siteId = getSession()?.siteId ?? '';
+  const session = getSession();
+  const siteId = session?.siteId ?? '';
   const months = useQuery({
     queryKey: ['months', siteId],
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
@@ -60,8 +59,8 @@ export default function Home() {
   const top = list[0];
   const topMonth = top?.month ?? null;
   const insights = useInsights(topMonth, null, { waitForMonth: true });
-  const actions = useActions(topMonth, false);
-  const next = actions.data?.actions[0];
+  const actions = useActions(topMonth, true, topMonth != null);
+  const next = topActionByRupees(actions.data?.actions);
   const card = insights.data?.insightCard;
   const lang = i18n.resolvedLanguage ?? 'en';
   const resume = latestDoc.data;
@@ -72,110 +71,135 @@ export default function Home() {
         ? `/bills/new?doc=${resume.id}`
         : null;
 
+  const month = top ? monthLabel(top.month, lang) : '';
+  const source = t('home.sourceBill', { month });
+  // Demo A: the money at stake straight from the API. Demo B and the fallback: the latest bill.
+  // "Rs saved this month / total so far" has no endpoint yet (docs/OPEN_ITEMS.md, UI).
+  const atStake = insights.data?.atStake.inrPerMonth ?? 0;
+  // Demo A leads with the money at stake: wait for it rather than flash the bill total first.
+  const waitingForStake = session?.demo === 'A' && insights.isPending && !insights.isError;
+  const showAtStake = session?.demo === 'A' && atStake > 0;
+  const co2 = top?.co2
+    ? t('results.co2Line', {
+        grid: formatDecimal(top.co2.scope2TCo2Grid ?? 0),
+        fuels: formatDecimal(top.co2.scope1TCo2eFuels ?? 0),
+      })
+    : undefined;
+
+  const nextLink = next ? `/actions/${next.code}?month=${topMonth?.slice(0, 7)}` : null;
+
   return (
     <Page
+      tab="home"
       action={
-        <button type="button" className={PRIMARY} onClick={() => navigate('/bills/new')}>
-          📷 {t('home.addBill')}
-        </button>
+        nextLink && next ? (
+          <Link to={nextLink} className={BUTTON_CLASS.primary}>
+            {actionTitle(next, t)}
+            <ArrowRight size={20} aria-hidden="true" />
+          </Link>
+        ) : (
+          <Link to="/bills/new" className={BUTTON_CLASS.primary}>
+            {t('home.addBill')}
+          </Link>
+        )
       }
     >
       {months.isError && <ErrorBox>{t('home.loadFailed')}</ErrorBox>}
-      {months.isLoading && <p>{t('common.loading')}</p>}
+      {months.isLoading && <Skeleton />}
 
       {resumeTo && (
         <Link
           to={resumeTo}
-          className="block rounded-xl border-2 border-amber-500 bg-amber-50 p-3 font-medium"
+          className="flex min-h-12 items-center gap-2 rounded-card border border-copper-700 bg-copper-50 p-3 font-semibold text-copper-800"
         >
-          ➜ {t('home.resume')}
+          <ArrowRight size={20} aria-hidden="true" />
+          {t('home.resume')}
         </Link>
       )}
 
-      {top && (
-        <section className="rounded-2xl bg-white p-5 shadow-sm">
-          <h1 className="text-sm font-medium text-gray-600">
-            {t('home.latestBill', { month: monthLabel(top.month, lang) })}
-          </h1>
-          <p className="mt-1 text-3xl font-bold">
-            {top.rupees.total != null ? (
-              <SourceNumber source={t('home.sourceBill', { month: monthLabel(top.month, lang) })}>
-                <Rupees value={top.rupees.total} />
-              </SourceNumber>
-            ) : (
-              '-'
-            )}
-          </p>
-          <p className="text-xs text-gray-500">{t('home.billTotal')}</p>
-          <p className="mt-3 text-lg">
-            {top.kwh != null ? formatNumber(top.kwh) : '-'}{' '}
-            <span className="text-gray-600">{t('common.units')}</span>
-          </p>
-          <p className="mt-1 text-lg">
-            <Co2Line m={top} />
-          </p>
-        </section>
+      {top && waitingForStake && <Skeleton />}
+      {top && !waitingForStake && (
+        <Card>
+          <h1 className="sr-only">{t('home.latestBill', { month })}</h1>
+          {showAtStake ? (
+            <RupeeHero
+              value={Math.round(atStake)}
+              label={t('home.heroAtStake')}
+              countUpKey="home-hero"
+              source={{ lineName: t('results.healthSource'), month, quality: 'fromBill' }}
+              unitsText={t('health.perMonth')}
+            />
+          ) : top.rupees.total != null ? (
+            <RupeeHero
+              value={Math.round(top.rupees.total)}
+              label={t('home.heroBill')}
+              countUpKey="home-hero"
+              source={{ lineName: source, month, quality: 'fromBill' }}
+              unitsText={
+                top.kwh != null ? (
+                  <SourceChip lineName={source} month={month} quality="fromBill">
+                    {t('home.unitsLine', { units: formatNumber(top.kwh) })}
+                  </SourceChip>
+                ) : undefined
+              }
+              co2Text={co2}
+            />
+          ) : null}
+        </Card>
       )}
 
-      {next && (
-        <Link
-          to={`/actions/${next.code}?month=${topMonth?.slice(0, 7)}`}
-          className="block min-h-12 space-y-1 rounded-2xl border-2 border-emerald-700 bg-white p-5 shadow-sm"
-        >
-          <p className="text-sm font-medium text-gray-600">{t('home.nextAction')}</p>
-          <p className="font-semibold">{actionTitle(next, t)}</p>
-          {next.inrPerMonthLow != null && (
-            <p className="text-2xl font-bold">
-              <Rupees value={next.inrPerMonthLow} />{' '}
-              <span className="text-base font-normal text-gray-600">{t('health.perMonth')}</span>
-            </p>
-          )}
-        </Link>
-      )}
-
-      {card?.change && card.largestDriver && (
-        <p className="rounded-xl bg-white p-4 shadow-sm" data-testid="insight-sentence">
-          {t('home.insight', {
-            direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
-            inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
-            kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
-            co2: co2Parts(card.change, t),
-            driver: t(`home.driver.${card.largestDriver}`),
-          })}
-        </p>
-      )}
-
-      {months.isSuccess && list.length === 0 && (
-        <p className="rounded-xl bg-white p-5 text-lg shadow-sm">{t('home.empty')}</p>
+      {months.isLoading || (top && insights.isLoading) ? (
+        <Skeleton />
+      ) : (
+        card?.change &&
+        card.largestDriver && (
+          <p
+            className="rounded-card border bg-surface p-4 shadow-card"
+            data-testid="insight-sentence"
+          >
+            {t('home.insight', {
+              direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
+              inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
+              kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
+              co2: co2Parts(card.change, t),
+              driver: t(`home.driver.${card.largestDriver}`),
+            })}
+          </p>
+        )
       )}
 
       {list.length > 0 && (
-        <section>
-          <h2 className="mb-2 font-semibold">{t('home.months')}</h2>
-          <ul className="divide-y rounded-xl bg-white shadow-sm">
-            {list.map((m) => {
-              const row = (
-                <div className="flex items-center justify-between gap-3 p-3">
-                  <div>
-                    <div className="font-medium">{monthLabel(m.month, lang)}</div>
-                    <div className="text-xs text-gray-600">
-                      {m.kwh != null ? `${formatNumber(m.kwh)} ${t('common.unitsShort')}` : ''}
-                    </div>
-                  </div>
-                  <div className="text-right font-semibold">
-                    {m.rupees.total != null ? <Rupees value={m.rupees.total} /> : '-'}
-                  </div>
-                </div>
-              );
-              return (
-                <li key={m.month}>
-                  {m.resultId ? <Link to={`/results/${m.resultId}`}>{row}</Link> : row}
-                </li>
-              );
-            })}
-          </ul>
+        <Card>
+          <YearStrip months={yearMonths(list, lang)} />
+        </Card>
+      )}
+
+      {/* D4a: the progress path and the headroom meter go here (retention plan 3.1 and 3.2). */}
+
+      {months.isSuccess && list.length === 0 && (
+        <EmptyState
+          icon={Receipt}
+          title={t('bills.emptyTitle')}
+          body={t('home.empty')}
+          action={
+            <Link to="/bills/new" className={BUTTON_CLASS.secondary}>
+              {t('home.addBill')}
+            </Link>
+          }
+        />
+      )}
+
+      {list.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-heading text-card-title font-semibold">{t('home.recent')}</h2>
+          <MonthLedger rows={list.slice(0, 3)} />
+          <Link to="/bills" className={`${BUTTON_CLASS.secondary} w-full`}>
+            {t('home.seeAllBills')}
+          </Link>
         </section>
       )}
+
+      <SwitchSample />
     </Page>
   );
 }

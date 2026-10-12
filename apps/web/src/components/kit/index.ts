@@ -8,6 +8,7 @@ export { EmptyState } from './EmptyState';
 export { ErrorNote } from './ErrorNote';
 export { HeadroomMeter } from './HeadroomMeter';
 export { JargonChip, type JargonTerm } from './JargonChip';
+export { PaperSheet } from './PaperSheet';
 export { PATH_STAGES, ProgressPath, type PathStage } from './ProgressPath';
 export { RupeeHero } from './RupeeHero';
 export { Skeleton, SkeletonBlock } from './Skeleton';

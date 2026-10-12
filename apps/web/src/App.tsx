@@ -2,11 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
-import { Page } from './components/ui';
+import { Button } from './components/kit/Button';
+import { Skeleton } from './components/kit/Skeleton';
+import { ErrorBox, Page } from './components/ui';
 import { api } from './lib/api';
 import { getSession } from './lib/session';
 import ActionDetail from './pages/ActionDetail';
 import Actions from './pages/Actions';
+import Bills from './pages/Bills';
 import Confirm from './pages/Confirm';
 import Consent from './pages/Consent';
 import Health from './pages/Health';
@@ -36,17 +39,17 @@ function RequireConsent() {
   if (status.isLoading) {
     return (
       <Page>
-        <p>{t('common.loading')}</p>
+        <Skeleton />
       </Page>
     );
   }
   if (status.isError) {
     return (
       <Page>
-        <p role="alert">{t('common.networkError')}</p>
-        <button className="min-h-12 underline" onClick={() => void status.refetch()}>
+        <ErrorBox>{t('common.networkError')}</ErrorBox>
+        <Button variant="secondary" onClick={() => void status.refetch()}>
           {t('common.retry')}
-        </button>
+        </Button>
       </Page>
     );
   }
@@ -75,6 +78,7 @@ export default function App() {
           <Route path="/consent" element={<Consent />} />
           <Route element={<RequireConsent />}>
             <Route path="/home" element={<Home />} />
+            <Route path="/bills" element={<Bills />} />
             <Route path="/bills/new" element={<NewBill />} />
             <Route path="/bills/:documentId/confirm" element={<Confirm />} />
             <Route path="/results/:resultId" element={<Results />} />

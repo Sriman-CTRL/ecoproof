@@ -1,8 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
-import { ErrorBox, Page, PRIMARY } from '../components/ui';
+import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
+import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import { BUTTON_CLASS, Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { Skeleton } from '../components/kit/Skeleton';
+import { StatusPill, type PillTone } from '../components/kit/StatusPill';
+import { ErrorBox, Page } from '../components/ui';
 import { VerifyCard } from '../components/verify';
 import { api, ApiError, postJson, type ReportView, type ShareRow } from '../lib/api';
 
@@ -22,6 +28,12 @@ async function copy(text: string): Promise<boolean> {
   }
 }
 
+const SHARE_TONE: Record<ShareRow['status'], PillTone> = {
+  active: 'positive',
+  expired: 'neutral',
+  revoked: 'loss',
+};
+
 export default function Report() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
@@ -36,6 +48,7 @@ export default function Report() {
   const [copied, setCopied] = useState<'sha' | 'link' | null>(null);
   const [recipient, setRecipient] = useState('');
   const [days, setDays] = useState('30');
+  const recipientRef = useRef<HTMLInputElement>(null);
 
   const share = useMutation({
     mutationFn: () =>
@@ -53,19 +66,35 @@ export default function Report() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['report', id] }),
   });
 
+  /** One button: with a recipient it makes the link, without one it takes you to the name field. */
+  function shareWithLender() {
+    if (recipient.trim()) share.mutate();
+    else {
+      recipientRef.current?.scrollIntoView({ block: 'center' });
+      recipientRef.current?.focus();
+    }
+  }
+
+  const inputClass = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
   const r = q.data;
   return (
     <Page
+      tab="plan"
       action={
         r ? (
-          <a className={PRIMARY} href={r.downloadUrl} target="_blank" rel="noopener noreferrer">
-            {t('report.download')}
-          </a>
+          <Button disabled={share.isPending} onClick={shareWithLender}>
+            {t('report.shareWithLender')}
+          </Button>
         ) : undefined
       }
     >
-      <h1 className="text-xl font-bold">{t('report.title')}</h1>
-      {q.isLoading && <p>{t('common.loading')}</p>}
+      <h1 className="font-heading text-title font-semibold">{t('report.title')}</h1>
+      {q.isLoading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
       {q.isError && (
         <ErrorBox>
           {q.error instanceof ApiError && q.error.status === 404
@@ -75,89 +104,99 @@ export default function Report() {
       )}
       {r && (
         <>
-          <VerifyCard v={r} />
+          <VerifyCard v={r} sourced />
+          <a
+            className={`${BUTTON_CLASS.secondary} w-full`}
+            href={r.downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <DownloadSimple size={20} aria-hidden="true" />
+            {t('report.download')}
+          </a>
 
-          <section className="space-y-2 rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">{t('report.sealTitle')}</h2>
-            <p className="text-sm text-gray-700">{t('report.sealHelp')}</p>
+          <Card className="space-y-2">
+            <h2 className="font-heading text-card-title font-semibold">{t('report.sealTitle')}</h2>
+            <p className="text-small text-ink-muted">{t('report.sealHelp')}</p>
             <button
               type="button"
-              className="min-h-12 text-left"
+              className="flex min-h-12 items-center gap-2 text-left"
               data-testid="sha-copy"
               onClick={async () => setCopied((await copy(r.sha256)) ? 'sha' : null)}
             >
-              <span className="font-mono">{r.sha256.slice(0, 12)}</span>{' '}
-              <span className="text-sm underline">
+              <span className="font-mono">{r.sha256.slice(0, 12)}</span>
+              <Copy size={20} className="text-green-700" aria-hidden="true" />
+              <span className="text-small text-green-700 underline">
                 {copied === 'sha' ? t('report.copied') : t('report.tapCopy')}
               </span>
             </button>
-            <p className="text-sm">
-              <Link className="underline" to={`/verify/${r.reportId}`}>
-                {t('report.openVerify')}
-              </Link>
-            </p>
-          </section>
+            <Link className={`${BUTTON_CLASS.secondary} w-full`} to={`/verify/${r.reportId}`}>
+              {t('report.openVerify')}
+            </Link>
+          </Card>
 
-          <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">{t('report.shareTitle')}</h2>
+          <Card className="space-y-3">
+            <h2 className="font-heading text-card-title font-semibold">{t('report.shareTitle')}</h2>
             <form
               className="space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (recipient.trim()) share.mutate();
+                shareWithLender();
               }}
             >
-              <label className="block text-sm">
-                <span className="font-medium">{t('report.recipient')}</span>
+              <label className="block text-small">
+                <span className="font-semibold">{t('report.recipient')}</span>
                 <input
-                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  ref={recipientRef}
+                  className={inputClass}
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                 />
               </label>
-              <label className="block text-sm">
-                <span className="font-medium">{t('report.expiryDays')}</span>
+              <label className="block text-small">
+                <span className="font-semibold">{t('report.expiryDays')}</span>
                 <input
                   inputMode="numeric"
-                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  className={inputClass}
                   value={days}
                   onChange={(e) => setDays(e.target.value.replace(/[^\d]/g, ''))}
                 />
               </label>
-              <button
-                type="submit"
-                className="min-h-12 w-full rounded-xl border-2 border-emerald-700 font-semibold text-emerald-800 disabled:opacity-50"
-                disabled={!recipient.trim() || share.isPending}
-              >
-                {t('report.makeLink')}
-              </button>
             </form>
             {share.isError && <ErrorBox>{t('common.genericError')}</ErrorBox>}
             {share.data && (
-              <div className="space-y-2 rounded-lg bg-emerald-50 p-3">
-                <p className="text-sm font-medium">{t('report.linkReady')}</p>
-                <p className="break-all font-mono text-xs" data-testid="share-url">
+              <div className="space-y-2 rounded-card bg-green-50 p-3">
+                <p className="text-small font-semibold">{t('report.linkReady')}</p>
+                <p className="font-mono text-small break-all" data-testid="share-url">
                   {share.data.shareUrl}
                 </p>
-                <button
-                  type="button"
-                  className="min-h-12 underline"
+                <Button
+                  variant="secondary"
                   onClick={async () => setCopied((await copy(share.data.shareUrl)) ? 'link' : null)}
                 >
+                  <Copy size={20} aria-hidden="true" />
                   {copied === 'link' ? t('report.copied') : t('report.copyLink')}
-                </button>
+                </Button>
               </div>
             )}
-            {r.shares.length > 0 && (
-              <ul className="divide-y rounded-lg border">
-                {r.shares.map((s) => (
-                  <ShareItem key={s.id} s={s} lang={lang} onRevoke={() => revoke.mutate(s.id)} />
-                ))}
-              </ul>
+          </Card>
+
+          <section className="space-y-2">
+            <h2 className="font-heading text-card-title font-semibold">{t('report.log')}</h2>
+            {r.shares.length === 0 ? (
+              <p className="text-ink-muted">{t('report.noShares')}</p>
+            ) : (
+              <Card className="py-1">
+                <ul>
+                  {r.shares.map((s) => (
+                    <ShareItem key={s.id} s={s} lang={lang} onRevoke={() => revoke.mutate(s.id)} />
+                  ))}
+                </ul>
+              </Card>
             )}
           </section>
 
-          <p className="text-xs text-gray-500">{t('detail.lenderNote')}</p>
+          <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
         </>
       )}
     </Page>
@@ -167,21 +206,19 @@ export default function Report() {
 function ShareItem({ s, lang, onRevoke }: { s: ShareRow; lang: string; onRevoke: () => void }) {
   const { t } = useTranslation();
   return (
-    <li className="space-y-1 p-3 text-sm">
+    <li className="space-y-1 border-b py-3 text-small last:border-b-0">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-medium">{s.recipientName}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
-          {t(`report.status.${s.status}`)}
-        </span>
+        <span className="font-semibold">{s.recipientName}</span>
+        <StatusPill tone={SHARE_TONE[s.status]}>{t(`report.status.${s.status}`)}</StatusPill>
       </div>
-      <p className="text-gray-700">
+      <p className="num text-ink-muted">
         {t('report.viewsDownloads', { views: s.views, downloads: s.downloads })} ·{' '}
         {t('report.expires', { date: dateText(s.expiresAt, lang) })}
       </p>
       {s.status === 'active' && (
-        <button type="button" className="min-h-10 text-red-700 underline" onClick={onRevoke}>
+        <Button variant="danger" onClick={onRevoke}>
           {t('report.revoke')}
-        </button>
+        </Button>
       )}
     </li>
   );

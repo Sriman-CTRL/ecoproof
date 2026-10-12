@@ -2,8 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { ErrorBox, Page, PRIMARY } from '../components/ui';
-import { HashCheck, VerifyCard } from '../components/verify';
+import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
+import { Button } from '../components/kit/Button';
+import {
+  CheckFileButton,
+  SealNote,
+  VerifyCard,
+  VerifyHeadline,
+  VerifySkeleton,
+  useHashCheck,
+} from '../components/verify';
+import { ErrorBox, Page } from '../components/ui';
 import { ApiError, publicApi, type VerifyView } from '../lib/api';
 
 type Shared = VerifyView & { downloadUrl: string };
@@ -19,6 +28,7 @@ export default function ShareView() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const check = useHashCheck(q.data?.sha256);
   const status = q.error instanceof ApiError ? q.error.status : null;
 
   async function download() {
@@ -33,17 +43,17 @@ export default function ShareView() {
 
   return (
     <Page
-      showBusiness={false}
+      isPublic
       action={
         q.data ? (
-          <button type="button" className={PRIMARY} onClick={() => void download()}>
+          <Button onClick={() => void download()}>
+            <DownloadSimple size={24} aria-hidden="true" />
             {t('report.download')}
-          </button>
+          </Button>
         ) : undefined
       }
     >
-      <h1 className="text-xl font-bold">{t('verify.sharedTitle')}</h1>
-      {q.isLoading && <p>{t('common.loading')}</p>}
+      {q.isLoading && <VerifySkeleton />}
       {status === 410 && <ErrorBox>{t('verify.expired')}</ErrorBox>}
       {status === 404 && <ErrorBox>{t('verify.linkNotFound')}</ErrorBox>}
       {q.isError && status !== 410 && status !== 404 && (
@@ -52,9 +62,11 @@ export default function ShareView() {
       {failed && <ErrorBox>{t('common.genericError')}</ErrorBox>}
       {q.data && (
         <>
+          <VerifyHeadline result={check.result} />
           <VerifyCard v={q.data} />
-          <HashCheck expected={q.data.sha256} />
-          <p className="text-xs text-gray-500">{t('detail.lenderNote')}</p>
+          <CheckFileButton variant="secondary" onChange={check.onChange} busy={check.busy} />
+          <SealNote expected={q.data.sha256} />
+          <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
         </>
       )}
     </Page>

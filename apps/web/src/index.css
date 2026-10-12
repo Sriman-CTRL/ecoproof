@@ -50,35 +50,7 @@
   --animate-stamp-press: stamp-press 250ms ease-out;
   --animate-tile-fill: tile-fill 250ms ease-out;
 
-  /*
-   * TRANSITION ALIASES (remove in D2 once screens use the token names).
-   * Existing screens hard-code Tailwind palette classes; these point them at the EcoProof palette.
-   * Copper is "please check"; red is error/loss. They must never look the same.
-   */
-  --color-emerald-50: var(--color-green-50);
-  --color-emerald-100: var(--color-green-100);
-  --color-emerald-700: var(--color-green-700);
-  --color-emerald-800: var(--color-green-900);
-  --color-emerald-900: var(--color-green-900);
-  --color-amber-50: var(--color-copper-50);
-  --color-amber-100: var(--color-copper-50);
-  --color-amber-400: var(--color-copper-700);
-  --color-amber-500: var(--color-copper-700);
-  --color-amber-700: var(--color-copper-700);
-  --color-amber-800: var(--color-copper-800);
-  --color-amber-900: var(--color-copper-800);
-  --color-red-50: var(--color-loss-50);
-  --color-red-100: var(--color-loss-50);
-  --color-red-300: var(--color-loss);
-  --color-red-700: var(--color-loss);
-  --color-red-800: var(--color-loss);
-  --color-red-900: var(--color-loss);
-  --color-gray-50: var(--color-paper);
-  --color-gray-100: var(--color-line);
-  --color-gray-300: var(--color-line);
-  --color-gray-500: var(--color-ink-muted);
-  --color-gray-600: var(--color-ink-muted);
-  --color-gray-700: var(--color-ink-muted);
+  --animate-scan: scan-line 1800ms linear infinite alternate;
 }
 
 @keyframes stamp-press {
@@ -89,6 +61,15 @@
   to {
     transform: scale(1) rotate(-3deg);
     opacity: 1;
+  }
+}
+
+@keyframes scan-line {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 4px);
   }
 }
 

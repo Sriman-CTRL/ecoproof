@@ -3,60 +3,108 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CostText, ErrorBox, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
+import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
+import { Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { EmptyState } from '../components/kit/EmptyState';
+import { Skeleton } from '../components/kit/Skeleton';
+import { SourceChip } from '../components/kit/SourceChip';
+import { StatusPill, type PillTone } from '../components/kit/StatusPill';
+import { CostText, ErrorBox, Page } from '../components/ui';
 import { api, type ActionItem, type ActionsResponse } from '../lib/api';
-import { formatDecimal } from '../lib/format';
+import { formatDecimal, formatInr } from '../lib/format';
 import { getSession } from '../lib/session';
 
-export function useActions(month: string | null, all: boolean) {
+export function useActions(month: string | null, all: boolean, enabled = true) {
   const siteId = getSession()?.siteId ?? '';
   const qs = new URLSearchParams();
   if (month) qs.set('month', month.slice(0, 7));
   if (all) qs.set('all', '1');
   return useQuery({
     queryKey: ['actions', siteId, month, all],
+    enabled,
     queryFn: () => api<ActionsResponse>(`/sites/${siteId}/actions?${qs}`),
   });
+}
+
+/**
+ * The action worth most rupees a year. Plan 6.2 ranks by rupees; the API list puts zero-cost
+ * actions first, so Home and bill health pick the biggest saving here (see OPEN_ITEMS, UI).
+ */
+export function topActionByRupees(actions: ActionItem[] | undefined): ActionItem | undefined {
+  if (!actions?.length) return undefined;
+  return actions.reduce((best, a) =>
+    (a.annualInrMid ?? -1) > (best.annualInrMid ?? -1) ? a : best,
+  );
 }
 
 export const actionTitle = (a: ActionItem, t: TFunction) =>
   t(`actions.name.${a.code}`, { defaultValue: a.title });
 
-export function ActionCard({ a, month }: { a: ActionItem; month: string | null }) {
+const STATUS_TONE: Record<string, PillTone> = {
+  suggested: 'neutral',
+  planned: 'check',
+  in_progress: 'check',
+  done: 'positive',
+};
+
+export function ActionStatus({ status }: { status: string }) {
+  const { t } = useTranslation();
+  const key = status in STATUS_TONE ? status : 'suggested';
+  return <StatusPill tone={STATUS_TONE[key]}>{t(`actions.status.${key}`)}</StatusPill>;
+}
+
+/**
+ * Only truly zero-cost actions carry the badge: the cost range must be a known zero. The power
+ * factor fix is a capacitor bank, so it says "Low cost, quote needed" (decided 12 Oct).
+ */
+export function CostBadge({ a }: { a: ActionItem }) {
+  const { t } = useTranslation();
+  if (a.isZeroCost && a.costLow === 0 && a.costHigh === 0) {
+    return <StatusPill tone="positive">{t('actions.zeroCost')}</StatusPill>;
+  }
+  if (a.code === 'fix_power_factor') {
+    return <StatusPill tone="check">{t('actions.lowCostQuote')}</StatusPill>;
+  }
+  return null;
+}
+
+/** One ledger row: title and status on top, then rupees a year, cost and payback in columns. */
+export function ActionRow({ a, month }: { a: ActionItem; month: string | null }) {
   const { t } = useTranslation();
   return (
-    <Link
-      to={`/actions/${a.code}${month ? `?month=${month}` : ''}`}
-      className="block min-h-12 space-y-2 rounded-2xl bg-white p-5 shadow-sm"
-    >
+    <li className="space-y-2 border-b py-3 last:border-b-0">
       <div className="flex items-start justify-between gap-2">
-        <h2 className="font-semibold">{actionTitle(a, t)}</h2>
-        {a.isZeroCost && (
-          <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900">
-            {t('actions.zeroCost')}
-          </span>
-        )}
+        <Link
+          to={`/actions/${a.code}${month ? `?month=${month}` : ''}`}
+          className="inline-flex min-h-12 items-center font-heading text-card-title font-semibold text-green-700 underline underline-offset-4"
+        >
+          {actionTitle(a, t)}
+        </Link>
+        <ActionStatus status={a.status} />
       </div>
-      <p className="text-2xl font-bold">
-        {a.annualInrMid != null ? (
-          <>
-            <Rupees value={a.annualInrMid} />{' '}
-            <span className="text-base font-normal text-gray-600">{t('actions.perYear')}</span>
-          </>
-        ) : (
-          <span className="text-base font-semibold">
-            {t(a.finding ? 'actions.savingPending' : 'actions.savingPendingOther')}
-          </span>
-        )}
-      </p>
-      <p className="text-sm text-gray-700">
-        {t('actions.cost')}: <CostText low={a.costLow} high={a.costHigh} />
-      </p>
-      <p className="text-sm text-gray-700">
-        {t('actions.payback')}:{' '}
-        {a.paybackYears != null ? t('actions.years', { n: formatDecimal(a.paybackYears) }) : '-'}
-      </p>
-    </Link>
+      <div className="flex flex-wrap gap-1">
+        <CostBadge a={a} />
+      </div>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-small">
+        <dt className="text-ink-muted">{t('actions.perYear')}</dt>
+        <dd className="num font-semibold">
+          {a.annualInrMid != null ? (
+            <SourceChip lineName={a.source}>{formatInr(Math.round(a.annualInrMid))}</SourceChip>
+          ) : (
+            t(a.finding ? 'actions.savingPending' : 'actions.savingPendingOther')
+          )}
+        </dd>
+        <dt className="text-ink-muted">{t('actions.cost')}</dt>
+        <dd className="num">
+          <CostText low={a.costLow} high={a.costHigh} />
+        </dd>
+        <dt className="text-ink-muted">{t('actions.payback')}</dt>
+        <dd className="num">
+          {a.paybackYears != null ? t('actions.years', { n: formatDecimal(a.paybackYears) }) : '-'}
+        </dd>
+      </dl>
+    </li>
   );
 }
 
@@ -71,35 +119,45 @@ export default function Actions() {
   const first = d?.actions[0];
   return (
     <Page
+      tab="plan"
       action={
-        <button
-          type="button"
-          className={PRIMARY}
+        <Button
           disabled={!first}
           onClick={() =>
             first && navigate(`/actions/${first.code}${month ? `?month=${month}` : ''}`)
           }
         >
-          {t('actions.openFirst')}
-        </button>
+          {t('actions.openTop')}
+        </Button>
       }
     >
-      <h1 className="text-xl font-bold">{t('actions.title')}</h1>
-      {q.isLoading && <p>{t('common.loading')}</p>}
+      <h1 className="font-heading text-title font-semibold">{t('actions.title')}</h1>
+      {q.isLoading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
       {q.isError && <ErrorBox>{t('actions.loadFailed')}</ErrorBox>}
       {d && d.actions.length === 0 && (
-        <p className="rounded-xl bg-white p-5 shadow-sm">{t('actions.none')}</p>
+        <EmptyState icon={ListChecks} title={t('actions.emptyTitle')} body={t('actions.none')} />
       )}
-      {d?.actions.map((a) => (
-        <ActionCard key={a.code} a={a} month={month} />
-      ))}
+      {d && d.actions.length > 0 && (
+        <Card className="py-1">
+          <ul>
+            {d.actions.map((a) => (
+              <ActionRow key={a.code} a={a} month={month} />
+            ))}
+          </ul>
+        </Card>
+      )}
       {d && !all && d.total > d.actions.length && (
-        <button type="button" className="min-h-12 w-full underline" onClick={() => setAll(true)}>
+        <Button variant="secondary" className="w-full" onClick={() => setAll(true)}>
           {t('actions.seeAll', { n: d.total })}
-        </button>
+        </Button>
       )}
-      <p className="text-xs text-gray-500">
-        <SourceNumber source={t('actions.rankNote')}>{t('actions.rankLabel')}</SourceNumber>
+      <p className="text-small text-ink-muted">
+        <SourceChip lineName={t('actions.rankNote')}>{t('actions.rankLabel')}</SourceChip>
       </p>
     </Page>
   );

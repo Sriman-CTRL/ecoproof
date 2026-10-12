@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatInr, inrScale } from '../../lib/format';
 import { prefersReducedMotion } from './motion';
+import { SourceChip } from './SourceChip';
 
 const COUNT_UP_MS = 600;
 
@@ -27,12 +28,18 @@ export function RupeeHero({
   co2Text,
   countUpKey,
   label,
+  source,
+  size = 'full',
 }: {
   value: number;
-  unitsText?: string;
-  co2Text?: string;
+  unitsText?: ReactNode;
+  co2Text?: ReactNode;
   countUpKey?: string;
   label?: string;
+  /** Makes the figure a SourceChip: tapping it shows where the number comes from. */
+  source?: Omit<ComponentProps<typeof SourceChip>, 'children' | 'className'>;
+  /** "mini" is the envelope preview on /start: smaller figure, no words line. */
+  size?: 'full' | 'mini';
 }) {
   const { t } = useTranslation();
   const [shown, setShown] = useState(value);
@@ -57,16 +64,25 @@ export function RupeeHero({
   return (
     <div className="space-y-1">
       {label && <p className="text-small text-ink-muted">{label}</p>}
-      <p className="num font-heading text-hero font-semibold" aria-label={formatInr(value)}>
-        <span aria-hidden="true">{formatInr(shown)}</span>
+      <p
+        className={`num font-heading font-semibold ${size === 'mini' ? 'text-title' : 'text-hero'}`}
+        aria-label={formatInr(value)}
+      >
+        {source ? (
+          <SourceChip {...source}>
+            <span aria-hidden="true">{formatInr(shown)}</span>
+          </SourceChip>
+        ) : (
+          <span aria-hidden="true">{formatInr(shown)}</span>
+        )}
       </p>
-      {scale && (
+      {scale && size === 'full' && (
         <p className="text-body">
           {t('kit.rupee.words', { amount: scale.amount, unit: t(`kit.rupee.${scale.unit}`) })}
         </p>
       )}
-      {unitsText && <p className="num text-body">{unitsText}</p>}
-      {co2Text && <p className="num text-small text-ink-muted">{co2Text}</p>}
+      {unitsText && <div className="num text-body">{unitsText}</div>}
+      {co2Text && <div className="num text-small text-ink-muted">{co2Text}</div>}
     </div>
   );
 }

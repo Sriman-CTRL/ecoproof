@@ -3,8 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { Info } from '@phosphor-icons/react/dist/csr/Info';
+import { BillStubCard } from '../components/kit/BillStubCard';
+import { BottomSheet } from '../components/kit/BottomSheet';
+import { Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { EmptyState } from '../components/kit/EmptyState';
+import { JargonChip, type JargonTerm } from '../components/kit/JargonChip';
+import { RupeeHero } from '../components/kit/RupeeHero';
+import { Skeleton } from '../components/kit/Skeleton';
+import { StatusPill } from '../components/kit/StatusPill';
+import { ErrorBox, monthLabel, Page } from '../components/ui';
 import { api, type Finding, type Insights } from '../lib/api';
+import { topActionByRupees, useActions } from './Actions';
 import { formatDecimal } from '../lib/format';
 import { getSession } from '../lib/session';
 
@@ -38,6 +50,18 @@ export function ruleLine(f: Finding, t: TFunction): string {
   });
 }
 
+/** Which plain-words explainer sits under each finding. */
+const JARGON: Record<string, JargonTerm> = {
+  power_factor: 'powerFactor',
+  peak_use: 'peakHours',
+  contracted_demand: 'contractedDemand',
+  minimum_charges: 'contractedDemand',
+  lt_surcharges: 'powerFactor',
+};
+
+/** Biggest rupee finding first; findings that wait for an input go last. */
+const biggestFirst = (a: Finding, b: Finding) => (b.inrPerMonth ?? -1) - (a.inrPerMonth ?? -1);
+
 export default function Health() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -48,38 +72,63 @@ export default function Health() {
   const q = useInsights(month, shiftNum != null && Number.isFinite(shiftNum) ? shiftNum : null);
   const d = q.data;
   const lang = i18n.resolvedLanguage ?? 'en';
+  const findings = d ? [...d.findings].sort(biggestFirst) : [];
+  const topAction = topActionByRupees(useActions(month, true).data?.actions)?.code ?? null;
 
   return (
     <Page
+      tab="plan"
       action={
-        <button
-          type="button"
-          className={PRIMARY}
-          onClick={() => navigate(`/actions${month ? `?month=${month}` : ''}`)}
+        <Button
+          disabled={!topAction}
+          onClick={() =>
+            topAction && navigate(`/actions/${topAction}${month ? `?month=${month}` : ''}`)
+          }
         >
-          {t('health.seePlan')}
-        </button>
+          {t('health.startTop')}
+        </Button>
       }
     >
-      {q.isLoading && <p>{t('common.loading')}</p>}
+      {q.isLoading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
       {q.isError && <ErrorBox>{t('health.loadFailed')}</ErrorBox>}
       {d && (
         <>
-          <h1 className="text-xl font-bold">
+          <h1 className="font-heading text-title font-semibold">
             {t('health.title', { month: monthLabel(d.month, lang) })}
           </h1>
-          {d.findings.length === 0 && (
-            <p className="rounded-xl bg-white p-5 shadow-sm">{t('health.noFindings')}</p>
+          <Card>
+            <RupeeHero
+              value={Math.round(d.atStake.inrPerMonth)}
+              label={t('health.total')}
+              countUpKey={`health-${d.month}`}
+              source={{ lineName: t('results.healthSource'), month: monthLabel(d.month, lang) }}
+            />
+            {d.atStake.pendingCodes.includes('peak_use') && (
+              <p className="mt-1 text-small text-ink-muted">{t('results.peakPending')}</p>
+            )}
+          </Card>
+          {findings.length === 0 && (
+            <EmptyState icon={Check} title={t('health.noFindings')} body={t('health.passed')} />
           )}
-          {d.findings.map((f) => (
+          {findings.map((f) => (
             <FindingCard key={f.code} f={f} shiftable={shiftable} onShiftable={setShiftable} />
           ))}
           {d.passed.length > 0 && (
             <section>
-              <h2 className="mb-1 text-sm font-semibold text-gray-500">{t('health.passed')}</h2>
-              <ul className="space-y-1 text-gray-500">
+              <h2 className="mb-1 text-small font-semibold text-ink-muted">
+                {t('health.passedTitle')}
+              </h2>
+              <ul className="space-y-1 rounded-card bg-paper p-3 text-ink-muted">
                 {d.passed.map((f) => (
-                  <li key={f.code}>✓ {t(`health.passedLabel.${f.code}`)}</li>
+                  <li key={f.code} className="flex items-center gap-2">
+                    <Check size={18} weight="bold" aria-hidden="true" />
+                    {t(`health.passedLabel.${f.code}`)}
+                  </li>
                 ))}
               </ul>
             </section>
@@ -101,62 +150,60 @@ function FindingCard({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const jargon = JARGON[f.code];
+  const name = t(`health.name.${f.code}`);
   return (
-    <section
-      className="space-y-3 rounded-2xl bg-white p-5 shadow-sm"
-      data-testid={`finding-${f.code}`}
-    >
-      <h2 className="text-sm font-medium text-gray-600">{t(`health.name.${f.code}`)}</h2>
-      {f.inrPerMonth != null ? (
-        <p className="text-3xl font-bold">
-          <SourceNumber source={ruleLine(f, t)}>
-            <Rupees value={f.inrPerMonth} />
-          </SourceNumber>{' '}
-          <span className="text-base font-normal text-gray-600">{t('health.perMonth')}</span>
-        </p>
-      ) : (
-        <p className="text-lg font-semibold">{t('health.enterUnits')}</p>
-      )}
-      <p>{t(`health.fix.${f.code}`)}</p>
-      {f.code === 'peak_use' && (
-        <label className="block text-sm">
-          <span className="font-medium">{t('health.shiftable')}</span>
-          <input
-            inputMode="numeric"
-            className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
-            value={shiftable}
-            onChange={(e) => onShiftable(e.target.value.replace(/[^\d.,]/g, ''))}
-          />
-        </label>
-      )}
-      <button
-        type="button"
-        className="flex min-h-12 w-full items-center justify-between text-left font-semibold"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+    <div data-testid={`finding-${f.code}`}>
+      <BillStubCard
+        monthly={f.inrPerMonth}
+        title={name}
+        fix={t(`health.fix.${f.code}`)}
+        source={{ lineName: ruleLine(f, t) }}
       >
-        <span>ⓘ {t('health.why')}</span>
-        <span aria-hidden>{open ? '−' : '+'}</span>
-      </button>
-      {open && (
-        <div className="space-y-2 border-t pt-3 text-sm">
+        {f.inrPerMonth == null && (
+          <p className="text-small font-semibold">{t('health.enterUnits')}</p>
+        )}
+        {(f.code === 'power_factor' || f.code === 'lt_surcharges') && (
+          <StatusPill tone="check">{t('health.lowCostQuote')}</StatusPill>
+        )}
+        {f.code === 'peak_use' && (
+          <label className="block text-small">
+            <span className="font-semibold">{t('health.shiftable')}</span>
+            <input
+              inputMode="numeric"
+              className="mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body"
+              value={shiftable}
+              onChange={(e) => onShiftable(e.target.value.replace(/[^\d.,]/g, ''))}
+            />
+          </label>
+        )}
+        {jargon && (
+          <p className="text-small text-ink-muted">
+            <JargonChip term={jargon} />
+          </p>
+        )}
+        <Button variant="secondary" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+          <Info size={20} aria-hidden="true" />
+          {t('health.why')}
+        </Button>
+      </BillStubCard>
+      <BottomSheet open={open} title={name} onClose={() => setOpen(false)}>
+        <div className="space-y-2 text-small">
           <ul className="space-y-1">
             {Object.entries(f.explain).map(([k, v]) => (
               <li key={k} className="flex justify-between gap-3">
-                <span className="text-gray-600">{t(`health.key.${k}`, { defaultValue: k })}</span>
-                <span className="font-medium">
+                <span className="text-ink-muted">{t(`health.key.${k}`, { defaultValue: k })}</span>
+                <span className="num font-semibold">
                   {typeof v === 'number' ? formatDecimal(v) : (v ?? '-')}
                 </span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-gray-600">{ruleLine(f, t)}</p>
-          <p className="text-xs text-gray-600">
-            {t('health.ruleSource', { source: f.rule.source })}
-          </p>
-          {f.assumption && <p className="text-xs text-gray-600">{f.assumption}</p>}
+          <p className="text-ink-muted">{ruleLine(f, t)}</p>
+          <p className="text-ink-muted">{t('health.ruleSource', { source: f.rule.source })}</p>
+          {f.assumption && <p className="text-ink-muted">{f.assumption}</p>}
         </div>
-      )}
-    </section>
+      </BottomSheet>
+    </div>
   );
 }

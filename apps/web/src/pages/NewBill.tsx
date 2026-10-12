@@ -1,8 +1,13 @@
 import imageCompression from 'browser-image-compression';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ErrorBox, Page, PRIMARY } from '../components/ui';
+import { Camera } from '@phosphor-icons/react/dist/csr/Camera';
+import { ChatCircle } from '@phosphor-icons/react/dist/csr/ChatCircle';
+import { FileArrowUp } from '@phosphor-icons/react/dist/csr/FileArrowUp';
+import { BUTTON_CLASS, Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { ErrorBox, Page } from '../components/ui';
 import { ApiError, api, postJson, type DocumentView, type UploadResponse } from '../lib/api';
 import { describeError } from '../lib/errors';
 import { getSession } from '../lib/session';
@@ -32,6 +37,7 @@ export default function NewBill() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
   const cancelled = useRef(false);
+  const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
     cancelled.current = false;
@@ -71,6 +77,7 @@ export default function NewBill() {
 
   async function onFile(file: File) {
     setError(null);
+    if (file.type.startsWith('image/')) setPreview(URL.createObjectURL(file));
     try {
       let body: File | Blob = file;
       if (file.type.startsWith('image/')) {
@@ -113,41 +120,81 @@ export default function NewBill() {
   }
 
   const busy = phase === 'compressing' || phase === 'reading';
+  const pick = (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) void onFile(f);
+    e.target.value = '';
+  };
   return (
     <Page
       action={
         busy ? null : (
-          <label className={`${PRIMARY} cursor-pointer`}>
-            📷 {t('bills.choose')}
+          <label className={`${BUTTON_CLASS.primary} cursor-pointer`}>
+            <Camera size={24} aria-hidden="true" />
+            {t('bills.takePhoto')}
             <input
               type="file"
               className="sr-only"
-              accept="image/*,application/pdf"
+              accept="image/*"
               capture="environment"
               data-testid="bill-file"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void onFile(f);
-                e.target.value = '';
-              }}
+              onChange={pick}
             />
           </label>
         )
       }
     >
-      <h1 className="text-2xl font-bold">{t('bills.newTitle')}</h1>
+      <h1 className="font-heading text-title font-semibold">{t('bills.newTitle')}</h1>
       {busy ? (
-        <div className="rounded-2xl bg-white p-6 text-center shadow-sm" role="status">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-emerald-700 border-t-transparent" />
-          <p className="text-lg font-semibold">
+        <Card className="space-y-3 text-center" role="status">
+          {preview && (
+            <div className="relative mx-auto max-h-80 w-fit overflow-hidden rounded-card border">
+              <img
+                src={preview}
+                alt={t('bills.scanAlt')}
+                className="max-h-80 w-auto object-contain"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 h-1 animate-scan bg-copper-500 shadow-card"
+              />
+            </div>
+          )}
+          <p className="font-heading text-card-title font-semibold">
             {phase === 'compressing' ? t('bills.compressing') : t('bills.reading')}
           </p>
-          <p className="mt-1 text-sm text-gray-600">{t('bills.readingHint')}</p>
-        </div>
+          <p className="text-small text-ink-muted">{t('bills.readingHint')}</p>
+        </Card>
       ) : (
         <>
-          <p className="text-gray-700">{t('bills.newHelp')}</p>
-          <p className="text-sm text-gray-500">💬 {t('bills.whatsapp')}</p>
+          <p className="text-ink-muted">{t('bills.photoHelp')}</p>
+          <label className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed border-green-700 bg-green-50 p-6 text-center text-green-900">
+            <Camera size={56} weight="duotone" className="text-green-700" aria-hidden="true" />
+            <span className="font-heading text-card-title font-semibold">
+              {t('bills.takePhoto')}
+            </span>
+            <input
+              type="file"
+              className="sr-only"
+              accept="image/*"
+              capture="environment"
+              onChange={pick}
+            />
+          </label>
+          <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-button border border-green-700 px-4 py-2 font-semibold text-green-700">
+            <FileArrowUp size={24} aria-hidden="true" />
+            {t('bills.chooseFile')}
+            <input
+              type="file"
+              className="sr-only"
+              accept="image/*,application/pdf"
+              onChange={pick}
+            />
+          </label>
+          <p className="flex items-center gap-2 text-small text-ink-muted">
+            <ChatCircle size={20} aria-hidden="true" />
+            {t('bills.whatsapp')}
+          </p>
         </>
       )}
       {error && <ErrorBox>{error}</ErrorBox>}
@@ -204,9 +251,9 @@ function ManualForm({ siteId, onDone }: { siteId: string; onDone: (id: string) =
 
   const input = (k: string, type: string) => (
     <label key={k} className="block">
-      <span className="text-sm font-medium">{t(`fields.${k}.label`)}</span>
+      <span className="text-small font-semibold">{t(`fields.${k}.label`)}</span>
       <input
-        className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+        className="mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body"
         type={type}
         inputMode={type === 'text' ? 'decimal' : undefined}
         value={v[k] ?? ''}
@@ -218,20 +265,21 @@ function ManualForm({ siteId, onDone }: { siteId: string; onDone: (id: string) =
   return (
     <Page
       action={
-        <button type="button" className={PRIMARY} disabled={busy} onClick={() => void submit()}>
+        <Button disabled={busy} onClick={() => void submit()}>
           {t('bills.manualSubmit')}
-        </button>
+        </Button>
       }
     >
-      <h1 className="text-xl font-bold">{t('bills.cantRead')}</h1>
-      <p className="text-gray-700">{t('bills.cantReadHelp')}</p>
+      <h1 className="font-heading text-card-title font-semibold">{t('bills.cantRead')}</h1>
+      <ErrorBox>{t('bills.blurry')}</ErrorBox>
+      <p className="text-ink-muted">{t('bills.cantReadHelp')}</p>
       {err && <ErrorBox>{err}</ErrorBox>}
       {input('periodStart', 'date')}
       {input('periodEnd', 'date')}
       {input('kwh', 'text')}
       {input('kvah', 'text')}
-      <details className="rounded-xl bg-white p-3">
-        <summary className="min-h-10 cursor-pointer font-medium">
+      <details className="rounded-card border bg-surface p-3">
+        <summary className="min-h-12 cursor-pointer font-semibold">
           {t('bills.manualOptional')}
         </summary>
         <div className="mt-2 space-y-3">{MANUAL_OPTIONAL.map((k) => input(k, 'text'))}</div>

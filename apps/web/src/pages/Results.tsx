@@ -2,20 +2,35 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
+import { Info } from '@phosphor-icons/react/dist/csr/Info';
+import { BottomSheet } from '../components/kit/BottomSheet';
+import { BUTTON_CLASS, Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { RupeeHero } from '../components/kit/RupeeHero';
+import { Skeleton } from '../components/kit/Skeleton';
+import { SourceChip } from '../components/kit/SourceChip';
+import { StampBadge } from '../components/kit/StampBadge';
+import { StatusPill } from '../components/kit/StatusPill';
+import { ErrorBox, monthLabel, Page } from '../components/ui';
 import { api, ApiError, type Explain, type MonthRow } from '../lib/api';
 import { formatDecimal, formatNumber } from '../lib/format';
 import { useInsights } from './Health';
 import { getSession } from '../lib/session';
 
-const BADGE: Record<string, string> = {
-  confirmed: 'bg-emerald-100 text-emerald-900',
-  confirmed_replace: 'bg-amber-100 text-amber-900',
-  estimate_only: 'bg-amber-100 text-amber-900',
-  verify: 'bg-amber-100 text-amber-900',
-};
 const INPUT_LABEL = { kwh: 'inputKwh', litres: 'inputLitres', tonnes: 'inputTonnes' } as const;
 const INPUT_UNIT = { kwh: 'kWh', litres: 'L', tonnes: 't' } as const;
+
+/** Estimates get the stamp (Doc 05); confirmed factors a plain pill. */
+function FactorStatus({ status }: { status: string }) {
+  const { t } = useTranslation();
+  if (status === 'confirmed') {
+    return <StatusPill tone="positive">{t('results.status.confirmed')}</StatusPill>;
+  }
+  if (status === 'confirmed_replace') {
+    return <StatusPill tone="check">{t('results.status.confirmed_replace')}</StatusPill>;
+  }
+  return <StampBadge variant="estimate" />;
+}
 
 export default function Results() {
   const { t, i18n } = useTranslation();
@@ -42,21 +57,23 @@ export default function Results() {
   const tonnes = ex?.inputs.find((i) => i.kind === 'tonnes');
   const fromBill = t('common.fromBill');
   const month = ex ? monthLabel(ex.month, lang) : '';
+  const source = `${fromBill}: ${month}`;
+  const loading = explain.isLoading || months.isLoading;
 
   return (
     <Page
       action={
-        <button
-          type="button"
-          className={PRIMARY}
-          disabled={!ex}
-          onClick={() => navigate(`/health?month=${ex?.month.slice(0, 7)}`)}
-        >
+        <Button disabled={!ex} onClick={() => navigate(`/health?month=${ex?.month.slice(0, 7)}`)}>
           {t('results.seeHealth')}
-        </button>
+        </Button>
       }
     >
-      {(explain.isLoading || months.isLoading) && <p>{t('common.loading')}</p>}
+      {loading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
       {explain.isError && (
         <ErrorBox>
           {explain.error instanceof ApiError && explain.error.status === 404
@@ -67,93 +84,95 @@ export default function Results() {
 
       {ex && (
         <>
-          <h1 className="text-xl font-bold">{t('results.title', { month })}</h1>
+          <h1 className="font-heading text-title font-semibold">{t('results.title', { month })}</h1>
 
-          <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
+          <Card>
             {row?.rupees.total != null && (
-              <div>
-                <p className="text-3xl font-bold">
-                  <SourceNumber source={`${fromBill}: ${month}`}>
-                    <Rupees value={row.rupees.total} />
-                  </SourceNumber>
-                </p>
-                <p className="text-xs text-gray-500">{t('results.bill')}</p>
-              </div>
+              <RupeeHero
+                value={Math.round(row.rupees.total)}
+                label={t('results.bill')}
+                countUpKey={`result-${resultId}`}
+                source={{ lineName: source, month, quality: 'fromBill' }}
+                unitsText={
+                  kwh && (
+                    <>
+                      <SourceChip lineName={source} month={month} quality="fromBill">
+                        {formatNumber(kwh.value)}
+                      </SourceChip>{' '}
+                      {t('common.units')}
+                    </>
+                  )
+                }
+                co2Text={
+                  row.co2 && (
+                    <div className="space-y-1">
+                      <p>
+                        <SourceChip lineName={t('results.why')}>
+                          {formatDecimal(row.co2.scope2TCo2Grid ?? 0)}
+                        </SourceChip>{' '}
+                        {t('results.scope2')}
+                        {' + '}
+                        <SourceChip lineName={t('results.why')}>
+                          {formatDecimal(row.co2.scope1TCo2eFuels ?? 0)}
+                        </SourceChip>{' '}
+                        {t('results.scope1')}
+                      </p>
+                      {row.intensity != null && (
+                        <p>
+                          <b>{formatDecimal(row.intensity)}</b> {t('results.intensityCo2')}
+                        </p>
+                      )}
+                      {kwh && tonnes && tonnes.value > 0 && (
+                        <p>
+                          <b>{formatNumber(Math.round(kwh.value / tonnes.value))}</b>{' '}
+                          {t('results.intensityKwh')}
+                        </p>
+                      )}
+                    </div>
+                  )
+                }
+              />
             )}
-            {kwh && (
-              <p className="text-lg">
-                <SourceNumber source={`${fromBill}: ${month}`}>
-                  {formatNumber(kwh.value)}
-                </SourceNumber>{' '}
-                <span className="text-gray-600">{t('common.units')}</span>
-              </p>
-            )}
-            {row?.co2 && (
-              <p className="text-lg">
-                <SourceNumber source={t('results.why')}>
-                  {formatDecimal(row.co2.scope2TCo2Grid ?? 0)}
-                </SourceNumber>{' '}
-                <span className="text-gray-600">{t('results.scope2')}</span>
-                {' + '}
-                <SourceNumber source={t('results.why')}>
-                  {formatDecimal(row.co2.scope1TCo2eFuels ?? 0)}
-                </SourceNumber>{' '}
-                <span className="text-gray-600">{t('results.scope1')}</span>
-              </p>
-            )}
-            {row?.intensity != null && (
-              <p>
-                <span className="text-lg font-semibold">{formatDecimal(row.intensity)}</span>{' '}
-                <span className="text-gray-600">{t('results.intensityCo2')}</span>
-              </p>
-            )}
-            {kwh && tonnes && tonnes.value > 0 && (
-              <p>
-                <span className="text-lg font-semibold">
-                  {formatNumber(Math.round(kwh.value / tonnes.value))}
-                </span>{' '}
-                <span className="text-gray-600">{t('results.intensityKwh')}</span>
-              </p>
-            )}
-          </section>
+            <Button variant="secondary" className="mt-2" onClick={() => setWhyOpen(true)}>
+              <Info size={20} aria-hidden="true" />
+              {t('results.why')}
+            </Button>
+          </Card>
 
-          <section className="rounded-2xl bg-white shadow-sm">
-            <button
-              type="button"
-              className="flex min-h-12 w-full items-center justify-between p-4 text-left font-semibold"
-              aria-expanded={whyOpen}
-              onClick={() => setWhyOpen((o) => !o)}
-            >
-              <span>ⓘ {t('results.why')}</span>
-              <span aria-hidden>{whyOpen ? '−' : '+'}</span>
-            </button>
-            {whyOpen && <Why ex={ex} />}
-          </section>
+          <BottomSheet
+            open={whyOpen}
+            title={t('results.whyTitle')}
+            onClose={() => setWhyOpen(false)}
+          >
+            <Why ex={ex} />
+          </BottomSheet>
 
-          <section className="space-y-1 rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">{t('results.healthTitle')}</h2>
+          <Card className="space-y-2">
+            <h2 className="font-heading text-card-title font-semibold">
+              {t('results.healthTitle')}
+            </h2>
             {health && (
               <>
-                <p className="text-3xl font-bold" data-testid="at-stake">
-                  <SourceNumber source={t('results.healthSource')}>
-                    <Rupees value={health.atStake.inrPerMonth} />
-                  </SourceNumber>{' '}
-                  <span className="text-base font-normal text-gray-600">
-                    {t('health.perMonth')}
-                  </span>
-                </p>
+                <div data-testid="at-stake">
+                  <RupeeHero
+                    size="mini"
+                    value={Math.round(health.atStake.inrPerMonth)}
+                    source={{ lineName: t('results.healthSource') }}
+                    unitsText={t('health.perMonth')}
+                  />
+                </div>
                 {health.atStake.pendingCodes.includes('peak_use') && (
-                  <p className="text-gray-700">{t('results.peakPending')}</p>
+                  <p className="text-ink-muted">{t('results.peakPending')}</p>
                 )}
-                <p className="text-gray-700">
+                <p className="text-ink-muted">
                   {t('results.healthCount', { count: health.findings.length })}
                 </p>
               </>
             )}
-            {!health && !insights.isError && <p>{t('common.loading')}</p>}
-          </section>
+            {!health && !insights.isError && <Skeleton />}
+          </Card>
 
-          <Link to="/home" className="flex min-h-12 items-center justify-center underline">
+          <Link to="/home" className={`${BUTTON_CLASS.secondary} w-full`}>
             {t('results.backHome')}
           </Link>
         </>
@@ -167,54 +186,49 @@ function Why({ ex }: { ex: Explain }) {
   const known = (key: string, map: string) =>
     t(`results.${map}.${key}`, { defaultValue: t('results.status.estimate_only') });
   return (
-    <div className="space-y-4 border-t p-4 text-sm">
+    <div className="space-y-4 text-small">
       <div>
-        <h3 className="mb-1 font-semibold">{t('results.factors')}</h3>
+        <h3 className="mb-1 text-body font-semibold">{t('results.factors')}</h3>
         <ul className="space-y-3">
           {ex.factors.map((f) => (
-            <li key={f.id} className="rounded-lg bg-gray-50 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">
-                  {t('results.factorLine', {
-                    value: formatDecimal(f.value),
-                    unit: f.unit,
-                    version: f.version,
-                  })}
-                </span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${BADGE[f.status] ?? BADGE.verify}`}
-                >
-                  {known(f.status, 'status')}
-                </span>
-              </div>
-              <p className="mt-1 text-gray-600">{t('results.source', { source: f.source })}</p>
+            <li key={f.id} className="space-y-1 rounded-card bg-paper p-3">
+              <p className="font-semibold">
+                {t('results.factorLine', {
+                  value: formatDecimal(f.value),
+                  unit: f.unit,
+                  version: f.version,
+                })}
+              </p>
+              <FactorStatus status={f.status} />
+              <p className="text-ink-muted">{t('results.source', { source: f.source })}</p>
             </li>
           ))}
         </ul>
       </div>
       <div>
-        <h3 className="mb-1 font-semibold">{t('results.inputs')}</h3>
+        <h3 className="mb-1 text-body font-semibold">{t('results.inputs')}</h3>
         <ul className="space-y-1">
           {ex.inputs.map((i, n) => (
-            <li key={`${i.kind}-${n}`} className="flex flex-wrap justify-between gap-2">
-              <span>
+            <li
+              key={`${i.kind}-${n}`}
+              className="flex flex-wrap items-center justify-between gap-2"
+            >
+              <span className="num">
                 {t(`results.${INPUT_LABEL[i.kind]}`)}: {formatNumber(i.value)} {INPUT_UNIT[i.kind]}
               </span>
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
-                {known(i.qualityTag, 'quality')}
-              </span>
+              <StatusPill>{known(i.qualityTag, 'quality')}</StatusPill>
             </li>
           ))}
         </ul>
       </div>
       <div>
-        <h3 className="mb-1 font-semibold">{t('results.formula')}</h3>
-        <ul className="space-y-1 text-gray-700">
+        <h3 className="mb-1 text-body font-semibold">{t('results.formula')}</h3>
+        <ul className="space-y-1 text-ink-muted">
           <li>{ex.formula.scope2}</li>
           <li>{ex.formula.scope1}</li>
           <li>{ex.formula.intensity}</li>
         </ul>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-ink-muted">
           {t('results.formulaVersion', { version: ex.formulaVersion })}
         </p>
       </div>

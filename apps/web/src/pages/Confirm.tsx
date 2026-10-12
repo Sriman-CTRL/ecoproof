@@ -2,7 +2,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ErrorBox, Page, PRIMARY } from '../components/ui';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
+import { FileText } from '@phosphor-icons/react/dist/csr/FileText';
+import { Warning } from '@phosphor-icons/react/dist/csr/Warning';
+import { BUTTON_CLASS, Button } from '../components/kit/Button';
+import { JargonChip, type JargonTerm } from '../components/kit/JargonChip';
+import { Skeleton } from '../components/kit/Skeleton';
+import { StickyPrimaryBar } from '../components/kit/StickyPrimaryBar';
+import { ErrorBox, Page } from '../components/ui';
 import { ApiError, api, postJson, type DocumentView } from '../lib/api';
 import { describeError } from '../lib/errors';
 
@@ -22,7 +29,12 @@ export const SCALAR_FIELDS = [
   'demandCharges',
   'total',
 ] as const;
-const EXPLAIN_KEYS: Record<string, string> = { kvah: 'kvah', pf: 'pf', mdKva: 'mdKva' };
+const JARGON: Record<string, JargonTerm> = {
+  kvah: 'kvah',
+  pf: 'powerFactor',
+  mdKva: 'maximumDemand',
+  contractedDemandKva: 'contractedDemand',
+};
 const TEXT_FIELDS = new Set(['consumerNo', 'billNo']);
 const DATE_FIELDS = new Set(['periodStart', 'periodEnd']);
 
@@ -37,12 +49,17 @@ export default function Confirm() {
   });
 
   return (
-    <Page showBusiness>
-      {doc.isLoading && <p>{t('common.loading')}</p>}
+    <Page showBusiness wide>
+      {doc.isLoading && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Skeleton />
+          <Skeleton />
+        </div>
+      )}
       {doc.isError && (
         <>
           <ErrorBox>{t('confirm.loadFailed')}</ErrorBox>
-          <Link to="/home" className={PRIMARY}>
+          <Link to="/home" className={BUTTON_CLASS.primary}>
             {t('results.backHome')}
           </Link>
         </>
@@ -50,7 +67,7 @@ export default function Confirm() {
       {doc.data && doc.data.status !== 'extracted' && (
         <>
           <ErrorBox>{t('confirm.notExtracted')}</ErrorBox>
-          <Link to="/home" className={PRIMARY}>
+          <Link to="/home" className={BUTTON_CLASS.primary}>
             {t('results.backHome')}
           </Link>
         </>
@@ -81,7 +98,6 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
   const [tonnes, setTonnes] = useState('');
   const [diesel, setDiesel] = useState('');
   const [acked, setAcked] = useState<Set<string>>(new Set());
-  const [open, setOpen] = useState<string | null>(null);
   const [serverErrors, setServerErrors] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -131,19 +147,23 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
 
   const errors = [...doc.validation.errors, ...serverErrors];
   return (
-    <div className="grid gap-4 md:grid-cols-2 md:items-start">
-      <section className="md:sticky md:top-4">
-        <h2 className="mb-2 font-semibold">{t('confirm.billPhoto')}</h2>
+    <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <section className="lg:sticky lg:top-4">
+        <h2 className="mb-2 font-heading text-card-title font-semibold">
+          {t('confirm.billPhoto')}
+        </h2>
         {doc.fileUrl ? (
           <BillImage url={doc.fileUrl} alt={t('confirm.billPhoto')} />
         ) : (
-          <p className="rounded-xl bg-white p-3 text-sm text-gray-600">{t('confirm.noPhoto')}</p>
+          <p className="rounded-card border bg-surface p-3 text-small text-ink-muted">
+            {t('confirm.noPhoto')}
+          </p>
         )}
       </section>
 
       <section className="space-y-3">
-        <h1 className="text-2xl font-bold">{t('confirm.title')}</h1>
-        <p className="text-sm text-gray-700">{t('confirm.help')}</p>
+        <h1 className="font-heading text-title font-semibold">{t('confirm.title')}</h1>
+        <p className="text-small text-ink-muted">{t('confirm.help')}</p>
 
         {errors.length > 0 && (
           <ErrorBox>
@@ -157,10 +177,12 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
         )}
 
         {needsAck.length > 0 && (
-          <fieldset className="rounded-xl border border-amber-400 bg-amber-50 p-3">
-            <legend className="px-1 text-sm font-semibold">{t('confirm.ackTitle')}</legend>
+          <fieldset className="rounded-card border border-copper-700 bg-copper-50 p-3">
+            <legend className="px-1 text-small font-semibold text-copper-800">
+              {t('confirm.ackTitle')}
+            </legend>
             {needsAck.map((m) => (
-              <label key={m} className="flex min-h-12 items-start gap-3 py-2 text-sm">
+              <label key={m} className="flex min-h-12 items-start gap-3 py-2 text-small">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-6 w-6 shrink-0"
@@ -183,47 +205,43 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
         {SCALAR_FIELDS.map((k) => {
           const isLow = low.has(k);
           const unit = t(`fields.${k}.unit`);
-          const explainKey = EXPLAIN_KEYS[k];
+          const jargon = JARGON[k];
           return (
             <div key={k} data-testid={`field-${k}`} data-low={isLow ? 'true' : undefined}>
               <label
                 htmlFor={`f-${k}`}
-                className="flex items-baseline justify-between text-sm font-medium"
+                className="flex items-center justify-between gap-2 text-small font-semibold"
               >
                 <span>{t(`fields.${k}.label`)}</span>
-                {isLow && (
-                  <span className="font-semibold text-amber-700">⚠ {t('confirm.pleaseCheck')}</span>
+                {isLow ? (
+                  <span className="inline-flex items-center gap-1 text-copper-800">
+                    <Warning size={18} weight="fill" aria-hidden="true" />
+                    {t('confirm.pleaseCheck')}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 font-normal text-green-700">
+                    <Check size={18} weight="bold" aria-hidden="true" />
+                    <span className="sr-only">{t('confirm.readOk')}</span>
+                  </span>
                 )}
               </label>
               <div className="mt-1 flex items-center gap-2">
                 <input
                   id={`f-${k}`}
-                  className={`min-h-12 w-full rounded-lg border-2 px-3 text-base ${
-                    isLow ? 'border-amber-500 bg-amber-50' : 'border-gray-300 bg-white'
+                  className={`min-h-12 w-full rounded-button border-2 px-3 text-body ${
+                    isLow ? 'border-copper-700 bg-copper-50' : 'bg-surface'
                   }`}
                   type={DATE_FIELDS.has(k) ? 'date' : 'text'}
                   inputMode={TEXT_FIELDS.has(k) || DATE_FIELDS.has(k) ? undefined : 'decimal'}
                   value={values[k] ?? ''}
                   onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
                 />
-                {unit && <span className="w-12 shrink-0 text-sm text-gray-600">{unit}</span>}
+                {unit && <span className="w-12 shrink-0 text-small text-ink-muted">{unit}</span>}
               </div>
-              {explainKey && (
-                <>
-                  <button
-                    type="button"
-                    className="mt-1 min-h-10 text-sm text-emerald-800 underline"
-                    aria-expanded={open === k}
-                    onClick={() => setOpen(open === k ? null : k)}
-                  >
-                    ⓘ {t(`fields.${k}.label`)}?
-                  </button>
-                  {open === k && (
-                    <p className="rounded-lg bg-white p-2 text-sm text-gray-700">
-                      {t(`confirm.explain.${explainKey}`)}
-                    </p>
-                  )}
-                </>
+              {jargon && (
+                <p className="mt-1 text-small text-ink-muted">
+                  <JargonChip term={jargon} />
+                </p>
               )}
             </div>
           );
@@ -231,54 +249,53 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
 
         {Object.keys(other).length > 0 && (
           <div>
-            <p className="text-sm font-medium">{t('fields.otherCharges.label')}</p>
+            <p className="text-small font-semibold">{t('fields.otherCharges.label')}</p>
             {Object.entries(other).map(([k, x]) => (
-              <label key={k} className="mt-1 flex items-center gap-2 text-sm">
+              <label key={k} className="mt-1 flex items-center gap-2 text-small">
                 <span className="w-1/2 break-words">{k.replace(/_/g, ' ')}</span>
                 <input
-                  className="min-h-12 w-full rounded-lg border-2 border-gray-300 bg-white px-3 text-base"
+                  className="min-h-12 w-full rounded-button border-2 bg-surface px-3 text-body"
                   inputMode="decimal"
                   value={x}
                   onChange={(e) => setOther((p) => ({ ...p, [k]: e.target.value }))}
                 />
-                <span className="w-8 text-sm text-gray-600">Rs</span>
+                <span className="w-8 text-small text-ink-muted">Rs</span>
               </label>
             ))}
           </div>
         )}
 
-        <h2 className="pt-2 font-semibold">{t('confirm.yourNumbers')}</h2>
+        <h2 className="pt-2 font-heading text-card-title font-semibold">
+          {t('confirm.yourNumbers')}
+        </h2>
         <label className="block">
-          <span className="text-sm font-medium">{t('confirm.tonnes')}</span>
+          <span className="text-small font-semibold">{t('confirm.tonnes')}</span>
           <input
-            className="mt-1 min-h-12 w-full rounded-lg border-2 border-gray-300 bg-white px-3 text-base"
+            className="mt-1 min-h-12 w-full rounded-button border-2 bg-surface px-3 text-body"
             inputMode="decimal"
             value={tonnes}
             onChange={(e) => setTonnes(e.target.value)}
           />
-          <span className="text-xs text-gray-600">{t('confirm.tonnesHelp')}</span>
+          <span className="text-small text-ink-muted">{t('confirm.tonnesHelp')}</span>
         </label>
         <label className="block">
-          <span className="text-sm font-medium">{t('confirm.diesel')}</span>
+          <span className="text-small font-semibold">{t('confirm.diesel')}</span>
           <input
-            className="mt-1 min-h-12 w-full rounded-lg border-2 border-gray-300 bg-white px-3 text-base"
+            className="mt-1 min-h-12 w-full rounded-button border-2 bg-surface px-3 text-body"
             inputMode="decimal"
             value={diesel}
             onChange={(e) => setDiesel(e.target.value)}
           />
-          <span className="text-xs text-gray-600">{t('confirm.dieselHelp')}</span>
+          <span className="text-small text-ink-muted">{t('confirm.dieselHelp')}</span>
         </label>
 
         {message && <ErrorBox>{message}</ErrorBox>}
-        {!allTicked && <p className="text-sm text-amber-800">{t('confirm.mustTick')}</p>}
-        <button
-          type="button"
-          className={PRIMARY}
-          disabled={!allTicked || busy}
-          onClick={() => void submit()}
-        >
-          {busy ? t('confirm.submitting') : t('confirm.submit')}
-        </button>
+        {!allTicked && <p className="text-small text-copper-800">{t('confirm.mustTick')}</p>}
+        <StickyPrimaryBar>
+          <Button disabled={!allTicked || busy} onClick={() => void submit()}>
+            {busy ? t('confirm.submitting') : t('confirm.submit')}
+          </Button>
+        </StickyPrimaryBar>
       </section>
     </div>
   );
@@ -292,9 +309,10 @@ function BillImage({ url, alt }: { url: string; alt: string }) {
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="block rounded-xl bg-white p-3 underline"
+        className="flex min-h-12 items-center gap-2 rounded-card border bg-surface p-3 underline"
       >
-        📄 {alt}
+        <FileText size={20} aria-hidden="true" />
+        {alt}
       </a>
     );
   }
@@ -302,7 +320,7 @@ function BillImage({ url, alt }: { url: string; alt: string }) {
     <img
       src={url}
       alt={alt}
-      className="max-h-[50vh] w-full rounded-xl border bg-white object-contain md:max-h-none"
+      className="max-h-[50vh] w-full rounded-card border bg-surface object-contain lg:max-h-none"
       onError={() => setFailed(true)}
     />
   );

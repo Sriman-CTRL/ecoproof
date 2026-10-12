@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
-export type StampVariant = 'verified' | 'early' | 'estimate';
+export type StampVariant = 'verified' | 'early' | 'estimate' | 'genuine' | 'mismatch';
 
 const TONE: Record<StampVariant, string> = {
   verified: 'border-green-700 text-green-700',
   early: 'border-ink-muted text-ink-muted',
   estimate: 'border-copper-700 text-copper-800',
+  genuine: 'border-green-700 text-green-700',
+  mismatch: 'border-loss text-loss',
 };
 
 /**

@@ -21,7 +21,9 @@
     "networkError": "We could not reach the server. Check your internet and try again.",
     "genericError": "Something went wrong. Please try again.",
     "sessionExpired": "Your session ended. Please start again.",
-    "required": "Please fill this in"
+    "required": "Please fill this in",
+    "seeAll": "See all",
+    "optional": "optional"
   },
   "start": {
     "title": "Choose a sample business",
@@ -30,7 +32,12 @@
     "demoADesc": "12 months of bills. Add the latest bill to see this month.",
     "demoB": "Same unit, 6 months later",
     "demoBDesc": "After the free bill fixes. See the savings.",
-    "failed": "Could not start the demo. Make sure the server is running, then try again."
+    "failed": "Could not start the demo. Make sure the server is running, then try again.",
+    "previewAtStake": "a month at stake",
+    "previewBill": "latest bill total",
+    "previewMonths": "months of bills",
+    "open": "Open this sample",
+    "previewFailed": "Preview not available"
   },
   "consent": {
     "title": "Before we start",
@@ -45,7 +52,8 @@
     "deleteBody": "In Settings (coming soon) you can delete all your data.",
     "version": "Notice version: {{version}}",
     "agree": "I agree",
-    "failed": "We could not save your choice. Check your internet and tap \"I agree\" again."
+    "failed": "We could not save your choice. Check your internet and tap \"I agree\" again.",
+    "shared": "Your data is shared with nobody until you share it"
   },
   "home": {
     "latestBill": "Latest bill: {{month}}",
@@ -72,7 +80,14 @@
       "power_factor": "power factor",
       "peak_use": "peak-hour share",
       "diesel": "diesel use"
-    }
+    },
+    "heroAtStake": "At stake every month, found in your bill",
+    "heroBill": "Latest bill total (energy + demand charges)",
+    "recent": "Latest bills",
+    "seeAllBills": "See all bills",
+    "nextStep": "Next step",
+    "switchHint": "Try the other sample",
+    "unitsLine": "{{units}} units"
   },
   "bills": {
     "newTitle": "Add a bill",
@@ -91,7 +106,21 @@
     "uploadFailed": "The upload did not work. Check your internet and try again, or pick a smaller file.",
     "unsupported": "Only photos (JPG, PNG) and PDF files work. Please choose another file.",
     "tooLarge": "This file is too large. Take a new photo or choose a smaller file.",
-    "consentNeeded": "Please agree to the notice first."
+    "consentNeeded": "Please agree to the notice first.",
+    "title": "Your bills",
+    "month": "Month",
+    "rupees": "Bill (₹)",
+    "units": "Units",
+    "co2": "CO2 (t)",
+    "co2Note": "CO2 is t CO2 (grid) + t CO2e (fuels).",
+    "tableLabel": "Your confirmed bills, newest first",
+    "emptyTitle": "No bills yet",
+    "emptyBody": "Add your latest electricity bill to see your numbers in 2 minutes.",
+    "takePhoto": "Take photo of bill",
+    "chooseFile": "Choose file",
+    "photoHelp": "Hold the phone steady in good light and keep the whole bill in the picture.",
+    "scanAlt": "Your bill photo while it is being read",
+    "blurry": "Photo is blurry. Retake in good light."
   },
   "confirm": {
     "title": "Check your bill",
@@ -118,7 +147,9 @@
       "kvah": "kVAh is the total electricity your factory drew, including the part that does no useful work. HT bills are charged in kVAh.",
       "pf": "Power factor is kWh divided by kVAh. Close to 1 is good. Below 0.90 can add a penalty to your bill.",
       "mdKva": "Maximum demand is the highest load your factory reached in the month. Demand charges are based on it."
-    }
+    },
+    "readOk": "Read from your bill",
+    "fieldOk": "Looks fine"
   },
   "fields": {
     "consumerNo": {
@@ -202,7 +233,8 @@
       "confirmed": "confirmed",
       "confirmed_replace": "to be replaced with newer CEA value",
       "estimate_only": "estimate",
-      "verify": "estimate"
+      "verify": "estimate",
+      "confirmedWord": "confirmed"
     },
     "quality": {
       "measured": "from your bill",
@@ -217,7 +249,10 @@
     "healthSource": "Sum of the flagged checks on this bill; tap See bill health for each one.",
     "peakPending": "+ peak saving once you enter units",
     "healthCount_one": "{{count}} finding on this bill",
-    "healthCount_other": "{{count}} findings on this bill"
+    "healthCount_other": "{{count}} findings on this bill",
+    "whyTitle": "Where this number comes from",
+    "co2Line": "{{grid}} t CO2 (grid) + {{fuels}} t CO2e (fuels)",
+    "unitsLine": "{{n}} units"
   },
   "health": {
     "title": "Bill health check: {{month}}",
@@ -279,7 +314,14 @@
       "minimumKvah": "Minimum billed units (kVAh)",
       "actualKvah": "Actual billed units (kVAh)",
       "gapKvah": "Shortfall (kVAh)"
-    }
+    },
+    "total": "At stake every month on this bill",
+    "startTop": "Start the top fix",
+    "passedTitle": "Checked and OK",
+    "lowCostQuote": "Low cost, quote needed",
+    "whyOpen": "Why?",
+    "whySheet": "Why this number? {{name}}",
+    "noTopFix": "No fix to start yet"
   },
   "actions": {
     "title": "Your action plan",
@@ -303,7 +345,18 @@
       "reduce_contracted_demand": "Reduce contracted demand",
       "avoid_minimum_charges": "Avoid minimum charges"
     },
-    "savingPendingOther": "Saving pending: needs a quote and sector data"
+    "savingPendingOther": "Saving pending: needs a quote and sector data",
+    "openTop": "Open the top action",
+    "status": {
+      "suggested": "Not started",
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
+    "perYearShort": "a year",
+    "lowCostQuote": "Low cost, quote needed",
+    "topThree": "Top actions by rupees",
+    "emptyTitle": "No actions yet"
   },
   "detail": {
     "plan": "Plan this action",
@@ -326,7 +379,11 @@
     "vendor": "Vendor name",
     "quote": "Quote amount (Rs)",
     "quoteHelp": "Optional. Without a quote the summary says \"cost pending: get a quote\".",
-    "needLoan": "Enter the loan amount above to make the summary."
+    "needLoan": "Enter the loan amount above to make the summary.",
+    "range": "Saving range",
+    "costTitle": "Cost",
+    "paybackTitle": "Payback",
+    "to": "to"
   },
   "report": {
     "title": "Loan-ready summary",
@@ -350,24 +407,32 @@
       "active": "active",
       "expired": "expired",
       "revoked": "revoked"
-    }
+    },
+    "shareWithLender": "Share with a lender",
+    "headline": "Headline figures",
+    "shortHash": "Seal code",
+    "log": "Who has opened it",
+    "noShares": "Not shared yet",
+    "copyHash": "Copy full code"
   },
   "verify": {
-    "title": "Verify a document",
-    "sharedTitle": "Shared loan-ready summary",
     "business": "Business",
     "reportId": "Report ID",
     "issued": "Issued",
     "version": "version {{n}}",
     "saving": "Monthly saving",
     "net": "Monthly net cash effect",
-    "checkTitle": "Check a PDF",
-    "checkHelp": "Choose the PDF you received. It is checked on this device and not uploaded.",
-    "match": "Matches: this is the original document",
-    "mismatch": "Does not match: this file was changed or is a different version",
     "notFound": "No document with this report ID.",
     "expired": "This link has expired. Ask the business to share a new one.",
-    "linkNotFound": "This link is not valid. Ask the business to share a new one."
+    "linkNotFound": "This link is not valid. Ask the business to share a new one.",
+    "genuine": "This document is genuine",
+    "genuineHelp": "EcoProof issued this document. Check your copy of the PDF to be sure it was not changed.",
+    "matchHelp": "Your file is the same as the original.",
+    "noMatch": "This file does not match",
+    "noMatchHelp": "The PDF you chose was changed or is a different version. Ask the business for the original.",
+    "checkFile": "Check a PDF file",
+    "checking": "Checking your file...",
+    "privacy": "The file is checked on this device and not uploaded."
   },
   "kit": {
     "rupee": {
@@ -376,7 +441,8 @@
       "crore": "crore"
     },
     "stub": {
-      "perMonth": "a month"
+      "perMonth": "a month",
+      "pending": "enter units"
     },
     "source": {
       "title": "Where this number comes from",
@@ -410,7 +476,9 @@
     "stamp": {
       "verified": "Verified by your bills",
       "early": "Too early to confirm",
-      "estimate": "Estimate, not verified"
+      "estimate": "Estimate, not verified",
+      "genuine": "Genuine document",
+      "mismatch": "Does not match"
     },
     "year": {
       "count": "{{n}} of 12 months",
@@ -466,5 +534,11 @@
       "secondary": "See all months",
       "danger": "Delete this bill"
     }
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Home",
+    "bills": "Bills",
+    "plan": "Plan"
   }
 }

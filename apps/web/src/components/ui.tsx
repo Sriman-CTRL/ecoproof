@@ -2,6 +2,10 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight';
+import { House } from '@phosphor-icons/react/dist/csr/House';
+import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
+import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
+import type { Icon } from '@phosphor-icons/react';
 import { LANGUAGES } from '../i18n';
 import { formatInr, inrWords } from '../lib/format';
 import { getSession, setSession } from '../lib/session';
@@ -9,75 +13,163 @@ import { BUTTON_CLASS } from './kit/Button';
 import { ErrorNote } from './kit/ErrorNote';
 import { SourceChip } from './kit/SourceChip';
 import { StickyPrimaryBar } from './kit/StickyPrimaryBar';
+import type { YearMonth } from './kit/YearStrip';
 
 /** Kept for existing screens; the same look as the kit's primary Button. */
 export const PRIMARY = BUTTON_CLASS.primary;
 
-export function Header({ showBusiness = true }: { showBusiness?: boolean }) {
+const SHORT_LANG: Record<string, string> = { en: 'EN', te: 'తె', hi: 'हि' };
+const FULL_WIDTH = 'mx-auto w-full max-w-[480px]';
+const WIDE = 'mx-auto w-full max-w-5xl';
+
+export function Header({
+  showBusiness = true,
+  wide = false,
+}: {
+  showBusiness?: boolean;
+  wide?: boolean;
+}) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const session = getSession();
   return (
-    <header className="flex min-h-14 items-center justify-between gap-2 bg-green-900 px-4 py-2 text-white">
-      <div className="min-w-0">
-        <Link to="/home" className="block font-heading text-card-title font-semibold">
-          {showBusiness && session ? session.orgName : t('app.title')}
-        </Link>
-        {session && showBusiness && (
-          <span className="mt-0.5 inline-block rounded-chip bg-copper-500 px-2 text-small font-semibold text-green-900">
-            {t('common.sampleBadge')}
-          </span>
-        )}
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-        <label className="sr-only" htmlFor="lang">
-          {t('language.label')}
-        </label>
-        <select
-          id="lang"
-          className="min-h-12 rounded-button border border-green-200 bg-green-900 px-2 text-small text-white"
-          value={i18n.resolvedLanguage}
-          onChange={(e) => void i18n.changeLanguage(e.target.value)}
+    <header className="bg-green-900 text-white">
+      <div
+        className={`${wide ? WIDE : FULL_WIDTH} flex min-h-14 items-center justify-between gap-2 px-4 py-1`}
+      >
+        <div className="min-w-0">
+          <Link
+            to="/home"
+            // Header stays 56px tall; the ::before overlay makes the tap target 48px.
+            data-hit-area="48"
+            className="relative block font-heading text-card-title font-semibold before:absolute before:-inset-y-2 before:inset-x-0 before:content-['']"
+          >
+            {t('app.title')}
+          </Link>
+          {session && showBusiness && (
+            <div className="flex flex-wrap items-center gap-x-2">
+              <span className="text-small">{session.orgName}</span>
+              <span className="rounded-chip bg-copper-500 px-2 text-small font-semibold text-green-900">
+                {t('common.sampleBadge')}
+              </span>
+            </div>
+          )}
+        </div>
+        <div
+          role="group"
+          aria-label={t('language.label')}
+          className="flex shrink-0 items-center justify-end"
         >
           {LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>
-              {l.label}
-            </option>
+            <button
+              key={l.code}
+              type="button"
+              lang={l.code}
+              aria-pressed={i18n.resolvedLanguage === l.code}
+              title={l.label}
+              className={`min-h-12 min-w-12 px-2 text-small ${
+                i18n.resolvedLanguage === l.code
+                  ? 'font-bold text-copper-500 underline underline-offset-4'
+                  : 'text-green-200'
+              }`}
+              onClick={() => void i18n.changeLanguage(l.code)}
+            >
+              {SHORT_LANG[l.code]}
+            </button>
           ))}
-        </select>
-        {session && (
-          <button
-            type="button"
-            className="inline-flex min-h-12 items-center gap-1 rounded-button border border-green-200 px-2 text-small"
-            onClick={() => {
-              setSession(null);
-              navigate('/start');
-            }}
-          >
-            <ArrowsLeftRight size={18} aria-hidden="true" />
-            {t('common.switchDemo')}
-          </button>
-        )}
+        </div>
       </div>
     </header>
   );
 }
 
-/** Mobile-first page: content scrolls, the single primary button sits at the bottom. */
+/** Back to the sample chooser; lives at the bottom of Home because Settings is out of scope. */
+export function SwitchSample() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      className={`${BUTTON_CLASS.secondary} w-full`}
+      onClick={() => {
+        setSession(null);
+        navigate('/start');
+      }}
+    >
+      <ArrowsLeftRight size={18} aria-hidden="true" />
+      {t('common.switchDemo')}
+    </button>
+  );
+}
+
+export type TabId = 'home' | 'bills' | 'plan';
+const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
+  { id: 'home', to: '/home', icon: House, key: 'nav.home' },
+  { id: 'bills', to: '/bills', icon: Receipt, key: 'nav.bills' },
+  { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
+  // Reports tab comes in S8: { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
+];
+
+/** 64px white bar, icon + word. Hidden on the capture flow and on public pages. */
+export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <nav
+      aria-label={t('nav.label')}
+      className="sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content"
+    >
+      <ul className={`${wide ? WIDE : FULL_WIDTH} grid h-16 grid-cols-3`}>
+        {TABS.map(({ id, to, icon: IconCmp, key }) => (
+          <li key={id}>
+            <Link
+              to={to}
+              aria-current={active === id ? 'page' : undefined}
+              className={`flex h-16 flex-col items-center justify-center gap-0.5 text-small ${
+                active === id ? 'font-semibold text-green-700' : 'text-ink-muted'
+              }`}
+            >
+              <IconCmp size={24} weight={active === id ? 'fill' : 'regular'} aria-hidden="true" />
+              {t(key)}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+/** Mobile-first page: content scrolls, the single primary button sits above the tab bar. */
 export function Page({
   children,
   action,
   showBusiness,
+  tab,
+  wide = false,
+  isPublic = false,
 }: {
   children: ReactNode;
   action?: ReactNode;
   showBusiness?: boolean;
+  /** Shows the bottom tab bar with this tab marked; leave out to hide it. */
+  tab?: TabId;
+  /** Two columns at 1024px and up (confirm screen). */
+  wide?: boolean;
+  /** Public pages show no business name, no tab bar. */
+  isPublic?: boolean;
 }) {
+  const tabs = tab && !isPublic ? tab : undefined;
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col bg-paper">
-      <Header showBusiness={showBusiness} />
-      <main className="flex-1 space-y-3 p-4">{children}</main>
-      {action && <StickyPrimaryBar>{action}</StickyPrimaryBar>}
+    <div
+      className="flex min-h-dvh flex-col bg-paper"
+      style={tabs ? ({ '--tabbar-h': '64px' } as React.CSSProperties) : undefined}
+    >
+      <Header showBusiness={isPublic ? false : showBusiness} wide={wide} />
+      <main className={`${wide ? WIDE : FULL_WIDTH} flex-1 space-y-3 p-4`}>{children}</main>
+      {action && (
+        <StickyPrimaryBar>
+          <div className={wide ? WIDE : FULL_WIDTH}>{action}</div>
+        </StickyPrimaryBar>
+      )}
+      {tabs && <TabBar active={tabs} wide={wide} />}
     </div>
   );
 }
@@ -141,4 +233,22 @@ export function CostText({ low, high }: { low: number | null; high: number | nul
       )}
     </>
   );
+}
+
+/** The last 12 calendar months up to the newest bill; a tile is filled when that month has a bill. */
+export function yearMonths(months: Array<{ month: string }>, lang: string): YearMonth[] {
+  if (months.length === 0) return [];
+  const have = new Set(months.map((m) => m.month.slice(0, 7)));
+  const newest = months.reduce((a, b) => (a.month > b.month ? a : b)).month;
+  const y = Number(newest.slice(0, 4));
+  const m = Number(newest.slice(5, 7)) - 1;
+  const locale = lang === 'te' ? 'te-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(Date.UTC(y, m - 11 + i, 1));
+    const key = d.toISOString().slice(0, 7);
+    return {
+      label: new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(d),
+      confirmed: have.has(key),
+    };
+  });
 }

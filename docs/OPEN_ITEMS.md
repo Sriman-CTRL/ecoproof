@@ -67,3 +67,6 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 ## UI
 
 - [ ] Source sheet (`SourceChip`) shows the whole bill image, not a crop around the value: extraction returns no field coordinates. Add coordinates to the extraction adapter to enable cropping.
+- [ ] Home for Demo B should show "Rs saved this month / total so far" (Doc 06), but no endpoint returns savings yet, so it shows the latest bill total. Wire it to the savings ledger in S8.
+- [ ] Action ranking: the API puts zero-cost actions first (rankNote), while design plan 6.2 says "ranked by rupees, never by ease". Home and bill health open the action worth most rupees a year (Fix power factor for Demo A); the Plan list keeps the API order, so its "Open the top action" opens the first zero-cost action. Decide one rule.
+- [ ] Telugu strings added in D2 (nav, bills ledger, verify page, health) are machine-drafted: need native speaker review.

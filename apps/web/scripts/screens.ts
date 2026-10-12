@@ -1,11 +1,13 @@
 /**
- * Self-check: walks Demo A on a 390x844 phone and saves a PNG of each screen.
- * Needs the API (DOCUMENT_READER=fake) and the web dev server running.
+ * Self-check: walks Demo A on a 390x844 phone in English, then re-visits four screens at 360x800
+ * in Telugu, and saves a PNG of each screen. Also reports horizontal overflow, tap targets under
+ * 48px and anything hidden behind the tab bar.
+ * Needs the API (DOCUMENT_READER=fake) and the web dev server running. Reset the demo afterwards.
  *   pnpm --filter @ecoproof/web screens
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
+import { chromium, type Page } from 'playwright';
 
 const WEB = process.env.WEB_URL ?? 'http://localhost:5173';
 const out = fileURLToPath(new URL('../screens/', import.meta.url));
@@ -15,43 +17,109 @@ const bill = fileURLToPath(
 mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 let n = 0;
-const shot = async (name: string) => {
-  n += 1;
-  await page.screenshot({
-    path: `${out}${String(n).padStart(2, '0')}-${name}.png`,
-    fullPage: true,
+const problems: string[] = [];
+
+/** Layout checks that a PNG alone makes easy to miss. */
+async function audit(page: Page, name: string) {
+  const found = await page.evaluate(() => {
+    const issues: string[] = [];
+    const root = document.documentElement;
+    if (root.scrollWidth > root.clientWidth + 1) issues.push('horizontal overflow');
+    const interactive = [
+      ...document.querySelectorAll<HTMLElement>('a[href], button, label:has(input[type=file])'),
+    ].filter((el) => el.offsetParent !== null && !el.closest('[aria-hidden=true]'));
+    for (const el of interactive) {
+      const r = el.getBoundingClientRect();
+      const label = (el.textContent ?? '').trim().slice(0, 30) || el.getAttribute('aria-label');
+      // Inline chips get a 48px overlay (data-hit-area); everything else must be tall enough.
+      if (r.height < 47 && !el.dataset.hitArea && r.width > 0)
+        issues.push(`short target: ${label}`);
+    }
+    // Scrolled to the end, the last content must sit above the sticky bar and the tab bar.
+    window.scrollTo(0, root.scrollHeight);
+    const bars = [...document.querySelectorAll('nav, div.sticky')]
+      .filter((e) => !e.closest('main'))
+      .map((e) => e.getBoundingClientRect().top);
+    const main = document.querySelector('main')?.getBoundingClientRect().bottom ?? 0;
+    if (bars.length && main > Math.min(...bars) + 1) issues.push('content hidden under the bars');
+    window.scrollTo(0, 0);
+    const primary = [...document.querySelectorAll<HTMLElement>('.bg-green-700')].filter(
+      (el) =>
+        el.offsetParent !== null &&
+        el.getBoundingClientRect().width > 200 &&
+        el.getBoundingClientRect().height >= 48,
+    );
+    if (primary.length > 1) issues.push(`${primary.length} primary buttons`);
+    return issues;
   });
+  for (const i of found) problems.push(`${name}: ${i}`);
+}
+
+/** Full-height viewport so the sticky bars land at the bottom, as they do at the end of a scroll. */
+async function shot(page: Page, name: string, sheetOpen = false) {
+  n += 1;
+  await page.waitForFunction(() => [...document.images].every((i) => i.complete));
+  // Skeletons mean data is still loading: a shot of them proves nothing.
+  await page.waitForFunction(() => !document.querySelector('[aria-busy=true]'), undefined, {
+    timeout: 15_000,
+  });
+  await audit(page, name);
+  const path = `${out}${String(n).padStart(2, '0')}-${name}.png`;
+  if (sheetOpen) {
+    await page.screenshot({ path });
+  } else {
+    const vp = page.viewportSize()!;
+    const h = await page.evaluate(() => document.documentElement.scrollHeight);
+    await page.setViewportSize({ width: vp.width, height: Math.max(h, vp.height) });
+    await page.screenshot({ path });
+    await page.setViewportSize(vp);
+  }
   console.log('saved', name);
-};
+}
+
+let reportId = '';
+const pdfPath = `${out}loan-pack.pdf`;
+const tamperedPath = `${out}loan-pack-tampered.pdf`;
 
 try {
+  // ---------- English, 390x844 ----------
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`${WEB}/start`);
   await page.getByText('Sri Lakshmi Castings: before').waitFor();
-  await shot('start');
+  await page.getByText('a month at stake').waitFor();
+  await shot(page, 'start');
 
   await page.getByText('Sri Lakshmi Castings: before').click();
   await page.waitForURL(/\/(consent|home)$/);
   if (page.url().endsWith('/consent')) {
-    await shot('consent');
+    await page.getByText('Your data is shared with nobody until you share it').waitFor();
+    await shot(page, 'consent');
     await page.getByRole('button', { name: 'I agree' }).click();
     await page.waitForURL(/\/home$/);
   }
-  await page.getByText('Your months').waitFor();
-  await shot('home');
+  await page.getByText('Latest bills').waitFor();
+  await page.getByText('At stake every month, found in your bill').waitFor();
+  await shot(page, 'home');
 
-  await page.getByRole('button', { name: /Add a bill/ }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Bills' }).click();
+  await page.waitForURL(/\/bills$/);
+  await page.getByText('Your bills').waitFor();
+  await page.getByRole('table').waitFor();
+  await shot(page, 'bills');
+
+  await page.getByRole('link', { name: 'Add a bill' }).click();
   await page.waitForURL(/\/bills\/new$/);
-  await shot('add-bill');
+  await page.getByText('Take photo of bill').first().waitFor();
+  await shot(page, 'add-bill');
 
   await page.getByTestId('bill-file').setInputFiles(bill);
   await page.getByText('Reading your bill...').waitFor();
-  await shot('reading');
+  await shot(page, 'reading');
 
   await page.waitForURL(/\/confirm$/, { timeout: 90_000 });
   await page.getByText('Check your bill').waitFor();
-  await shot('confirm');
+  await shot(page, 'confirm');
 
   for (const box of await page.getByRole('checkbox').all()) await box.check();
   await page.getByLabel(/Tonnes of good castings/).fill('100');
@@ -59,33 +127,45 @@ try {
   await page.getByRole('button', { name: 'Confirm all' }).click();
   await page.waitForURL(/\/results\//, { timeout: 30_000 });
   await page.getByText('Bill health check', { exact: true }).waitFor();
-  await page.getByText('Why this number?').click();
-  await page.getByText('Formula version').waitFor();
   // Card total = sum of this bill's flagged findings (PF 60,000 + demand 40,000).
   await page.getByTestId('at-stake').getByText('₹1,00,000').waitFor();
   await page.getByText('+ peak saving once you enter units').waitFor();
-  await shot('result');
+  await shot(page, 'result');
+  await page.getByRole('button', { name: 'Why this number?' }).click();
+  await page.getByText('Formula version').waitFor();
+  await shot(page, 'result-why', true);
+  await page.getByRole('button', { name: 'Close' }).click();
 
   await page.getByRole('button', { name: 'See bill health' }).click();
   await page.waitForURL(/\/health/);
   await page.getByText('Low power factor').waitFor();
   await page.getByLabel(/Units you could move/).fill('1000');
-  await page.getByText('Why?').first().click();
-  await shot('health');
+  await page.getByText('Low cost, quote needed').waitFor();
+  await page.getByTestId('finding-peak_use').getByText(/₹\d/).first().waitFor();
+  await page.getByRole('button', { name: 'Why?' }).first().click();
+  await shot(page, 'health-why', true);
+  await page.getByRole('button', { name: 'Close' }).click();
+  await shot(page, 'health');
 
-  await page.getByRole('button', { name: 'See your action plan' }).click();
-  await page.waitForURL(/\/actions/);
+  // Primary button: straight to the top fix.
+  await page.getByRole('button', { name: 'Start the top fix' }).click();
+  await page.waitForURL(/\/actions\/fix_power_factor/);
+  await page.getByRole('navigation').getByRole('link', { name: 'Plan' }).click();
+  await page.waitForURL(/\/actions$/);
   await page.getByText('Your action plan').waitFor();
+  await page.getByText('Not started').first().waitFor();
+  await shot(page, 'actions');
   await page.getByText(/See all \(/).click();
   await page.getByText('Fix power factor (capacitor bank)').waitFor();
-  await shot('actions');
 
   await page.getByText('Fix power factor (capacitor bank)').click();
   await page.waitForURL(/\/actions\/fix_power_factor/);
   await page.getByLabel(/Loan amount/).fill('10,00,000');
   await page.getByText('Cash-positive from month 1').waitFor();
+  // The saving must be this month's API value, never a stale cached one.
+  await page.getByText('₹60,000').first().waitFor();
   await page.getByTestId('emi-panel').getByText('₹20,276').waitFor();
-  await shot('action-detail');
+  await shot(page, 'action-detail');
 
   // Loan-ready summary: plan -> quote -> make -> report -> share -> share link -> verify.
   await page.getByRole('button', { name: 'Plan this action' }).click();
@@ -94,13 +174,11 @@ try {
   await page.getByRole('button', { name: 'Make loan-ready summary' }).click();
   await page.waitForURL(/\/reports\/[0-9a-f-]{36}$/, { timeout: 60_000 });
   await page.getByText('Document seal').waitFor();
-  const reportId = page.url().split('/reports/')[1]!;
-  await shot('report');
+  reportId = page.url().split('/reports/')[1]!;
+  await shot(page, 'report');
 
   const pdfUrl = await page.getByRole('link', { name: 'Download PDF' }).getAttribute('href');
   const pdf = Buffer.from(await (await page.request.get(pdfUrl!)).body());
-  const pdfPath = `${out}loan-pack.pdf`;
-  const tamperedPath = `${out}loan-pack-tampered.pdf`;
   writeFileSync(pdfPath, pdf);
   const tampered = Buffer.from(readFileSync(pdfPath));
   const at = Math.floor(tampered.length / 2);
@@ -109,34 +187,68 @@ try {
   console.log('report', reportId, 'pdf bytes', pdf.length);
 
   await page.getByLabel('Recipient name').fill('Sample Bank (synthetic)');
-  await page.getByRole('button', { name: 'Make share link' }).click();
+  await page.getByRole('button', { name: 'Share with a lender' }).click();
   const shareUrl = (await page.getByTestId('share-url').textContent())!.trim();
   await page.getByText('Views: 0 · Downloads: 0').waitFor();
-  await shot('share');
+  await shot(page, 'share');
 
   await page.goto(shareUrl);
-  await page.getByText('Shared loan-ready summary').waitFor();
+  await page.getByText('This document is genuine').waitFor();
   await page.getByRole('button', { name: 'Download PDF' }).waitFor();
-  await shot('share-link');
+  await shot(page, 'share-link');
 
   await page.goto(`${WEB}/verify/${reportId}`);
-  await page.getByText('Check a PDF').waitFor();
+  await page.getByText('This document is genuine').waitFor();
+  await page
+    .getByRole('button', { name: 'Check a PDF file' })
+    .waitFor()
+    .catch(() => undefined);
+  await shot(page, 'verify');
   await page.getByTestId('verify-file').setInputFiles(pdfPath);
-  await page.getByText('Matches: this is the original document').waitFor();
-  await shot('verify-match');
+  await page.getByText('Your file is the same as the original.').waitFor();
+  await shot(page, 'verify-match');
   await page.getByTestId('verify-file').setInputFiles(tamperedPath);
-  await page.getByText('Does not match: this file was changed or is a different version').waitFor();
-  await shot('verify-mismatch');
+  await page.getByText('This file does not match', { exact: true }).waitFor();
+  await shot(page, 'verify-mismatch');
 
   await page.goto(`${WEB}/reports/${reportId}`);
   await page.getByText('Views: 1 · Downloads: 0').waitFor();
 
-  await page
-    .getByRole('link', { name: /EcoProof|Sri Lakshmi/ })
-    .first()
-    .click();
-  await page.getByText('Your next action').waitFor();
-  await shot('home-after');
+  await page.getByRole('link', { name: 'EcoProof' }).first().click();
+  await page.getByText('Latest bills').waitFor();
+  await shot(page, 'home-after');
+  await page.close();
+
+  // ---------- Telugu, 360x800 ----------
+  const te = await browser.newPage({ viewport: { width: 360, height: 800 } });
+  await te.addInitScript(() => localStorage.setItem('ecoproof.lang', 'te'));
+  await te.goto(`${WEB}/start`);
+  await te.getByText('శ్రీ లక్ష్మి కాస్టింగ్స్: ముందు').click();
+  await te.waitForURL(/\/(consent|home)$/);
+  if (te.url().endsWith('/consent')) {
+    await te.getByRole('button', { name: 'నేను అంగీకరిస్తున్నాను' }).click();
+    await te.waitForURL(/\/home$/);
+  }
+  await te.getByText('తాజా బిల్లులు').waitFor();
+  await shot(te, 'te-home');
+  await te.goto(`${WEB}/health`);
+  await te.getByText('తక్కువ పవర్ ఫ్యాక్టర్').waitFor();
+  await shot(te, 'te-health');
+  await te.goto(`${WEB}/actions/fix_power_factor`);
+  await te.getByLabel(/రుణ మొత్తం/).fill('10,00,000');
+  await te.getByText('మొదటి నెల నుండే నగదు లాభం').waitFor();
+  await shot(te, 'te-action-detail');
+  await te.goto(`${WEB}/verify/${reportId}`);
+  await te.getByText('ఈ పత్రం నిజమైనది').waitFor();
+  await shot(te, 'te-verify');
+  await te.close();
 } finally {
   await browser.close();
+}
+
+if (problems.length) {
+  console.log('\nLAYOUT PROBLEMS');
+  for (const p of problems) console.log(' -', p);
+} else {
+  console.log('\nLayout checks: no problems');
 }

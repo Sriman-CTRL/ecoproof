@@ -3,11 +3,18 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { cashTest, emi } from '@ecoproof/calc';
-import { CostText, ErrorBox, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
+import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { EmiVsSavingBar } from '../components/kit/EmiVsSavingBar';
+import { Skeleton } from '../components/kit/Skeleton';
+import { SourceChip } from '../components/kit/SourceChip';
+import { StatusPill } from '../components/kit/StatusPill';
+import { CostText, ErrorBox, Page, Rupees } from '../components/ui';
 import { postJson, type LoanPackCreated } from '../lib/api';
 import { formatDecimal, formatInr } from '../lib/format';
 import { getSession } from '../lib/session';
-import { actionTitle, useActions } from './Actions';
+import { ActionStatus, actionTitle, CostBadge, useActions } from './Actions';
 
 const digits = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
@@ -58,50 +65,66 @@ export default function ActionDetail() {
     onSuccess: (r) => navigate(`/reports/${r.reportId}`),
   });
 
+  const inputClass = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
+  const labelClass = 'block text-small';
+  const range =
+    a?.inrPerMonthLow != null &&
+    a.inrPerMonthHigh != null &&
+    a.inrPerMonthHigh !== a.inrPerMonthLow ? (
+      <>
+        {formatInr(Math.round(a.inrPerMonthLow))} {t('detail.to')}{' '}
+        {formatInr(Math.round(a.inrPerMonthHigh))}
+      </>
+    ) : a?.inrPerMonthLow != null ? (
+      <>{formatInr(Math.round(a.inrPerMonthLow))}</>
+    ) : null;
+
   return (
     <Page
+      tab="plan"
       action={
         planned ? (
-          <button
-            type="button"
-            className={PRIMARY}
+          <Button
             disabled={!a || !calc || a.inrPerMonthLow == null || makePack.isPending}
             onClick={() => makePack.mutate()}
           >
             {makePack.isPending ? t('detail.making') : t('detail.makePack')}
-          </button>
+          </Button>
         ) : (
-          <button
-            type="button"
-            className={PRIMARY}
-            disabled={!a || plan.isPending}
-            onClick={() => plan.mutate()}
-          >
+          <Button disabled={!a || plan.isPending} onClick={() => plan.mutate()}>
             {t('detail.plan')}
-          </button>
+          </Button>
         )
       }
     >
-      {q.isLoading && <p>{t('common.loading')}</p>}
+      {q.isLoading && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
       {q.isError && <ErrorBox>{t('actions.loadFailed')}</ErrorBox>}
       {(plan.isError || makePack.isError) && <ErrorBox>{t('common.genericError')}</ErrorBox>}
       {q.isSuccess && !a && <ErrorBox>{t('detail.notFound')}</ErrorBox>}
       {a && (
         <>
-          <h1 className="text-xl font-bold">{actionTitle(a, t)}</h1>
-          <section className="space-y-2 rounded-2xl bg-white p-5 shadow-sm">
-            {a.inrPerMonthLow != null ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-heading text-title font-semibold">{actionTitle(a, t)}</h1>
+            <ActionStatus status={planned && a.status === 'suggested' ? 'planned' : a.status} />
+            <CostBadge a={a} />
+          </div>
+          <Card className="space-y-2">
+            {range ? (
               <>
-                <p className="text-3xl font-bold">
-                  <SourceNumber source={a.source}>
-                    <Rupees value={a.inrPerMonthLow} />
-                  </SourceNumber>{' '}
-                  <span className="text-base font-normal text-gray-600">
+                <p className="text-small text-ink-muted">{t('detail.range')}</p>
+                <p className="num font-heading text-title font-semibold">
+                  <SourceChip lineName={a.source}>{range}</SourceChip>{' '}
+                  <span className="text-body font-normal text-ink-muted">
                     {t('health.perMonth')}
                   </span>
                 </p>
                 {a.annualInrMid != null && (
-                  <p className="text-gray-700">
+                  <p className="num text-ink-muted">
                     <Rupees value={a.annualInrMid} /> {t('actions.perYear')}
                   </p>
                 )}
@@ -111,25 +134,28 @@ export default function ActionDetail() {
                 {t(a.finding ? 'actions.savingPending' : 'actions.savingPendingOther')}
               </p>
             )}
-            <p>
-              {t('actions.cost')}: <CostText low={a.costLow} high={a.costHigh} />
-            </p>
-            <p>
-              {t('actions.payback')}:{' '}
-              {a.paybackYears != null
-                ? t('actions.years', { n: formatDecimal(a.paybackYears) })
-                : '-'}
-            </p>
-            {a.co2Note && <p className="text-xs text-gray-600">{t('detail.noCo2')}</p>}
-          </section>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+              <dt className="text-ink-muted">{t('actions.cost')}</dt>
+              <dd className="num">
+                <CostText low={a.costLow} high={a.costHigh} />
+              </dd>
+              <dt className="text-ink-muted">{t('actions.payback')}</dt>
+              <dd className="num">
+                {a.paybackYears != null
+                  ? t('actions.years', { n: formatDecimal(a.paybackYears) })
+                  : '-'}
+              </dd>
+            </dl>
+            {a.co2Note && <p className="text-small text-ink-muted">{t('detail.noCo2')}</p>}
+          </Card>
 
-          <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-            <h2 className="font-semibold">{t('detail.emiTitle')}</h2>
-            <label className="block text-sm">
-              <span className="font-medium">{t('detail.loan')}</span>
+          <Card className="space-y-3">
+            <h2 className="font-heading text-card-title font-semibold">{t('detail.emiTitle')}</h2>
+            <label className={labelClass}>
+              <span className="font-semibold">{t('detail.loan')}</span>
               <input
                 inputMode="numeric"
-                className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                className={inputClass}
                 value={loan}
                 onChange={(e) => {
                   const n = digits(e.target.value);
@@ -137,75 +163,71 @@ export default function ActionDetail() {
                 }}
               />
             </label>
-            <label className="block text-sm">
-              <span className="font-medium">{t('detail.rate')}</span>
+            <label className={labelClass}>
+              <span className="font-semibold">{t('detail.rate')}</span>
               <input
                 inputMode="decimal"
-                className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                className={inputClass}
                 value={rate}
                 onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))}
               />
-              <span className="text-xs text-gray-600">{t('detail.rateHelp')}</span>
+              <span className="text-small text-ink-muted">{t('detail.rateHelp')}</span>
             </label>
-            <label className="block text-sm">
-              <span className="font-medium">{t('detail.tenure')}</span>
+            <label className={labelClass}>
+              <span className="font-semibold">{t('detail.tenure')}</span>
               <input
                 inputMode="numeric"
-                className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                className={inputClass}
                 value={months}
                 onChange={(e) => setMonths(e.target.value.replace(/[^\d]/g, ''))}
               />
             </label>
             {calc && (
-              <div className="space-y-1 border-t pt-3" data-testid="emi-panel">
-                <p>
-                  {t('detail.emi')}: <b>{formatInr(Math.round(calc.emi))}</b>
-                </p>
-                <p>
-                  {t('detail.savingLow')}: <b>{formatInr(Math.round(monthlyLow))}</b>
-                </p>
-                <p>
-                  {t('detail.difference')}: <b>{formatInr(Math.round(calc.test.netMonthly))}</b>
-                </p>
+              <div className="space-y-3 border-t pt-3" data-testid="emi-panel">
+                <EmiVsSavingBar emi={Math.round(calc.emi)} saving={Math.round(monthlyLow)} />
                 {calc.test.cashPositiveFromMonth1 && (
-                  <p className="rounded-lg bg-emerald-100 p-2 font-semibold text-emerald-900">
+                  <StatusPill tone="positive">
+                    <CheckCircle size={18} weight="fill" aria-hidden="true" />
                     {t('detail.cashPositive')}
-                  </p>
+                  </StatusPill>
                 )}
               </div>
             )}
-            <p className="text-xs text-gray-500">{t('detail.lenderNote')}</p>
-          </section>
+            <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
+          </Card>
 
           {planned && (
-            <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="font-semibold">{t('detail.packTitle')}</h2>
-              <p className="rounded-lg bg-emerald-50 p-2 text-sm text-emerald-900">
-                ✓ {t('detail.planned')}
+            <Card className="space-y-3">
+              <h2 className="font-heading text-card-title font-semibold">
+                {t('detail.packTitle')}
+              </h2>
+              <p className="flex items-center gap-2 rounded-card bg-green-50 p-2 text-small font-semibold text-green-700">
+                <CheckCircle size={20} weight="fill" aria-hidden="true" />
+                {t('detail.planned')}
               </p>
-              <label className="block text-sm">
-                <span className="font-medium">{t('detail.vendor')}</span>
+              <label className={labelClass}>
+                <span className="font-semibold">{t('detail.vendor')}</span>
                 <input
-                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  className={inputClass}
                   value={vendor}
                   onChange={(e) => setVendor(e.target.value)}
                 />
               </label>
-              <label className="block text-sm">
-                <span className="font-medium">{t('detail.quote')}</span>
+              <label className={labelClass}>
+                <span className="font-semibold">{t('detail.quote')}</span>
                 <input
                   inputMode="numeric"
-                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  className={inputClass}
                   value={quote}
                   onChange={(e) => {
                     const n = digits(e.target.value);
                     setQuote(n ? new Intl.NumberFormat('en-IN').format(n) : '');
                   }}
                 />
-                <span className="text-xs text-gray-600">{t('detail.quoteHelp')}</span>
+                <span className="text-small text-ink-muted">{t('detail.quoteHelp')}</span>
               </label>
-              {!calc && <p className="text-sm text-gray-700">{t('detail.needLoan')}</p>}
-            </section>
+              {!calc && <p className="text-small text-ink-muted">{t('detail.needLoan')}</p>}
+            </Card>
           )}
         </>
       )}

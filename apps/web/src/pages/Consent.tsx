@@ -1,10 +1,25 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ErrorBox, Page, PRIMARY } from '../components/ui';
+import type { Icon } from '@phosphor-icons/react';
+import { Database } from '@phosphor-icons/react/dist/csr/Database';
+import { Question } from '@phosphor-icons/react/dist/csr/Question';
+import { Trash } from '@phosphor-icons/react/dist/csr/Trash';
+import { Users } from '@phosphor-icons/react/dist/csr/Users';
+import { Lock } from '@phosphor-icons/react/dist/csr/Lock';
+import { Button } from '../components/kit/Button';
+import { Card } from '../components/kit/Card';
+import { ErrorBox, Page } from '../components/ui';
 import { postJson } from '../lib/api';
 
 export const NOTICE_VERSION = 'v1-demo';
+
+const ROWS: Array<{ key: 'store' | 'why' | 'who' | 'delete'; icon: Icon }> = [
+  { key: 'store', icon: Database },
+  { key: 'why', icon: Question },
+  { key: 'who', icon: Users },
+  { key: 'delete', icon: Trash },
+];
 
 export default function Consent() {
   const { t } = useTranslation();
@@ -19,32 +34,37 @@ export default function Consent() {
     },
   });
 
-  const rows = ['store', 'why', 'who', 'delete'] as const;
   return (
     <Page
       action={
-        <button
-          type="button"
-          className={PRIMARY}
-          disabled={agree.isPending}
-          onClick={() => agree.mutate()}
-        >
+        <Button disabled={agree.isPending} onClick={() => agree.mutate()}>
           {t('consent.agree')}
-        </button>
+        </Button>
       }
     >
-      <h1 className="text-2xl font-bold">{t('consent.title')}</h1>
-      <p className="text-gray-700">{t('consent.intro')}</p>
+      <h1 className="font-heading text-title font-semibold">{t('consent.title')}</h1>
+      <p className="text-ink-muted">{t('consent.intro')}</p>
+      <p className="flex items-start gap-3 rounded-card bg-green-50 p-4 font-heading text-card-title font-semibold text-green-900">
+        <Lock size={28} className="mt-px shrink-0 text-green-700" aria-hidden="true" />
+        {t('consent.shared')}
+      </p>
       {agree.isError && <ErrorBox>{t('consent.failed')}</ErrorBox>}
-      <dl className="space-y-3">
-        {rows.map((k) => (
-          <div key={k} className="rounded-xl bg-white p-4 shadow-sm">
-            <dt className="font-semibold">{t(`consent.${k}Title`)}</dt>
-            <dd className="mt-1 text-gray-700">{t(`consent.${k}Body`)}</dd>
-          </div>
+      <ul className="space-y-3">
+        {ROWS.map(({ key, icon: IconCmp }) => (
+          <li key={key}>
+            <Card className="flex items-start gap-3">
+              <IconCmp size={28} className="mt-px shrink-0 text-green-700" aria-hidden="true" />
+              <div>
+                <h2 className="text-card-title font-semibold">{t(`consent.${key}Title`)}</h2>
+                <p className="text-ink-muted">{t(`consent.${key}Body`)}</p>
+              </div>
+            </Card>
+          </li>
         ))}
-      </dl>
-      <p className="text-xs text-gray-500">{t('consent.version', { version: NOTICE_VERSION })}</p>
+      </ul>
+      <p className="text-small text-ink-muted">
+        {t('consent.version', { version: NOTICE_VERSION })}
+      </p>
     </Page>
   );
 }
