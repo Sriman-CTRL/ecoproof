@@ -10,12 +10,13 @@
   "contracted_demand_kva": 500,
   "pf": 0.92,
   "tod_peak_kwh": 23000,
-  "energy_charges": 750000,
-  "demand_charges": 160000,
+  "energy_charges": 765000,
+  "demand_charges": 200000,
   "other_charges": {
+    "customer_charge": 2000,
     "low_pf_surcharge": 0
   },
-  "total": 910000,
+  "total": 967000,
   "production_tonnes": 100,
   "diesel_litres": 1200
 }

@@ -25,20 +25,21 @@ import {
   YearStrip,
   type JargonTerm,
 } from '../components/kit';
+import { SAMPLE_BILL } from '../lib/sampleBill';
 
 /**
- * Developer preview of the design kit (only routed in dev). Demo A sample figures (synthetic):
- * Rs 1,00,000 at stake, PF finding Rs 60,000, EMI 20,276 vs saving 60,000, 8 of 12 months.
+ * Developer preview of the design kit (only routed in dev). Demo A sample figures (synthetic),
+ * read from the sample bill; the EMI is the Doc 03 worked example.
  */
 const DEMO = {
-  atStake: 100_000,
-  pf: 60_000,
-  demand: 40_000,
+  atStake: SAMPLE_BILL.pfLossInr + SAMPLE_BILL.demandOverpayInr,
+  pf: SAMPLE_BILL.pfLossInr,
+  demand: SAMPLE_BILL.demandOverpayInr,
   emi: 20_276,
-  saving: 60_000,
+  saving: SAMPLE_BILL.pfLossInr,
   kwh: 92_000,
-  /** Seeded CEA grid factor, t CO2 per MWh (see docs/OPEN_ITEMS.md). */
-  gridFactor: 0.727,
+  /** Seeded CEA v22.0 grid factor (FY 2025-26), t CO2 per MWh. */
+  gridFactor: 0.675,
   quality: 92,
 };
 

@@ -7,7 +7,8 @@ import { StampBadge } from '../components/kit/StampBadge';
 import { YearStrip } from '../components/kit/YearStrip';
 import { LANGUAGES } from '../i18n';
 import { loadFullFonts, loadScriptFonts } from '../i18n/fonts';
-import { formatInr } from '../lib/format';
+import { formatInr, formatNumber } from '../lib/format';
+import { SAMPLE_BILL } from '../lib/sampleBill';
 import { getSession } from '../lib/session';
 
 /** Landing page (plan section 5). Public: no login, no consent gate, no tab bar. */
@@ -107,7 +108,7 @@ function Hero() {
             sizes="(min-width: 768px) 300px, 260px"
             width={390}
             height={844}
-            alt={t('landing.hero.phoneAlt')}
+            alt={t('landing.hero.phoneAlt', { inr: formatInr(SAMPLE_BILL.pfLossInr) })}
             fetchPriority="high"
             className="w-full rounded-[28px] border-4 border-green-200/40 bg-paper"
           />
@@ -138,9 +139,9 @@ const BILL_MARKS = [
 function BillDecoded() {
   const { t } = useTranslation();
   const amount: Record<string, string> = {
-    pf: formatInr(60000),
-    md: formatInr(40000),
-    peak: formatInr(2),
+    pf: formatInr(SAMPLE_BILL.pfLossInr),
+    md: formatInr(SAMPLE_BILL.demandOverpayInr),
+    peak: formatInr(SAMPLE_BILL.peakShiftPerUnitInr),
   };
   return (
     <section className={`bg-paper py-12 ${DEFER}`}>
@@ -263,7 +264,7 @@ function MoneyMaths() {
   const [loan, setLoan] = useState('10,00,000');
   const [rate, setRate] = useState('8');
   const [months, setMonths] = useState('60');
-  const [saving, setSaving] = useState('60,000');
+  const [saving, setSaving] = useState(formatNumber(Math.round(SAMPLE_BILL.pfLossInr)));
   const principal = digits(loan);
   const tenure = Math.floor(Number(months));
   const annualRate = Number(rate);

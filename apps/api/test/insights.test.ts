@@ -54,31 +54,35 @@ afterAll(async () => {
 
 const EXPECTED_ORDER = [
   'reduce_contracted_demand',
+  'clean_charge_and_tapping',
   'shift_peak_use_to_solar_hours',
   'fix_power_factor',
-  'efficiency_measure_pending_r2',
+  'igbt_furnace',
+  'compressor_vfd',
+  'screw_compressor_ring_main',
 ];
 
 type F = { code: string; inrPerMonth: number | null; rule: Record<string, unknown> };
 
 describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
-  it('flags power factor at Rs 60,000 a month with its rule row', async () => {
+  it('flags power factor at Rs 61,200 a month with its rule row', async () => {
     const r = await request(app).get(`/sites/${siteA}/insights`).set(auth(tokenA));
     expect(r.status).toBe(200);
     expect(r.body.month).toBe('2026-10-01');
     const pf = r.body.findings.find((f: F) => f.code === 'power_factor');
-    expect(pf.inrPerMonth).toBeCloseTo(60000, 0);
+    // (1,00,000 - 92,000) kVAh x Rs 7.65 (TGERC FY 2026-27 HT-I(A) 11 kV, derived from the bill)
+    expect(pf.inrPerMonth).toBeCloseTo(61200, 0);
     expect(pf.rule.id).toBeTruthy();
-    expect(pf.rule.source).toContain('TGSPDCL');
-    expect(pf.rule.validFrom).toBe('2025-04-01');
-    expect(pf.rule.line).toBe('TGSPDCL HT-I(A), FY 2025-26 (valid from inferred)');
+    expect(pf.rule.source).toContain('TGERC Retail Supply Tariff Order FY 2026-27');
+    expect(pf.rule.validFrom).toBe('2026-04-01');
+    expect(pf.rule.line).toBe('TGSPDCL HT-I(A), FY 2026-27');
   });
 
   it('flags contracted demand with overpay (400 - 300) x derived demand rate', async () => {
     const r = await request(app).get(`/sites/${siteA}/insights`).set(auth(tokenA));
     const cd = r.body.findings.find((f: F) => f.code === 'contracted_demand');
-    expect(cd.explain.demandRatePerKva).toBeCloseTo(400, 6); // 1,60,000 / 400 kVA billed
-    expect(cd.inrPerMonth).toBeCloseTo((400 - 300) * 400, 0);
+    expect(cd.explain.demandRatePerKva).toBeCloseTo(500, 6); // 2,00,000 / 400 kVA billed
+    expect(cd.inrPerMonth).toBeCloseTo((400 - 300) * 500, 0);
   });
 
   it('does not flag minimum charges, and values peak only with shiftable units', async () => {
@@ -95,7 +99,7 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
 
   it('totals the card as the sum of flagged findings (peak pending counts 0)', async () => {
     const r = await request(app).get(`/sites/${siteA}/insights?month=2026-10`).set(auth(tokenA));
-    expect(r.body.atStake.inrPerMonth).toBeCloseTo(100000, 6);
+    expect(r.body.atStake.inrPerMonth).toBeCloseTo(61200 + 50000, 6);
     expect(r.body.atStake.pendingCodes).toEqual(['peak_use']);
     const sum = r.body.findings.reduce((t: number, f: F) => t + (f.inrPerMonth ?? 0), 0);
     expect(r.body.atStake.inrPerMonth).toBeCloseTo(sum, 6);
@@ -127,10 +131,44 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
     const flags = all.body.actions.map((a: { isZeroCost: boolean }) => a.isZeroCost);
     expect(flags).toEqual([...flags].sort((a, b) => Number(b) - Number(a)));
     const pf = all.body.actions.find((a: { code: string }) => a.code === 'fix_power_factor');
-    expect(pf.inrPerMonthLow).toBeCloseTo(60000, 0);
-    expect(pf.costLow).toBeNull();
-    expect(pf.paybackYears).toBeNull();
+    expect(pf.inrPerMonthLow).toBeCloseTo(61200, 0);
     expect(pf.co2TonnesPerYear).toBeNull();
+  });
+
+  it('prices the PF fix from the sourced range: not zero-cost, payback under 3 months', async () => {
+    const r = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
+    const pf = r.body.actions.find((a: { code: string }) => a.code === 'fix_power_factor');
+    expect(pf.isZeroCost).toBe(false);
+    expect([pf.costLow, pf.costHigh]).toEqual([20000, 120000]);
+    expect(pf.costYear).toBe('2011 / 2020');
+    expect(pf.paybackYears * 12).toBeLessThan(3);
+    expect(pf.paybackYears).toBeCloseTo(70000 / (61200 * 12), 6);
+  });
+
+  it('values the IGBT furnace from the 70-85% furnace share and 8.2% cut', async () => {
+    const r = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
+    const months = await prisma.energyMonth.findMany({
+      where: { siteId: siteA, periodStart: { lte: new Date('2026-10-01T00:00:00Z') } },
+      orderBy: { periodStart: 'desc' },
+      take: 12,
+    });
+    const yearKwh = months.reduce((t, m) => t + Number(m.kwh), 0);
+    const igbt = r.body.actions.find((a: { code: string }) => a.code === 'igbt_furnace');
+    expect(igbt.savingBasis).toBe('enduse_share');
+    expect(igbt.kwhPerYearLow).toBeCloseTo(yearKwh * 0.7 * 0.082, 3);
+    expect(igbt.kwhPerYearHigh).toBeCloseTo(yearKwh * 0.85 * 0.082, 3);
+    // Low at the bill's Rs per kVAh, high at the bill's own Rs per kWh (Oct 2026 bill).
+    expect(igbt.inrPerMonthLow).toBeCloseTo((igbt.kwhPerYearLow / 12) * 7.65, 3);
+    expect(igbt.inrPerMonthHigh).toBeCloseTo((igbt.kwhPerYearHigh / 12) * (765000 / 92000), 3);
+    expect(igbt.co2TonnesPerYear).toBeCloseTo(
+      ((igbt.kwhPerYearLow + igbt.kwhPerYearHigh) / 2) * (0.675 / 1000),
+      6,
+    );
+    const pending = r.body.actions.find((a: { code: string }) => a.code === 'compressor_vfd');
+    expect(pending.savingBasis).toBe('pending_measurement');
+    expect(pending.inrPerMonthLow).toBeNull();
+    const codes = r.body.actions.map((a: { code: string }) => a.code);
+    expect(codes).not.toContain('efficiency_measure_pending_r2');
   });
 
   it('orders actions by one rule: zero-cost first, then payback, then annual rupees', async () => {

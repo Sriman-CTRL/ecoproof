@@ -4,19 +4,28 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 ## Emission factors
 
-- [ ] CEA v22.0 grid factor (FY 2024-25): replace `grid_electricity_india` (currently v20.0, 0.727 t CO2/MWh).
-- [ ] Verify LPG, furnace oil, foundry coke and natural gas factors against IPCC tables (status `verify`).
+- [x] CEA v22.0 grid factor (R1): 0.675 t CO2/MWh for FY 2025-26 (from 2025-04-01) and 0.710 for FY 2024-25; the v20.0 0.727 row ends 2024-03-31 and is kept. v22.0 is used for FY 2026-27 bills until CEA publishes v23.0.
+- [x] LPG, furnace oil, foundry coke, natural gas and diesel per kg confirmed against IPCC 2006 Tables 1.2/1.4 (R6).
+- [ ] Diesel kg/L density source: `diesel_litre` (2.675 kg CO2e/L, India Default GHG Emission Values) is not cross-checked against the IPCC per-kg value; density was not researched.
 - [ ] Indian coal: fetch CSIR-CIMFR NCV and carbon factors. Not seeded.
 - [ ] CBAM pig iron factors (`pig_iron_cbam_*`): `gas_basis` not stated in Doc 03; left null. Outputs stay "estimate, not verified".
 
 ## Tariffs
 
-- [ ] TGSPDCL exact `valid_from` dates. Current dates are inferred from the financial year (see `basis_note`); `night_rebate` has no start date.
+- [x] TGSPDCL HT-I(A) 11 kV and LT-III rows from the TGERC RST Order FY 2026-27 (R7), valid from 2026-04-01, with page and quoted line.
+- [ ] Older tariff rule rows (version `legacy`) still have `valid_from` inferred from the financial year; `night_rebate` has no start date. Kept as they are for older bills.
+- [ ] FSA / FCA monthly rate and electricity duty rate NOT FOUND (R7): both are extra to the tariff and not modelled.
+- [ ] HT bill printed line-item names NOT FOUND (R7): the sample bill uses key names (`customer_charge`, `low_pf_surcharge`).
+- [ ] ToD rates are per kVAh (R7) but the bill gives peak use in kWh; the peak check applies the per-kVAh rate to kWh, which understates the charge by the power factor.
+- [ ] LT-III customer-charge bands below 51 HP come from the same R7 table but only the 51-125 HP line is quoted.
 
 ## Actions
 
-- [ ] Capacitor bank cost (`fix_power_factor` cost_low / cost_high are null).
-- [ ] 4-6 foundry capex measures: source from a BEE SME foundry cluster manual.
+- [x] Capacitor bank / APFC cost (R2): Rs 20,000 (BEE 2011) to Rs 1,20,000 (UNIDO 2020), shown with its price year; payback recomputed from the TGSPDCL bill saving.
+- [x] Foundry measures (R2): `igbt_furnace` (8.2% of furnace kWh x 70-85% furnace share), `clean_charge_and_tapping` (zero cost, not quantified), two compressor measures (saving pending).
+- [ ] Compressor measures need the compressor's own kWh (measurement) before a saving can be shown; the 5% compressor share in UNIDO Figure 11 is of total energy, not electricity, so it is not used.
+- [ ] Not yet added from R2: induction furnace lid, ladle lining, IE3 motors (absolute kWh savings per case, need a per-tonne or per-unit basis).
+- [ ] IGBT saving assumes the unit melts in an SCR induction furnace; no site field records the furnace type yet.
 
 ## Solar
 
@@ -74,10 +83,10 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 ## Bill health and insight card
 
-- [ ] Peak-share flag threshold (20%) is Doc 03 text, now stored as `peak_flag_above_pct` in the TGSPDCL HT-I(A) `tod` rule; confirm against the tariff order.
+- [ ] Peak-share flag threshold (20%) is Doc 03 text, stored as `peak_flag_above_pct` in the TGSPDCL HT-I(A) `tod` rules; the TGERC order sets the rates only, not a flag threshold.
 - [ ] No diesel price in the data, so the insight card cannot value the diesel driver in rupees; it is named as the driver only when no rupee driver exists.
 - [ ] Baseline acceptance limits (CV(RMSE) 15%, NMBE 5%, 9 months) are set in `apps/api/src/services/insights.ts`; move them to a versioned table.
-- [ ] Capex cost range for `fix_power_factor` (capacitor bank) is null: shown as "cost pending: get a quote".
+- [x] Capex cost range for `fix_power_factor` now sourced (R2); shown with "2011 / 2020 prices; get a current quote".
 
 ## Doc conflicts - see handover review
 
@@ -89,7 +98,7 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 - [x] Action ranking: decided: Doc 02/03 order (zero-cost first, then payback, CO2 as tie-breaker, then higher annual Rs). The API's order is the only order; Home, bill health and Plan all open its #1.
 - [ ] Telugu strings added in D2 (nav, bills ledger, verify page, health) are machine-drafted: need native speaker review.
 - [ ] Landing page (D3): Telugu strings under `landing.*` are machine-drafted, and the Hindi headline `landing.data.title` in `hi.json` is hand-written for that one section only: both need native speaker review.
-- [ ] Landing page: the "Rs 2 per unit moved" figure is the sample bill's peak-shift rate (peak 1.5 + 0.5 in the insights test); confirm against the TGSPDCL ToD order.
+- [x] Landing page: the "Rs 2 per unit moved" figure (peak +1.50, day -0.50 per kVAh) is confirmed by the TGERC FY 2026-27 order (R7); landing figures now come from `apps/web/src/lib/sampleBill.ts`.
 - [ ] Landing first load is about 250 KB transferred on mobile (target 200 KB): the shared app bundle (React, router, query, i18next, all three locale files) is 133 KB gzip, Latin fonts 79 KB, hero screenshot 28 KB. Closing the gap needs lazy locale files and a lighter router or font plan.
 - [ ] Telugu strings added in S8a (`savings.*`, `reports.*`, `nav.reports`, `home.heroSaved`) are machine-drafted: need native speaker review.
 - [ ] Savings chart bars start at zero, so a 5-6% saving is a small gap between bars and line; the rupee and kWh figures carry the message. Revisit if owners find it hard to read.

@@ -118,8 +118,8 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
 
     // Snapshot holds the frozen numbers the PDF was built from.
     const s = row.snapshot.resultsJson as unknown as LoanPackResults;
-    expect(s.measure.title).toBe('Fix power factor (capacitor bank)');
-    expect(s.measure.savingLow).toBeCloseTo(60000, 0);
+    expect(s.measure.title).toBe('Fix power factor (APFC panel)');
+    expect(s.measure.savingLow).toBeCloseTo(61200, 0);
     expect(s.measure.costText).toBe('Rs 2,50,000');
     expect(s.loan.emi).toBeCloseTo(20276.39, 1);
     expect(s.carbon.note).toBe('saves rupees, not units of energy');
@@ -191,7 +191,7 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     expect(Object.keys(r.body.headline).sort()).toEqual(
       ['emi', 'kind', 'measure', 'monthlySavingHigh', 'monthlySavingLow', 'netMonthly'].sort(),
     );
-    expect(r.body.headline.netMonthly).toBe(Math.round(60000 - 20276.39));
+    expect(r.body.headline.netMonthly).toBe(Math.round(61200 - 20276.39));
     const missing = await request(app).get(
       '/public/reports/00000000-0000-4000-8000-000000000000/verify',
     );

@@ -40,7 +40,7 @@ export interface Finding {
 
 export const ONE_LINE_FIX: Record<FindingCode, string> = {
   power_factor:
-    'Fit or repair a capacitor bank (APFC panel) to bring power factor to 0.98 or above.',
+    'Fit an automatic power factor correction (APFC) panel and keep power factor close to 1. A fixed capacitor bank that over-corrects now raises the bill.',
   peak_use: 'Move shiftable work out of 6-10 am and 6-10 pm into 10 am-6 pm.',
   contracted_demand: 'Ask TGSPDCL to reduce contracted demand closer to your real maximum demand.',
   minimum_charges: 'Your use is below the minimum billed units; check the contracted demand.',
@@ -87,21 +87,34 @@ export async function loadSiteRules(site: Site): Promise<TariffRule[]> {
   });
 }
 
-function rulesForPeriod(rows: TariffRule[], periodEnd: Date): Map<string, TariffRule> {
-  return new Map(
-    rows
-      .filter((r) => r.status !== 'withdrawn' && (r.validFrom == null || r.validFrom <= periodEnd))
-      .map((r) => [r.ruleType, r]),
-  );
+/**
+ * Per rule type, the row valid for the bill period: latest valid-from wins; on a tie a sourced
+ * tariff-order row beats a legacy row; null valid-from counts as oldest.
+ */
+export function rulesForPeriod(rows: TariffRule[], periodEnd: Date): Map<string, TariffRule> {
+  const from = (r: TariffRule) => r.validFrom?.getTime() ?? -Infinity;
+  const newer = (a: TariffRule, b: TariffRule) =>
+    from(a) !== from(b) ? from(a) > from(b) : a.version !== 'legacy' && b.version === 'legacy';
+  const out = new Map<string, TariffRule>();
+  for (const r of rows) {
+    if (r.status === 'withdrawn' || (r.validFrom != null && r.validFrom > periodEnd)) continue;
+    const cur = out.get(r.ruleType);
+    if (!cur || newer(r, cur)) out.set(r.ruleType, r);
+  }
+  return out;
 }
 
-function param(rule: TariffRule, key: string): number {
-  const v = (rule.paramsJson as Record<string, unknown>)[key];
-  if (typeof v !== 'number') {
-    throw new AppError(500, 'RULE_PARAM_MISSING', `Tariff rule ${rule.ruleType} lacks ${key}`);
+/** First of `keys` present as a number (FY 2026-27 rows name ToD rates per kVAh, legacy per kWh). */
+function param(rule: TariffRule, ...keys: string[]): number {
+  for (const key of keys) {
+    const v = (rule.paramsJson as Record<string, unknown>)[key];
+    if (typeof v === 'number') return v;
   }
-  return v;
+  throw new AppError(500, 'RULE_PARAM_MISSING', `Tariff rule ${rule.ruleType} lacks ${keys[0]}`);
 }
+
+const PEAK_SURCHARGE = ['peak_surcharge_inr_per_kvah', 'peak_surcharge_inr_per_kwh'];
+const SOLAR_REBATE = ['solar_rebate_inr_per_kvah', 'solar_rebate_inr_per_kwh'];
 
 export interface Baseline {
   method: BaselineMethod;
@@ -264,8 +277,8 @@ export async function computeInsights(
     const peakKwh = num(em.peakKwh);
     const todRule = need('peak_use', 'tod', kwh != null && peakKwh != null, 'kWh or peak kWh');
     if (todRule && kwh != null && peakKwh != null) {
-      const surcharge = param(todRule, 'peak_surcharge_inr_per_kwh');
-      const rebate = param(todRule, 'solar_rebate_inr_per_kwh');
+      const surcharge = param(todRule, ...PEAK_SURCHARGE);
+      const rebate = param(todRule, ...SOLAR_REBATE);
       const flagAbovePct = param(todRule, 'peak_flag_above_pct');
       const r = checkPeakUse({
         totalKwh: kwh,
@@ -517,7 +530,7 @@ async function buildCard(
   const peakNow = num(em.peakKwh);
   const peakThen = num(ly.peakKwh);
   if (tod && peakNow != null && peakThen != null && lyKwh > 0) {
-    const surcharge = param(tod, 'peak_surcharge_inr_per_kwh');
+    const surcharge = param(tod, ...PEAK_SURCHARGE);
     const shareDelta = peakNow / kwh - peakThen / lyKwh;
     drivers.push({
       code: 'peak_use',

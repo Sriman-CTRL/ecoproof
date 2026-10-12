@@ -19,7 +19,7 @@ import { DEMO_ORG_IDS } from '../demo/ids.js';
 import { AppError } from '../errors.js';
 import type { CbamResults } from './cbamSheet.js';
 import { pdfRenderer } from './pdfRenderer.js';
-import { listActions } from '../services/actions.js';
+import { listActions, type ActionItem } from '../services/actions.js';
 import { computeSchemes } from '../services/schemes.js';
 import { ACTION_CODE, BASELINE_RULES, type FindingCode } from '../services/insights.js';
 
@@ -46,6 +46,14 @@ export const RUPEES_NOT_UNITS = 'saves rupees, not units of energy';
 const NOT_GIVEN = 'not given';
 export const ZED_LINE =
   'ZED Bronze certification is free for this unit with the joining reward; several banks offer rate concessions for ZED units.';
+/** Sourced cost range with its price year, e.g. "Rs 20,000 to Rs 1,20,000 (2011 / 2020 prices; get a current quote)". */
+function libraryCostText(a: ActionItem): string {
+  if (a.costLow == null || a.costHigh == null) return COST_PENDING;
+  const range =
+    a.costLow === a.costHigh ? inr(a.costLow) : `${inr(a.costLow)} to ${inr(a.costHigh)}`;
+  return `${range} (${a.costYear ?? 'undated'} prices; get a current quote)`;
+}
+
 const COST_PENDING = 'cost pending: get a quote';
 
 const FINDING_TITLE: Record<FindingCode, string> = {
@@ -58,7 +66,7 @@ const FINDING_TITLE: Record<FindingCode, string> = {
 
 /** Same English names the app shows (apps/web/src/locales/en.json actions.name). */
 const MEASURE_TITLE: Record<string, string> = {
-  fix_power_factor: 'Fix power factor (capacitor bank)',
+  fix_power_factor: 'Fix power factor (APFC panel)',
   shift_peak_use_to_solar_hours: 'Shift work out of peak hours',
   reduce_contracted_demand: 'Reduce contracted demand',
   avoid_minimum_charges: 'Avoid minimum charges',
@@ -248,12 +256,13 @@ export async function buildSnapshot(
   const savingLow = action.inrPerMonthLow;
   const savingHigh = action.inrPerMonthHigh;
   const quote = body.quote ?? null;
+  // Owner's quote first; else the sourced library cost range (its price year is printed).
   const paybackYears = quote
     ? simplePaybackYears({
         capexInr: quote.amountInr,
         annualSavingInrMid: ((savingLow + savingHigh) / 2) * 12,
       })
-    : null;
+    : action.paybackYears;
   const e = emi({
     principal: body.loan.amountInr,
     annualRatePct: body.loan.ratePct,
@@ -335,7 +344,11 @@ export async function buildSnapshot(
       savingHigh,
       source: action.source,
       quote,
-      costText: quote ? inr(quote.amountInr) : action.isZeroCost ? 'No capital cost' : COST_PENDING,
+      costText: quote
+        ? inr(quote.amountInr)
+        : action.isZeroCost
+          ? 'No capital cost'
+          : libraryCostText(action),
       paybackYears,
     },
     loan: {

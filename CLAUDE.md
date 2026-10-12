@@ -77,6 +77,7 @@ Allowed exact phrases (stripped before the banned-word scan): "Verified by your 
 - Never commit bills, `.env` or `apps/api/.env`. Never print env values.
 - Reference rows (factors, tariff_rules, schemes, benchmarks, action_library) are upserted by natural key and never deleted: results store factor IDs. Check IDs are unchanged after re-seeding (`apps/api/prisma/dump-factor-ids.ts`).
 - Schema additions not in Doc 07 are marked `/// ADDITION:` in `apps/api/prisma/schema.prisma`.
+- Demo numbers (SYNTHETIC, `apps/api/prisma/demo/assumptions.json`): TGERC FY 2026-27 HT-I(A) 11 kV rates Rs 7.65/kVAh, Rs 500/kVA, Rs 2,000 customer charge; CEA v22.0 grid 0.675 t CO2/MWh. Demo A Oct 2026: PF Rs 61,200 + contracted demand Rs 50,000 = Rs 1,11,200 a month at stake. Web copy reads sample figures from `apps/web/src/lib/sampleBill.ts`, never hard-coded rupees.
 
 ## Commands
 

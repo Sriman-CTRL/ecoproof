@@ -30,10 +30,10 @@ const manualFields = (over: Record<string, unknown> = {}) => ({
   mdKva: 300,
   contractedDemandKva: 500,
   peakKwh: 22000,
-  energyCharges: '7,27,500',
-  demandCharges: 160000,
-  otherCharges: { low_pf_surcharge: 0 },
-  total: 887500,
+  energyCharges: '7,42,050',
+  demandCharges: 200000,
+  otherCharges: { customer_charge: 2000, low_pf_surcharge: 0 },
+  total: 944050,
   ...over,
 });
 
@@ -150,8 +150,8 @@ describe('bill pipeline', () => {
     expect(r.status).toBe(200);
     resultId = r.body.resultId;
     const row = await prisma.result.findUniqueOrThrow({ where: { id: resultId } });
-    const want = ((92000 / 1000) * 0.727 + (1200 * 2.675) / 1000) / 100;
-    expect(Number(row.intensity)).toBeCloseTo(want, 3); // 0.70094
+    const want = ((92000 / 1000) * 0.675 + (1200 * 2.675) / 1000) / 100;
+    expect(Number(row.intensity)).toBeCloseTo(want, 3); // 0.65310
     expect(row.factorIds).toHaveLength(2);
     expect((await request(app).get(`/documents/${docId}`).set(auth(tokenA))).body.status).toBe(
       'confirmed',
@@ -170,7 +170,9 @@ describe('bill pipeline', () => {
     const byType = Object.fromEntries(
       r.body.factors.map((f: { sourceType: string }) => [f.sourceType, f]),
     );
-    expect(byType.grid_electricity_india.version).toBe('v20.0');
+    // Oct 2026 bill: CEA v22.0 FY 2025-26 (latest FY published), not the FY 2023-24 v20.0 row.
+    expect(byType.grid_electricity_india.version).toBe('v22.0');
+    expect(byType.grid_electricity_india.value).toBe(0.675);
     expect(byType.grid_electricity_india.gasBasis).toBe('CO2');
     expect(byType.diesel_litre.gasBasis).toBe('CO2e');
     expect(r.body.inputs.map((i: { kind: string }) => i.kind).sort()).toEqual([
@@ -185,7 +187,7 @@ describe('bill pipeline', () => {
     const r = await request(app).get(`/sites/${siteA}/months`).set(auth(tokenA));
     expect(r.status).toBe(200);
     expect(r.body[0].month).toBe('2026-10-01');
-    expect(r.body[0].rupees.total).toBe(910000);
+    expect(r.body[0].rupees.total).toBe(765000 + 200000); // energy + demand charges
     expect(r.body[0].co2.label).toBe('t CO2 (grid) + t CO2e (fuels)');
   });
 
@@ -222,7 +224,7 @@ describe('bill pipeline', () => {
     const doc = await request(app).get(`/documents/${m.body.documentId}`).set(auth(tokenA));
     expect(doc.body.status).toBe('extracted');
     expect(doc.body.fields.kwh).toBe(90000);
-    expect(doc.body.fields.energyCharges).toBe(727500);
+    expect(doc.body.fields.energyCharges).toBe(742050);
     expect(doc.body.fileUrl).toBeNull();
     const c = await request(app)
       .post(`/documents/${m.body.documentId}/confirm`)

@@ -3,11 +3,17 @@
     "discom": "TGSPDCL",
     "category": "HT-I(A)",
     "rule_type": "kvah_billing",
-    "params": { "pf_flag_below": 0.98 },
+    "params": {
+      "pf_flag_below": 0.98
+    },
     "source": "TGSPDCL tariff FY 2025-26 (Doc 03)",
     "valid_from": "2025-04-01",
     "basis_note": "valid_from inferred from FY 2025-26",
-    "status": null
+    "status": null,
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
   },
   {
     "discom": "TGSPDCL",
@@ -23,17 +29,29 @@
     "source": "Mercom, FY 2026-27",
     "valid_from": "2026-04-01",
     "basis_note": "valid_from inferred from FY 2026-27",
-    "status": null
+    "status": null,
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
   },
   {
     "discom": "TGSPDCL",
     "category": "HT-I(A)",
     "rule_type": "night_rebate",
-    "params": { "rebate_inr_per_kwh": 1.5, "status": "withdrawn", "withdrawn": "2025-11" },
+    "params": {
+      "rebate_inr_per_kwh": 1.5,
+      "status": "withdrawn",
+      "withdrawn": "2025-11"
+    },
     "source": "Power Peak Digest",
     "valid_from": null,
     "basis_note": "No start date given in source; withdrawn 2025-11",
-    "status": "withdrawn"
+    "status": "withdrawn",
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
   },
   {
     "discom": "TGSPDCL",
@@ -47,17 +65,27 @@
     "source": "TGSPDCL tariff FY 2024-25 (Doc 03)",
     "valid_from": "2024-04-01",
     "basis_note": "valid_from inferred from FY 2024-25",
-    "status": null
+    "status": null,
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
   },
   {
     "discom": "TGSPDCL",
     "category": "HT-I(A)",
     "rule_type": "minimum_charge",
-    "params": { "kvah_per_kva_billing_demand_per_month": 50 },
+    "params": {
+      "kvah_per_kva_billing_demand_per_month": 50
+    },
     "source": "TGSPDCL tariff FY 2024-25 (Doc 03)",
     "valid_from": "2024-04-01",
     "basis_note": "valid_from inferred from FY 2024-25",
-    "status": null
+    "status": null,
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
   },
   {
     "discom": "TGSPDCL",
@@ -70,6 +98,223 @@
     "source": "TGSPDCL tariff FY 2026-27 (Doc 03)",
     "valid_from": "2026-04-01",
     "basis_note": "valid_from inferred from FY 2026-27",
-    "status": null
+    "status": null,
+    "version": "legacy",
+    "source_url": null,
+    "page": null,
+    "quoted_line": null
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "energy_charge",
+    "params": {
+      "voltage": "11 kV",
+      "rate_inr_per_kvah": 7.65,
+      "normal_hours": "22:00-06:00"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "Checks still use the rate derived from each bill; this row is the reference value.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "269 (§4.16.4)",
+    "quoted_line": "HT - I(A): Industry General 11 kV kVA 500 7.65"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "demand_charge",
+    "params": {
+      "voltage": "11 kV",
+      "rate_inr_per_kva_month": 500,
+      "on": "billing demand"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "Checks still use the rate derived from each bill; this row is the reference value.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "269 (§4.16.4)",
+    "quoted_line": "HT - I(A): Industry General 11 kV kVA 500 7.65 / *Demand charge is calculated at Rs. /kVA/month of the Billing Demand"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "tod",
+    "params": {
+      "voltage": "11 kV",
+      "peak_windows": ["06:00-10:00", "18:00-22:00"],
+      "peak_surcharge_inr_per_kvah": 1.5,
+      "solar_window": "10:00-18:00",
+      "solar_rebate_inr_per_kvah": 0.5,
+      "peak_flag_above_pct": 20
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "Rates are per kVAh; the bill gives peak use in kWh, so the peak check applies them to kWh (understates by the power factor). peak_flag_above_pct 20 is Doc 03, not the order.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "269 (§4.16.3-4.16.5)",
+    "quoted_line": "A time-of-day tariff of Rs. 1.50 per kVAh in addition to the normal energy charges at respective voltages is applicable during peak hours of 06:00 am to 10:00 am and 06:00 pm to 10:00 pm. / An incentive of Rs.0.50 per kVAh to the normal energy charges at respective voltages is applicable during the daytime i.e., from 10:00 am to 06:00 pm."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "billing_demand",
+    "params": {
+      "rule": "max(recorded_md, 0.8*contracted_demand)",
+      "flag_if_md_below_pct_of_cd": 80,
+      "flag_months": 6
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "flag_months 6 is Doc 03, not the order.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "282 (§4.28.1)",
+    "quoted_line": "The billing demand shall be the maximum demand recorded during the month or 80% of the contracted demand, whichever is higher."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "minimum_charge",
+    "params": {
+      "kvah_per_kva_billing_demand_per_month": 50
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": null,
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "282 (§4.28.2)",
+    "quoted_line": "Energy charges will be billed on the basis of actual energy consumption or 50 kVAh per kVA of billing demand, whichever is higher."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "customer_charge",
+    "params": {
+      "voltage": "11 kV",
+      "inr_per_month": 2000
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": null,
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "288",
+    "quoted_line": "HT Consumer at 11 kV 2,000"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "HT-I(A)",
+    "rule_type": "kvah_billing",
+    "params": {
+      "pf_flag_below": 0.98,
+      "low_pf_surcharge": false,
+      "leading_kvarh_billed": true,
+      "pf_band": "0.95 lag-0.95 lead"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "pf_flag_below 0.98 is Doc 03, not the order. Leading kVArh is billed for HT, so a fixed capacitor bank that over-corrects raises kVAh: advise an APFC panel held near unity.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "282 (§4.27.10); 296 (App. A item 12); 229 (§3.29.212)",
+    "quoted_line": "For all consumer categories where kVAh billing is done, no Low Power Factor surcharge shall be levied."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-III",
+    "rule_type": "energy_charge",
+    "params": {
+      "rate_inr": 7.7,
+      "unit_if_load_ge_10kw": "kVAh",
+      "unit_below_10kw": "kWh"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": null,
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "250 (§4.4.3); 259 (§4.12.10c)",
+    "quoted_line": "Energy charges shall be billed on kVAh basis, for all consumers with contracted load of 10 kW/13 HP and above."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-III",
+    "rule_type": "fixed_charge",
+    "params": {
+      "rate_inr_per_kw_month": 100,
+      "on": "max(contracted load, recorded demand)",
+      "kva_equals_kw": true
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": null,
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "250; 259 (§4.12.8)",
+    "quoted_line": "The fixed charges shall be computed based on the contracted Load or actual Recorded Demand whichever is higher."
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-III",
+    "rule_type": "capacitor_surcharge",
+    "params": {
+      "pct_of_monthly_bill": 25,
+      "applies_below_hp": 13,
+      "when": "capacitors absent or defunct",
+      "low_pf_surcharge": false
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": null,
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "267 (§4.15.3); 296 (App. A item 13)",
+    "quoted_line": "such consumer shall be liable to pay capacitor surcharge at 25% of the monthly bill amount"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-III",
+    "rule_type": "customer_charge",
+    "params": {
+      "bands": [
+        {
+          "up_to_hp": 20,
+          "inr_per_month": 100
+        },
+        {
+          "from_hp": 21,
+          "up_to_hp": 50,
+          "inr_per_month": 350
+        },
+        {
+          "from_hp": 51,
+          "up_to_hp": 125,
+          "inr_per_month": 1200
+        }
+      ]
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "Only the 51-125 HP line is quoted in research R7; the other bands are from the same table.",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "266",
+    "quoted_line": "LT - III: Industry 51 - 125 HP 1,200"
   }
 ]

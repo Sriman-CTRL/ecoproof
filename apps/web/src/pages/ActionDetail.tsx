@@ -10,11 +10,18 @@ import { EmiVsSavingBar } from '../components/kit/EmiVsSavingBar';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { StatusPill } from '../components/kit/StatusPill';
-import { CostText, ErrorBox, Page, Rupees } from '../components/ui';
+import { ErrorBox, Page, Rupees } from '../components/ui';
 import { api, postJson, type ActionsResponse, type LoanPackCreated } from '../lib/api';
-import { formatDecimal, formatInr } from '../lib/format';
+import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
-import { ActionStatus, actionTitle, CostBadge } from './Actions';
+import {
+  ActionCost,
+  ActionStatus,
+  actionTitle,
+  CostBadge,
+  paybackText,
+  savingPendingText,
+} from './Actions';
 
 const digits = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
@@ -140,23 +147,27 @@ export default function ActionDetail() {
                     <Rupees value={a.annualInrMid} /> {t('actions.perYear')}
                   </p>
                 )}
+                {a.kwhPerYearLow != null && a.kwhPerYearHigh != null && (
+                  <p className="num text-ink-muted">
+                    {t('actions.kwhRange', {
+                      low: formatNumber(Math.round(a.kwhPerYearLow)),
+                      high: formatNumber(Math.round(a.kwhPerYearHigh)),
+                    })}
+                    {a.co2TonnesPerYear != null &&
+                      ` · ${t('actions.co2Year', { n: formatDecimal(a.co2TonnesPerYear) })}`}
+                  </p>
+                )}
               </>
             ) : (
-              <p className="font-semibold">
-                {t(a.finding ? 'actions.savingPending' : 'actions.savingPendingOther')}
-              </p>
+              <p className="font-semibold">{savingPendingText(a, t)}</p>
             )}
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
               <dt className="text-ink-muted">{t('actions.cost')}</dt>
               <dd className="num">
-                <CostText low={a.costLow} high={a.costHigh} />
+                <ActionCost a={a} />
               </dd>
               <dt className="text-ink-muted">{t('actions.payback')}</dt>
-              <dd className="num">
-                {a.paybackYears != null
-                  ? t('actions.years', { n: formatDecimal(a.paybackYears) })
-                  : '-'}
-              </dd>
+              <dd className="num">{paybackText(a, t)}</dd>
             </dl>
             {a.co2Note && <p className="text-small text-ink-muted">{t('detail.noCo2')}</p>}
           </Card>

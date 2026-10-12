@@ -154,6 +154,12 @@ export interface ActionItem {
   finding: string | null;
   source: string;
   status: string;
+  /** bill: from the bill check; enduse_share: sourced % of an end use's share of site kWh. */
+  savingBasis: 'bill' | 'enduse_share' | 'pending_measurement' | 'not_quantified';
+  kwhPerYearLow: number | null;
+  kwhPerYearHigh: number | null;
+  /** Year the sourced cost range was priced, e.g. "2011 / 2020". */
+  costYear: string | null;
 }
 
 export interface ActionsResponse {

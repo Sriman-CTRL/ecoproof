@@ -185,8 +185,8 @@ try {
   await page.getByRole('button', { name: 'Confirm all' }).click();
   await page.waitForURL(/\/results\//, { timeout: 30_000 });
   await page.getByText('Bill health check', { exact: true }).waitFor();
-  // Card total = sum of this bill's flagged findings (PF 60,000 + demand 40,000).
-  await page.getByTestId('at-stake').getByText('₹1,00,000').waitFor();
+  // Card total = sum of this bill's flagged findings (PF 61,200 + demand 50,000, TGERC FY 2026-27).
+  await page.getByTestId('at-stake').getByText('₹1,11,200').waitFor();
   await page.getByText('+ peak saving once you enter units').waitFor();
   await shot(page, 'result');
   await page.getByRole('button', { name: 'Why this number?' }).click();
@@ -220,15 +220,18 @@ try {
   await page.getByText('Not started').first().waitFor();
   await shot(page, 'actions');
   await page.getByText(/See all \(/).click();
-  await page.getByText('Fix power factor (capacitor bank)').waitFor();
+  await page.getByText('Fix power factor (APFC panel)').waitFor();
 
-  await page.getByText('Fix power factor (capacitor bank)').click();
+  await page.getByText('Fix power factor (APFC panel)').click();
   await page.waitForURL(/\/actions\/fix_power_factor/);
   await page.getByLabel(/Loan amount/).fill('10,00,000');
   await page.getByText('Cash-positive from month 1').waitFor();
   // The saving must be this month's API value, never a stale cached one.
-  await page.getByText('₹60,000').first().waitFor();
+  await page.getByText('₹61,200').first().waitFor();
   await page.getByTestId('emi-panel').getByText('₹20,276').waitFor();
+  // Sourced APFC cost (Rs 20,000-1,20,000): payback under 3 months, shown in months.
+  await page.getByText(/^1\.1\d? months$/).waitFor();
+  await page.getByText('2011 / 2020 prices; get a current quote').waitFor();
   await shot(page, 'action-detail');
 
   // Loan-ready summary: plan -> quote -> make -> report -> share -> share link -> verify.
@@ -281,7 +284,7 @@ try {
   await page.getByRole('link', { name: 'EcoProof' }).first().click();
   await page.getByText('Latest bills').waitFor();
   // Oct confirmed and the PF fix planned: the headroom moved.
-  await page.getByText("You've started fixes worth ₹60,000.").waitFor();
+  await page.getByText("You've started fixes worth ₹61,200.").waitFor();
   await shot(page, 'home-after');
 
   // Demo A has a baseline but no done action: /savings shows its empty state with the reason.

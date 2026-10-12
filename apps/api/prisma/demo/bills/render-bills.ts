@@ -14,7 +14,8 @@ const mdKva = A.mdKva!;
 const peak = 23000;
 const energyCharges = kvah * A.energyRatePerKvah!;
 const demandCharges = Math.max(mdKva, 0.8 * A.contractedDemandKva!) * A.demandRatePerKva!;
-const total = energyCharges + demandCharges;
+const customerCharge = A.customerChargePerMonth!;
+const total = energyCharges + demandCharges + customerCharge;
 const pf = kwh / kvah;
 
 const values: Record<string, string> = {
@@ -30,6 +31,7 @@ const values: Record<string, string> = {
   peak: inr(peak),
   energyCharges: inr(energyCharges),
   demandCharges: inr(demandCharges),
+  customerCharge: inr(customerCharge),
   total: inr(total),
 };
 
@@ -47,7 +49,7 @@ const expected = {
   tod_peak_kwh: peak,
   energy_charges: energyCharges,
   demand_charges: demandCharges,
-  other_charges: { low_pf_surcharge: 0 },
+  other_charges: { customer_charge: customerCharge, low_pf_surcharge: 0 },
   total,
   production_tonnes: 100,
   diesel_litres: A.dieselLitresPerMonth,

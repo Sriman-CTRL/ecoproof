@@ -58,6 +58,40 @@ export function CostBadge({ a }: { a: ActionItem }) {
   return null;
 }
 
+const PENDING_KEY: Record<ActionItem['savingBasis'], string> = {
+  bill: 'actions.savingPending',
+  enduse_share: 'actions.savingPendingOther',
+  pending_measurement: 'actions.savingMeasure',
+  not_quantified: 'actions.savingNotQuantified',
+};
+
+/** Why there is no rupee saving yet, per saving basis. */
+export const savingPendingText = (a: ActionItem, t: TFunction) =>
+  t(PENDING_KEY[a.savingBasis] ?? 'actions.savingPendingOther');
+
+/** Payback under a year reads in months (a PF fix pays back in weeks, not "0.1 years"). */
+export function paybackText(a: ActionItem, t: TFunction): string {
+  if (a.paybackYears == null) return '-';
+  return a.paybackYears < 1
+    ? t('actions.months', { n: formatDecimal(a.paybackYears * 12) })
+    : t('actions.years', { n: formatDecimal(a.paybackYears) });
+}
+
+/** Sourced cost range plus its price year; owners are told to get a current quote. */
+export function ActionCost({ a }: { a: ActionItem }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <CostText low={a.costLow} high={a.costHigh} />
+      {a.costYear && !a.isZeroCost && a.costLow != null && (
+        <span className="block text-small text-ink-muted">
+          {t('actions.costYear', { year: a.costYear })}
+        </span>
+      )}
+    </>
+  );
+}
+
 /** One ledger row: title and status on top, then rupees a year, cost and payback in columns. */
 export function ActionRow({ a, month }: { a: ActionItem; month: string | null }) {
   const { t } = useTranslation();
@@ -81,17 +115,15 @@ export function ActionRow({ a, month }: { a: ActionItem; month: string | null })
           {a.annualInrMid != null ? (
             <SourceChip lineName={a.source}>{formatInr(Math.round(a.annualInrMid))}</SourceChip>
           ) : (
-            t(a.finding ? 'actions.savingPending' : 'actions.savingPendingOther')
+            savingPendingText(a, t)
           )}
         </dd>
         <dt className="text-ink-muted">{t('actions.cost')}</dt>
         <dd className="num">
-          <CostText low={a.costLow} high={a.costHigh} />
+          <ActionCost a={a} />
         </dd>
         <dt className="text-ink-muted">{t('actions.payback')}</dt>
-        <dd className="num">
-          {a.paybackYears != null ? t('actions.years', { n: formatDecimal(a.paybackYears) }) : '-'}
-        </dd>
+        <dd className="num">{paybackText(a, t)}</dd>
       </dl>
     </li>
   );

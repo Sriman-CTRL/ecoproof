@@ -5,11 +5,51 @@
     "unit": "t CO2 per MWh",
     "source": "CEA CO2 Baseline Database v20.0, FY 2023-24 (via Climatiq)",
     "source_url": null,
-    "status": "confirmed_replace",
+    "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": "2023-04-01",
     "version": "v20.0",
-    "basis_note": "Replace with v22.0 value at build time (see docs/OPEN_ITEMS.md)"
+    "basis_note": "FY 2023-24 value (v22.0 Annexure-I gives the same 0.727). Superseded by v22.0; kept because past results store its ID.",
+    "valid_to": "2024-03-31",
+    "page": null,
+    "quoted_line": null,
+    "superseded_by": {
+      "source_type": "grid_electricity_india",
+      "version": "v22.0",
+      "valid_from": "2025-04-01"
+    }
+  },
+  {
+    "source_type": "grid_electricity_india",
+    "value": 0.71,
+    "unit": "t CO2 per MWh",
+    "source": "CEA CO2 Baseline Database for the Indian Power Sector, User Guide v22.0 (Aug 2026), FY 2024-25 weighted average (revised in v22.0)",
+    "source_url": "https://cea.nic.in/api/cdm-report-version/view-pdf/en/82",
+    "status": "confirmed",
+    "gas_basis": "CO2",
+    "valid_from": "2024-04-01",
+    "valid_to": "2025-03-31",
+    "version": "v22.0",
+    "page": "Annexure-I, PDF p.27 (printed p.22)",
+    "quoted_line": "2024-25 1235.96 1461.85 255.01 1740.54 0.710",
+    "basis_note": "Includes renewables and grid-connected captive; CO2 only. v22.0 revised FY 2024-25 with actual captive data.",
+    "superseded_by": null
+  },
+  {
+    "source_type": "grid_electricity_india",
+    "value": 0.675,
+    "unit": "t CO2 per MWh",
+    "source": "CEA CO2 Baseline Database for the Indian Power Sector, User Guide v22.0 (Aug 2026), FY 2025-26 weighted average",
+    "source_url": "https://cea.nic.in/api/cdm-report-version/view-pdf/en/82",
+    "status": "confirmed",
+    "gas_basis": "CO2",
+    "valid_from": "2025-04-01",
+    "valid_to": null,
+    "version": "v22.0",
+    "page": "Table S, PDF p.6 (printed p.1)",
+    "quoted_line": "Table S: Weighted average emission factor, simple operating margin (OM), build margin (BM) and combined margin (CM) of the Indian Grid for FY 2025-26 (adjusted for cross-border electricity transfers) (including RES & Captive power injection into grid), in tCO2/MWh — Average OM BM CM 0.675 0.963 0.446 0.705",
+    "basis_note": "Includes renewables and grid-connected captive; CO2 only; per MWh net generation (no T&D losses). Latest FY in v22.0, so also used for FY 2026-27 bills until v23.0.",
+    "superseded_by": null
   },
   {
     "source_type": "diesel_litre",
@@ -21,67 +61,91 @@
     "gas_basis": "CO2e",
     "valid_from": null,
     "version": null,
-    "basis_note": null
+    "basis_note": null,
+    "valid_to": null,
+    "page": null,
+    "quoted_line": null,
+    "superseded_by": null
   },
   {
     "source_type": "diesel_kg",
     "value": 3.186,
     "unit": "kg CO2 per kg",
-    "source": "IPCC 2006: NCV 43.0 TJ/Gg x 74,100 kg/TJ",
-    "source_url": null,
+    "source": "2006 IPCC Guidelines Vol. 2 Ch. 1: NCV 43.0 TJ/Gg x 74,100 kg/TJ",
+    "source_url": "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf",
     "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": null,
     "version": null,
-    "basis_note": null
+    "basis_note": "IPCC 2006 default (NCV x CO2 factor), matches research R6. IPCC defaults used for on-site fuels, not CEA's lower-bound values.",
+    "valid_to": null,
+    "page": "Table 1.2 p.1.18; Table 1.4 p.1.23",
+    "quoted_line": "\"Gas/Diesel Oil 43.0 41.4 43.3\" / \"Gas/Diesel Oil 20.2 1 74 100 72 600 74 800\"",
+    "superseded_by": null
   },
   {
     "source_type": "lpg_kg",
     "value": 2.985,
     "unit": "kg CO2 per kg",
-    "source": "IPCC 2006 default: 47.3 TJ/Gg x 63,100 kg/TJ",
-    "source_url": null,
-    "status": "verify",
+    "source": "2006 IPCC Guidelines Vol. 2 Ch. 1 default: 47.3 TJ/Gg x 63,100 kg/TJ",
+    "source_url": "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf",
+    "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": null,
     "version": null,
-    "basis_note": "Verify against IPCC tables before launch"
+    "basis_note": "IPCC 2006 default (NCV x CO2 factor), matches research R6. IPCC defaults used for on-site fuels, not CEA's lower-bound values.",
+    "valid_to": null,
+    "page": "Table 1.2 p.1.18; Table 1.4 p.1.23",
+    "quoted_line": "\"Liquefied Petroleum Gases 47.3 44.8 52.2\" / \"Liquefied Petroleum Gases 17.2 1 63 100 61 600 65 600\"",
+    "superseded_by": null
   },
   {
     "source_type": "furnace_oil_kg",
     "value": 3.127,
     "unit": "kg CO2 per kg",
-    "source": "IPCC 2006 residual fuel oil: 40.4 TJ/Gg x 77,400 kg/TJ",
-    "source_url": null,
-    "status": "verify",
+    "source": "2006 IPCC Guidelines Vol. 2 Ch. 1 residual fuel oil: 40.4 TJ/Gg x 77,400 kg/TJ",
+    "source_url": "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf",
+    "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": null,
     "version": null,
-    "basis_note": "Verify before launch"
+    "basis_note": "IPCC 2006 default (NCV x CO2 factor), matches research R6. IPCC defaults used for on-site fuels, not CEA's lower-bound values.",
+    "valid_to": null,
+    "page": "Table 1.2 p.1.18; Table 1.4 p.1.23",
+    "quoted_line": "\"Residual Fuel Oil 40.4 39.8 41.7\" / \"Residual Fuel Oil 21.1 1 77 400 75 500 78 800\"",
+    "superseded_by": null
   },
   {
     "source_type": "foundry_coke_kg",
     "value": 3.017,
     "unit": "kg CO2 per kg",
-    "source": "IPCC 2006 coke oven coke: 28.2 TJ/Gg x 107,000 kg/TJ",
-    "source_url": null,
-    "status": "verify",
+    "source": "2006 IPCC Guidelines Vol. 2 Ch. 1 coke oven coke: 28.2 TJ/Gg x 107,000 kg/TJ",
+    "source_url": "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf",
+    "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": null,
     "version": null,
-    "basis_note": "Verify before launch"
+    "basis_note": "IPCC 2006 default (NCV x CO2 factor), matches research R6. IPCC defaults used for on-site fuels, not CEA's lower-bound values.",
+    "valid_to": null,
+    "page": "Table 1.2 p.1.18; Table 1.4 p.1.23",
+    "quoted_line": "\"Coke Oven Coke and Lignite Coke 28.2 25.1 30.2\" / \"Coke oven coke and lignite Coke 29.2 1 107 000 95 700 119 000\"",
+    "superseded_by": null
   },
   {
     "source_type": "natural_gas_tj",
     "value": 56100,
     "unit": "kg CO2 per TJ",
-    "source": "IPCC 2006 default; energy from bill calorific value",
-    "source_url": null,
-    "status": "verify",
+    "source": "2006 IPCC Guidelines Vol. 2 Ch. 1 default; energy from bill calorific value",
+    "source_url": "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_1_Ch1_Introduction.pdf",
+    "status": "confirmed",
     "gas_basis": "CO2",
     "valid_from": null,
     "version": null,
-    "basis_note": "Verify before launch"
+    "basis_note": "IPCC 2006 default (NCV x CO2 factor), matches research R6. IPCC defaults used for on-site fuels, not CEA's lower-bound values.",
+    "valid_to": null,
+    "page": "Table 1.2 p.1.18; Table 1.4 p.1.24",
+    "quoted_line": "\"Natural Gas 48.0 46.5 50.4\" / \"Natural Gas 15.3 1 56 100 54 300 58 300\"",
+    "superseded_by": null
   },
   {
     "source_type": "rooftop_solar_self_used",
@@ -93,7 +157,11 @@
     "gas_basis": null,
     "valid_from": null,
     "version": null,
-    "basis_note": null
+    "basis_note": null,
+    "valid_to": null,
+    "page": null,
+    "quoted_line": null,
+    "superseded_by": null
   },
   {
     "source_type": "pig_iron_cbam_india_default",
@@ -105,7 +173,11 @@
     "gas_basis": null,
     "valid_from": null,
     "version": null,
-    "basis_note": "CBAM output: estimate, not verified"
+    "basis_note": "CBAM output: estimate, not verified",
+    "valid_to": null,
+    "page": null,
+    "quoted_line": null,
+    "superseded_by": null
   },
   {
     "source_type": "pig_iron_cbam_fallback",
@@ -117,6 +189,10 @@
     "gas_basis": null,
     "valid_from": null,
     "version": null,
-    "basis_note": "CBAM output: estimate, not verified"
+    "basis_note": "CBAM output: estimate, not verified",
+    "valid_to": null,
+    "page": null,
+    "quoted_line": null,
+    "superseded_by": null
   }
 ]

@@ -3,14 +3,13 @@ import 'dotenv/config';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient, type Factor as FactorRow } from '@prisma/client';
 import {
   fitBaseline,
   footprint,
   monthlySavings,
   savingsStatus,
   type Baseline,
-  type Factor,
 } from '@ecoproof/calc';
 import {
   DEMO_ORG_IDS,
@@ -22,6 +21,7 @@ import {
   USER_A,
   USER_B,
 } from '../../src/demo/ids.js';
+import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
 import { createLoanPack } from '../../src/reports/loanPack.js';
 import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
@@ -83,19 +83,20 @@ function monthRows(withAfter: boolean, baseline?: { a: number; b: number }): Mon
   return rows;
 }
 
-const asFactor = (f: {
-  id: string;
-  value: Prisma.Decimal;
-  unit: string;
-  status: Factor['status'];
-  gasBasis: Factor['gasBasis'];
-}): Factor => ({
-  id: f.id,
-  value: Number(f.value),
-  unit: f.unit,
-  status: f.status,
-  gasBasis: f.gasBasis,
-});
+/**
+ * CALC-1 per bill month: each month uses the factor valid for its period (e.g. CEA v22.0 FY
+ * rows). Rows are loaded once per source type; the remote DB makes a query per month slow.
+ */
+const factorRows = new Map<string, Promise<FactorRow[]>>();
+async function factorAt(sourceType: string, periodEnd: Date) {
+  if (!factorRows.has(sourceType)) {
+    factorRows.set(sourceType, prisma.factor.findMany({ where: { sourceType } }));
+  }
+  const row = pickFactor(await factorRows.get(sourceType)!, periodEnd);
+  if (!row)
+    throw new Error(`No ${sourceType} factor valid for ${periodEnd.toISOString()}: run db:seed`);
+  return toCalcFactor(row);
+}
 
 async function seedOrg(opts: {
   orgId: string;
@@ -105,10 +106,8 @@ async function seedOrg(opts: {
   phone: string;
   rows: MonthRow[];
   withAfter: boolean;
-  grid: Factor;
-  diesel: Factor;
 }) {
-  const { orgId, siteId, userId, name, phone, rows, grid, diesel } = opts;
+  const { orgId, siteId, userId, name, phone, rows } = opts;
   const tag = orgId === ORG_A ? 'A' : 'B';
   const k = (s: string) => det(`${tag}:${s}`);
   const cd = num('contractedDemandKva');
@@ -196,7 +195,11 @@ async function seedOrg(opts: {
       solarHoursKwh: null,
       energyCharges,
       demandCharges,
-      otherChargesJson: { low_pf_surcharge: 0, _label: 'SYNTHETIC' },
+      otherChargesJson: {
+        customer_charge: num('customerChargePerMonth'),
+        low_pf_surcharge: 0,
+        _label: 'SYNTHETIC',
+      },
       qualityTag: 'measured' as const,
     };
     await prisma.energyMonth.upsert({
@@ -235,9 +238,14 @@ async function seedOrg(opts: {
 
     const fp = footprint({
       gridKwh: m.kwh,
-      fuels: [{ quantity: num('dieselLitresPerMonth'), factor: diesel }],
+      fuels: [
+        {
+          quantity: num('dieselLitresPerMonth'),
+          factor: await factorAt('diesel_litre', monthEnd(m.i)),
+        },
+      ],
       outputTonnes: m.p,
-      gridFactor: grid,
+      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i)),
     });
     resultsRows.push({
       id: k(`result:${m.i}`),
@@ -262,14 +270,7 @@ async function seedOrg(opts: {
 }
 
 export async function seedDemo(opts: { demoReport?: boolean } = {}) {
-  const gridRow = await prisma.factor.findFirst({
-    where: { sourceType: 'grid_electricity_india' },
-  });
-  const dieselRow = await prisma.factor.findFirst({ where: { sourceType: 'diesel_litre' } });
-  if (!gridRow || !dieselRow) throw new Error('Reference factors missing: run db:seed first');
-  const grid = asFactor(gridRow);
-  const diesel = asFactor(dieselRow);
-
+  factorRows.clear();
   const baseline: Baseline = fitBaseline({
     months: BASE_P.map((p, i) => ({ productionTonnes: p, kwh: BASE_KWH[i]! })),
     rules: BASELINE_RULES,
@@ -283,8 +284,6 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     name: 'Sri Lakshmi Castings (sample)',
     rows: monthRows(false),
     withAfter: false,
-    grid,
-    diesel,
   });
   const rowsB = monthRows(true, baseline);
   await seedOrg({
@@ -295,8 +294,6 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     name: 'Sri Lakshmi Castings (sample, 6 months later)',
     rows: rowsB,
     withAfter: true,
-    grid,
-    diesel,
   });
 
   // ---- Demo B: baseline, actions, savings ledger
@@ -319,19 +316,15 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
   });
 
   const pfAction = await prisma.actionLibrary.findUnique({ where: { code: 'fix_power_factor' } });
-  if (!pfAction) throw new Error('action fix_power_factor missing: run db:seed first');
-  const effData = {
-    sector: 'foundry',
-    equipment: 'Efficiency measure (placeholder until research R2)',
-    isZeroCost: false,
-    enduse: 'electricity' as const,
-    status: 'placeholder',
-    source: 'SYNTHETIC DEMO placeholder until research R2; no savings or cost range stated',
-  };
-  const effAction = await prisma.actionLibrary.upsert({
+  const effAction = await prisma.actionLibrary.findUnique({ where: { code: 'igbt_furnace' } });
+  if (!pfAction || !effAction) throw new Error('actions missing: run db:seed first');
+  // The pre-R2 placeholder row is retired, not deleted (reference rows keep their IDs).
+  await prisma.actionLibrary.updateMany({
     where: { code: 'efficiency_measure_pending_r2' },
-    update: effData,
-    create: { code: 'efficiency_measure_pending_r2', ...effData },
+    data: {
+      status: 'retired',
+      source: 'SYNTHETIC DEMO placeholder, retired in S8c: replaced by igbt_furnace (research R2)',
+    },
   });
   const doneAt = new Date('2026-09-30T00:00:00Z');
   for (const [key, actionId] of [
@@ -346,7 +339,8 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     });
   }
 
-  // Ledger: the kWh saving is credited to the efficiency measure (PF fix saves kVAh, not kWh).
+  // Ledger: the kWh saving is credited to the IGBT furnace (PF fix saves kVAh, not kWh). The
+  // SYNTHETIC 6% gain sits inside the sourced 5.7-7.0% of site kWh (8.2% x 70-85% furnace share).
   let cumulative = 0;
   for (const m of rowsB.filter((r) => r.i >= 12)) {
     const energyCharges = m.kvah * num('energyRatePerKvah');
@@ -355,7 +349,7 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
       productionTonnes: m.p,
       actualKwh: m.kwh,
       effectiveRatePerKwh: energyCharges / m.kwh,
-      gridFactor: grid,
+      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i)),
     });
     cumulative += s.savedKwh;
     const status = savingsStatus({

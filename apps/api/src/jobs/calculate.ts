@@ -11,16 +11,28 @@ export const toCalcFactor = (f: FactorRow): Factor => ({
   gasBasis: f.gasBasis,
 });
 
-/** CALC-1: not superseded, valid on or before the period end (null valid-from counts), latest first. */
+/**
+ * CALC-1: the row whose validity window holds the period end (null bounds are open), latest
+ * valid-from first. Per-FY rows (CEA) end with valid_to, so an older bill still gets its own
+ * year's factor; a superseded row only loses to a current row for the same period.
+ */
+export function pickFactor(rows: FactorRow[], periodEnd: Date): FactorRow | null {
+  const t = periodEnd.getTime();
+  const from = (r: FactorRow) => r.validFrom?.getTime() ?? -Infinity;
+  const candidates = rows.filter(
+    (r) => from(r) <= t && (r.validTo == null || r.validTo.getTime() >= t),
+  );
+  candidates.sort(
+    (a, b) =>
+      from(b) - from(a) ||
+      Number(a.supersededBy != null) - Number(b.supersededBy != null) ||
+      b.createdAt.getTime() - a.createdAt.getTime(),
+  );
+  return candidates[0] ?? null;
+}
+
 export async function factorFor(sourceType: string, periodEnd: Date): Promise<FactorRow> {
-  const row = await prisma.factor.findFirst({
-    where: {
-      sourceType,
-      supersededBy: null,
-      OR: [{ validFrom: null }, { validFrom: { lte: periodEnd } }],
-    },
-    orderBy: [{ validFrom: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
-  });
+  const row = pickFactor(await prisma.factor.findMany({ where: { sourceType } }), periodEnd);
   if (!row) throw new AppError(500, 'FACTOR_MISSING', `No ${sourceType} factor valid for period`);
   return row;
 }

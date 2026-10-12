@@ -522,7 +522,12 @@ model Factor {
   version      String?
   /// ADDITION: not in Doc 07, needed by Doc 03 Emission factor table (nullable valid_from)
   validFrom    DateTime?    @map("valid_from") @db.Date
+  /// ADDITION: not in Doc 07, last day a per-FY factor applies (CEA publishes one value per FY)
+  validTo      DateTime?    @map("valid_to") @db.Date
   supersededBy String?      @map("superseded_by") @db.Uuid
+  /// ADDITION: not in Doc 07, page in the source and the quoted line the value comes from
+  page         String?
+  quotedLine   String?      @map("quoted_line")
   /// ADDITION: not in Doc 07, needed by Doc 03 Emission factor table "Status" column
   status       FactorStatus
   /// ADDITION: not in Doc 07, needed by the Doc 03 note that grid is CO2-only and fuels are CO2e
@@ -546,29 +551,46 @@ model TariffRule {
   source     String
   basisNote  String?   @map("basis_note")
   status     String?
+  /// ADDITION: not in Doc 07, tariff order the row comes from ("legacy" = pre-research rows), so
+  /// rules from different orders coexist; the one valid for the bill period is used
+  version    String    @default("legacy")
+  /// ADDITION: not in Doc 07, source link, printed page and quoted line of the tariff order
+  sourceUrl  String?   @map("source_url")
+  page       String?
+  quotedLine String?   @map("quoted_line")
   createdAt  DateTime  @default(now()) @map("created_at")
 
-  @@unique([discom, category, ruleType])
+  @@unique([discom, category, ruleType, version])
   @@map("tariff_rules")
 }
 
 model ActionLibrary {
-  id         String   @id @default(uuid()) @db.Uuid
+  id              String   @id @default(uuid()) @db.Uuid
   /// ADDITION: not in Doc 07, needed by seed/runtime lookup of bill-health actions
-  code       String   @unique
-  sector     String
-  equipment  String
-  savingLow  Decimal? @map("saving_low") @db.Decimal(14, 2)
-  savingHigh Decimal? @map("saving_high") @db.Decimal(14, 2)
-  costLow    Decimal? @map("cost_low") @db.Decimal(14, 2)
-  costHigh   Decimal? @map("cost_high") @db.Decimal(14, 2)
-  sourceUrl  String?  @map("source_url")
+  code            String   @unique
+  sector          String
+  equipment       String
+  savingLow       Decimal? @map("saving_low") @db.Decimal(14, 2)
+  savingHigh      Decimal? @map("saving_high") @db.Decimal(14, 2)
+  costLow         Decimal? @map("cost_low") @db.Decimal(14, 2)
+  costHigh        Decimal? @map("cost_high") @db.Decimal(14, 2)
+  sourceUrl       String?  @map("source_url")
   /// ADDITION: not in Doc 07, needed by Doc 03 action savings (zero-cost vs capex, end-use, provenance)
-  isZeroCost Boolean  @map("is_zero_cost")
-  enduse     Enduse
-  status     String
-  source     String
-  createdAt  DateTime @default(now()) @map("created_at")
+  isZeroCost      Boolean  @map("is_zero_cost")
+  enduse          Enduse
+  status          String
+  source          String
+  /// ADDITION: not in Doc 07, provenance and saving basis for sourced measures (research R2)
+  page            String?
+  quotedLine      String?  @map("quoted_line")
+  costYear        String?  @map("cost_year")
+  costNote        String?  @map("cost_note")
+  /// ADDITION: saving_low/high above are % of the end-use's kWh; end-use share of site kWh (0-1)
+  enduseShareLow  Decimal? @map("enduse_share_low") @db.Decimal(5, 4)
+  enduseShareHigh Decimal? @map("enduse_share_high") @db.Decimal(5, 4)
+  enduseShareNote String?  @map("enduse_share_note")
+  savingNote      String?  @map("saving_note")
+  createdAt       DateTime @default(now()) @map("created_at")
 
   siteActions SiteAction[]
   ledger      SavingsLedger[]

@@ -24,8 +24,15 @@ const FactorRow = z.object({
   status: z.enum(['confirmed', 'confirmed_replace', 'verify', 'estimate_only', 'rule']),
   gas_basis: z.enum(['CO2', 'CO2e']).nullable(),
   valid_from: date,
+  valid_to: date,
   version: z.string().nullable(),
   basis_note: z.string().nullable(),
+  page: z.string().nullable(),
+  quoted_line: z.string().nullable(),
+  /** Natural key of the row that replaces this one. */
+  superseded_by: z
+    .object({ source_type: z.string(), version: z.string().nullable(), valid_from: date })
+    .nullable(),
 });
 
 const TariffRow = z.object({
@@ -37,6 +44,10 @@ const TariffRow = z.object({
   valid_from: date,
   basis_note: z.string().nullable(),
   status: z.string().nullable(),
+  version: z.string(),
+  source_url: z.string().nullable(),
+  page: z.string().nullable(),
+  quoted_line: z.string().nullable(),
 });
 
 const SchemeRow = z.object({
@@ -92,9 +103,30 @@ const ActionRow = z.object({
   source: z.string(),
   cost_low: z.number().nullable(),
   cost_high: z.number().nullable(),
+  source_url: z.string().nullable(),
+  page: z.string().nullable(),
+  quoted_line: z.string().nullable(),
+  cost_year: z.string().nullable(),
+  cost_note: z.string().nullable(),
+  saving_low: z.number().nullable(),
+  saving_high: z.number().nullable(),
+  enduse_share_low: z.number().min(0).max(1).nullable(),
+  enduse_share_high: z.number().min(0).max(1).nullable(),
+  enduse_share_note: z.string().nullable(),
+  saving_note: z.string().nullable(),
 });
 
 const json = (v: unknown) => v as Prisma.InputJsonValue;
+
+const factorKey = (f: {
+  source_type: string;
+  version: string | null;
+  valid_from: Date | null;
+}) => ({
+  sourceType: f.source_type,
+  version: f.version,
+  validFrom: f.valid_from,
+});
 
 // Reference rows are never deleted: results store factor IDs, so IDs must stay stable.
 async function main() {
@@ -117,15 +149,25 @@ async function main() {
         status: f.status,
         gasBasis: f.gas_basis,
         validFrom: f.valid_from,
+        validTo: f.valid_to,
         version: f.version,
         basisNote: f.basis_note,
+        page: f.page,
+        quotedLine: f.quoted_line,
       };
-      // version is nullable, so a compound unique/upsert cannot be used for the key.
-      const existing = await tx.factor.findFirst({
-        where: { sourceType: f.source_type, version: f.version },
-      });
+      // Natural key (source_type, version, valid_from): both are nullable, so no compound upsert.
+      const existing = await tx.factor.findFirst({ where: factorKey(f) });
       if (existing) await tx.factor.update({ where: { id: existing.id }, data });
       else await tx.factor.create({ data });
+    }
+    // Second pass: superseded_by points at another row's id, which may only now exist.
+    for (const f of factors) {
+      const next = f.superseded_by
+        ? await tx.factor.findFirst({ where: factorKey(f.superseded_by) })
+        : null;
+      if (f.superseded_by && !next)
+        throw new Error(`superseded_by row missing for ${f.source_type}`);
+      await tx.factor.updateMany({ where: factorKey(f), data: { supersededBy: next?.id ?? null } });
     }
 
     for (const t of tariffs) {
@@ -135,17 +177,20 @@ async function main() {
         source: t.source,
         basisNote: t.basis_note,
         status: t.status,
+        sourceUrl: t.source_url,
+        page: t.page,
+        quotedLine: t.quoted_line,
+      };
+      const key = {
+        discom: t.discom,
+        category: t.category,
+        ruleType: t.rule_type,
+        version: t.version,
       };
       await tx.tariffRule.upsert({
-        where: {
-          discom_category_ruleType: {
-            discom: t.discom,
-            category: t.category,
-            ruleType: t.rule_type,
-          },
-        },
+        where: { discom_category_ruleType_version: key },
         update: data,
-        create: { discom: t.discom, category: t.category, ruleType: t.rule_type, ...data },
+        create: { ...key, ...data },
       });
     }
 
@@ -224,6 +269,17 @@ async function main() {
         source: a.source,
         costLow: a.cost_low,
         costHigh: a.cost_high,
+        sourceUrl: a.source_url,
+        page: a.page,
+        quotedLine: a.quoted_line,
+        costYear: a.cost_year,
+        costNote: a.cost_note,
+        savingLow: a.saving_low,
+        savingHigh: a.saving_high,
+        enduseShareLow: a.enduse_share_low,
+        enduseShareHigh: a.enduse_share_high,
+        enduseShareNote: a.enduse_share_note,
+        savingNote: a.saving_note,
       };
       await tx.actionLibrary.upsert({
         where: { code: a.code },

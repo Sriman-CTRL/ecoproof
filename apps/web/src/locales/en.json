@@ -288,7 +288,7 @@
       "lt_surcharges": "Surcharges on your bill"
     },
     "fix": {
-      "power_factor": "Fit or repair a capacitor bank (APFC panel) to bring power factor to 0.98 or above.",
+      "power_factor": "Fit an automatic power factor correction (APFC) panel and keep power factor close to 1. A fixed capacitor bank that over-corrects now raises the bill.",
       "peak_use": "Move shiftable work out of 6-10 am and 6-10 pm into 10 am-6 pm.",
       "contracted_demand": "Ask TGSPDCL to reduce contracted demand closer to your real maximum demand.",
       "minimum_charges": "Your use is below the minimum billed units; check the contracted demand.",
@@ -313,8 +313,8 @@
       "peakKwh": "Peak-hour units (kWh)",
       "peakSharePct": "Peak-hour share (%)",
       "flagAbovePct": "Flagged above (%)",
-      "peakSurchargeInrPerKwh": "Peak surcharge (Rs per kWh)",
-      "solarRebateInrPerKwh": "Day-time rebate (Rs per kWh)",
+      "peakSurchargeInrPerKwh": "Peak surcharge (Rs per unit)",
+      "solarRebateInrPerKwh": "Day-time rebate (Rs per unit)",
       "shiftableKwh": "Units you could move (kWh)",
       "contractedDemandKva": "Contracted demand (kVA)",
       "maxMdKva12Months": "Highest demand in 12 months (kVA)",
@@ -361,10 +361,14 @@
     "rankLabel": "How are these ranked?",
     "rankNote": "Zero-cost actions first, then shortest payback, then most CO2 saved.",
     "name": {
-      "fix_power_factor": "Fix power factor (capacitor bank)",
+      "fix_power_factor": "Fix power factor (APFC panel)",
       "shift_peak_use_to_solar_hours": "Shift work out of peak hours",
       "reduce_contracted_demand": "Reduce contracted demand",
-      "avoid_minimum_charges": "Avoid minimum charges"
+      "avoid_minimum_charges": "Avoid minimum charges",
+      "igbt_furnace": "Replace SCR furnace with IGBT furnace",
+      "clean_charge_and_tapping": "Clean the charge and control tapping temperature",
+      "screw_compressor_ring_main": "Screw compressor with ring main, lower set pressure",
+      "compressor_vfd": "VFD on the screw compressor"
     },
     "savingPendingOther": "Saving pending: needs a quote and sector data",
     "openTop": "Open the top action",
@@ -378,7 +382,13 @@
     "lowCostQuote": "Low cost, quote needed",
     "topThree": "Top actions by rupees",
     "emptyTitle": "No actions yet",
-    "schemesLink": "Schemes and loans"
+    "schemesLink": "Schemes and loans",
+    "months": "{{n}} months",
+    "costYear": "{{year}} prices; get a current quote",
+    "savingMeasure": "Saving pending: needs compressor energy measurement",
+    "savingNotQuantified": "Saving not quantified for your unit",
+    "kwhRange": "{{low}} to {{high}} kWh a year",
+    "co2Year": "{{n}} t CO2 a year (grid)"
   },
   "detail": {
     "plan": "Plan this action",
@@ -484,7 +494,7 @@
       },
       "powerFactor": {
         "term": "power factor",
-        "line": "Power factor: how much of the power you pay for does useful work. When it is low, the DISCOM charges extra."
+        "line": "Power factor: how much of the power you pay for does useful work. HT bills charge on kVAh, so a low power factor costs extra, and a fixed capacitor bank that over-corrects now raises the bill too."
       },
       "maximumDemand": {
         "term": "maximum demand",
@@ -579,7 +589,7 @@
       "sub": "Energy and carbon pre-assessment for MSMEs. In rupees, in Telugu, Hindi or English.",
       "primary": "See a sample foundry",
       "secondary": "How it works",
-      "phoneAlt": "Phone screen showing the bill health check for a sample foundry: Rs 60,000 a month lost to power factor",
+      "phoneAlt": "Phone screen showing the bill health check for a sample foundry: {{inr}} a month lost to power factor",
       "phoneTag": "Worked example (sample data)"
     },
     "bill": {

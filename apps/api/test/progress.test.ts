@@ -81,7 +81,7 @@ describe('GET /sites/:siteId/progress', () => {
     for (const m of p.milestones) expect(m.reached).toBe(m.reachedAt != null);
   });
 
-  it('Demo A after confirming Oct 2026 and planning fix_power_factor: Rs 60,000 started', async () => {
+  it('Demo A after confirming Oct 2026 and planning fix_power_factor: Rs 61,200 started', async () => {
     const up = await request(app)
       .post(`/sites/${siteA}/documents`)
       .set(auth(tokenA))
@@ -116,8 +116,8 @@ describe('GET /sites/:siteId/progress', () => {
     expect(plan.status).toBe(200);
 
     const p = await progress(tokenA, siteA);
-    expect(p.headroom.startedInrPerMonth).toBe(60000);
-    expect(p.headroom.onTableInrPerMonth).toBe(p.headroom.foundInrPerMonth - 60000);
+    expect(p.headroom.startedInrPerMonth).toBe(61200);
+    expect(p.headroom.onTableInrPerMonth).toBe(p.headroom.foundInrPerMonth - 61200);
     expect(p.ritual).toMatchObject({
       month: '2026-10',
       billReceived: true,
