@@ -50,6 +50,17 @@ export function nextText(next: Progress['next'], t: TFunction): string {
   return t(`progress.next.${key}`, { ...params, defaultValue: next.text });
 }
 
+/**
+ * The same step for the path line, which already says "Next:": the verb prefix is left off
+ * ("Next: Reduce contracted demand", never "Next: Start: Reduce contracted demand").
+ */
+export function pathText(next: Progress['next'], t: TFunction): string {
+  if (next.key === 'startAction') {
+    return t(`actions.name.${next.params.code}`, { defaultValue: String(next.params.title) });
+  }
+  return nextText(next, t);
+}
+
 /** "12 Oct 2026" in the owner's language. */
 export function milestoneDate(iso: string, lang: string): string {
   const locale = lang === 'te' ? 'te-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';

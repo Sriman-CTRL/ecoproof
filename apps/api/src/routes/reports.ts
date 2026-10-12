@@ -25,6 +25,30 @@ reportsRouter.post('/sites/:siteId/reports/loan-pack', requireAuth, async (req, 
   });
 });
 
+reportsRouter.get('/sites/:siteId/reports', requireAuth, async (req, res) => {
+  const { orgId } = req.auth;
+  const site = await loadSite(orgId, String(req.params.siteId));
+  const reports = await prisma.report.findMany({
+    where: { orgId, snapshot: { orgId, siteId: site.id } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      snapshot: { select: { actionCode: true } },
+      shares: { where: { orgId }, include: { views: { where: { orgId, kind: 'view' } } } },
+    },
+  });
+  res.json(
+    reports.map((r) => ({
+      id: r.id,
+      type: r.type,
+      version: r.version,
+      createdAt: r.createdAt,
+      actionCode: r.snapshot.actionCode,
+      shareCount: r.shares.length,
+      viewCount: r.shares.reduce((s, sh) => s + sh.views.length, 0),
+    })),
+  );
+});
+
 reportsRouter.get('/reports/:id', requireAuth, async (req, res) => {
   const { orgId } = req.auth;
   const id = z.uuid().safeParse(req.params.id);

@@ -98,7 +98,9 @@
       "notYet": "not yet",
       "allDone": "All 4 done for {{month}}."
     },
-    "headroomTitle": "Money found in your bills"
+    "headroomTitle": "Money found in your bills",
+    "heroSaved": "Saved this month",
+    "savedTotal": "{{inr}} total so far"
   },
   "bills": {
     "newTitle": "Add a bill",
@@ -558,7 +560,8 @@
     "label": "Main",
     "home": "Home",
     "bills": "Bills",
-    "plan": "Plan"
+    "plan": "Plan",
+    "reports": "Reports"
   },
   "landing": {
     "nav": {
@@ -708,5 +711,59 @@
       "makeLoanPack": "Make a loan-ready summary",
       "shareBuyer": "Share your data with a buyer (coming soon)"
     }
+  },
+  "savings": {
+    "title": "Your savings",
+    "open": "See your savings",
+    "loadFailed": "We could not load your savings. Check your internet and try again.",
+    "heroLabel": "Saved so far",
+    "thisMonth": "{{inr}} this month",
+    "unitsLine": "{{kwh}} kWh less electricity",
+    "co2Line": "{{value}} t CO2 (grid)",
+    "emptyTitle": "No savings to show yet",
+    "reason": {
+      "no_baseline": "Your baseline needs at least 9 confirmed monthly bills. Add your bills and it will be set automatically.",
+      "no_action_done": "Mark an action as done on the Plan tab. Savings are measured from the month after it.",
+      "no_savings_yet": "An action is done. Add the next monthly bill and its savings will show here."
+    },
+    "chartTitle": "Expected use against actual use",
+    "chartLabel": "Expected kWh and actual kWh for each month after the action",
+    "legendBaseline": "Line: kWh expected without the action (your adjusted baseline)",
+    "legendActual": "Bars: kWh you actually used",
+    "axisNote": "Thousands of kWh (k) per month, starting from zero.",
+    "col": {
+      "month": "Month"
+    },
+    "methodNote": "Checked against your own electricity bills by EcoProof's method; not a third-party verification.",
+    "how": "How we measure this",
+    "byMonth": "Month by month",
+    "methodName": {
+      "regression": "Straight-line fit of monthly kWh against tonnes produced"
+    },
+    "m": {
+      "intro": "We compare each month's real kWh with what your plant would have used without the action, given that month's production.",
+      "method": "Baseline method",
+      "cvrmse": "Fit error, CV(RMSE)",
+      "nmbe": "Bias, NMBE",
+      "result": "Baseline check",
+      "pass": "Passes",
+      "fail": "Does not pass",
+      "months": "Months used",
+      "formula": "Formula",
+      "formulaText": "Expected kWh in a month = {{a}} kWh + {{b}} kWh x tonnes produced that month. Saved kWh = expected kWh minus actual kWh."
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "make": "Make a loan-ready summary",
+    "loadFailed": "We could not load your reports. Check your internet and try again.",
+    "emptyTitle": "No reports yet",
+    "emptyBody": "Make a loan-ready summary for the lender's own assessment. It will be listed here.",
+    "type": {
+      "loan_pack": "Loan-ready summary"
+    },
+    "version": "Version {{n}}",
+    "shared_one": "Shared with {{shares}}, viewed {{count}} time",
+    "shared_other": "Shared with {{shares}}, viewed {{count}} times"
   }
 }

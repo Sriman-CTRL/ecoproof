@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight';
+import { Files } from '@phosphor-icons/react/dist/csr/Files';
 import { House } from '@phosphor-icons/react/dist/csr/House';
 import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
 import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
@@ -101,12 +102,12 @@ export function SwitchSample() {
   );
 }
 
-export type TabId = 'home' | 'bills' | 'plan';
+export type TabId = 'home' | 'bills' | 'plan' | 'reports';
 const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'home', to: '/home', icon: House, key: 'nav.home' },
   { id: 'bills', to: '/bills', icon: Receipt, key: 'nav.bills' },
   { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
-  // Reports tab comes in S8: { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
+  { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
 ];
 
 /** 64px white bar, icon + word. Hidden on the capture flow and on public pages. */
@@ -117,7 +118,7 @@ export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
       aria-label={t('nav.label')}
       className="sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content"
     >
-      <ul className={`${wide ? WIDE : FULL_WIDTH} grid h-16 grid-cols-3`}>
+      <ul className={`${wide ? WIDE : FULL_WIDTH} grid h-16 grid-cols-4`}>
         {TABS.map(({ id, to, icon: IconCmp, key }) => (
           <li key={id}>
             <Link

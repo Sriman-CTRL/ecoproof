@@ -6,6 +6,7 @@ import {
   ACTION_CODE,
   BASELINE_RULES,
   computeInsights,
+  loadSiteRules,
   type FindingCode,
   type Insights,
 } from './insights.js';
@@ -121,7 +122,7 @@ const n = (d: { toString(): string } | null | undefined) => (d == null ? null : 
 export async function computeProgress(site: Site): Promise<Progress> {
   const orgId = site.orgId;
   const where = { orgId, siteId: site.id };
-  const [months, firstResult, siteActions, ledger, firstShare, pending] = await Promise.all([
+  const [months, firstResult, siteActions, ledger, firstShare, pending, rules] = await Promise.all([
     prisma.energyMonth.findMany({ where, orderBy: { periodStart: 'asc' } }),
     prisma.result.findFirst({ where, orderBy: { month: 'asc' } }),
     prisma.siteAction.findMany({ where, include: { action: { select: { code: true } } } }),
@@ -139,6 +140,7 @@ export async function computeProgress(site: Site): Promise<Progress> {
       },
       select: { fieldsJson: true },
     }),
+    loadSiteRules(site),
   ]);
 
   // ---- milestones
@@ -227,10 +229,12 @@ export async function computeProgress(site: Site): Promise<Progress> {
   // Awaited below; this only stops a failure from going unhandled if the headroom scan fails first.
   topAction.catch(() => undefined);
   const insights = await mapLimit(recent, SCAN_CONCURRENCY, (m) =>
-    computeInsights(site, m.periodStart, null, { card: false }).catch((e: unknown) => {
-      if (e instanceof AppError) return null;
-      throw e;
-    }),
+    computeInsights(site, m.periodStart, null, { card: false, rules, months }).catch(
+      (e: unknown) => {
+        if (e instanceof AppError) return null;
+        throw e;
+      },
+    ),
   );
   const latestByCode = new Map<FindingCode, number>();
   for (const ins of insights.filter((i): i is Insights => i != null)) {

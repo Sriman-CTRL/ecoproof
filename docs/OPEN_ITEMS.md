@@ -67,9 +67,11 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 ## UI
 
 - [ ] Source sheet (`SourceChip`) shows the whole bill image, not a crop around the value: extraction returns no field coordinates. Add coordinates to the extraction adapter to enable cropping.
-- [ ] Home for Demo B should show "Rs saved this month / total so far" (Doc 06), but no endpoint returns savings yet, so it shows the latest bill total. Wire it to the savings ledger in S8.
 - [x] Action ranking: decided: Doc 02/03 order (zero-cost first, then payback, CO2 as tie-breaker, then higher annual Rs). The API's order is the only order; Home, bill health and Plan all open its #1.
 - [ ] Telugu strings added in D2 (nav, bills ledger, verify page, health) are machine-drafted: need native speaker review.
 - [ ] Landing page (D3): Telugu strings under `landing.*` are machine-drafted, and the Hindi headline `landing.data.title` in `hi.json` is hand-written for that one section only: both need native speaker review.
 - [ ] Landing page: the "Rs 2 per unit moved" figure is the sample bill's peak-shift rate (peak 1.5 + 0.5 in the insights test); confirm against the TGSPDCL ToD order.
 - [ ] Landing first load is about 250 KB transferred on mobile (target 200 KB): the shared app bundle (React, router, query, i18next, all three locale files) is 133 KB gzip, Latin fonts 79 KB, hero screenshot 28 KB. Closing the gap needs lazy locale files and a lighter router or font plan.
+- [ ] Telugu strings added in S8a (`savings.*`, `reports.*`, `nav.reports`, `home.heroSaved`) are machine-drafted: need native speaker review.
+- [ ] Savings chart bars start at zero, so a 5-6% saving is a small gap between bars and line; the rupee and kWh figures carry the message. Revisit if owners find it hard to read.
+- [x] Home for Demo B now shows "Rs saved this month / total so far" from `GET /sites/:siteId/savings` (S8a).

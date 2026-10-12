@@ -80,7 +80,7 @@ export default function Report() {
   const r = q.data;
   return (
     <Page
-      tab="plan"
+      tab="reports"
       action={
         r ? (
           <Button disabled={share.isPending} onClick={shareWithLender}>

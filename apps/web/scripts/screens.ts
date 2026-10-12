@@ -274,6 +274,11 @@ try {
   await page.getByText("You've started fixes worth ₹60,000.").waitFor();
   await shot(page, 'home-after');
 
+  // Demo A has a baseline but no done action: /savings shows its empty state with the reason.
+  await page.goto(`${WEB}/savings`);
+  await page.getByText('No savings to show yet').waitFor();
+  await shot(page, 'savings-empty');
+
   // ---------- Demo B: its path comes from its own rows ----------
   await page.goto(`${WEB}/start`);
   await page.getByText('Same unit, 6 months later').click();
@@ -289,6 +294,26 @@ try {
   await page.waitForURL(/\/progress$/);
   await page.getByTestId('stage-4').waitFor();
   await shot(page, 'progress-b');
+  await page.goBack();
+
+  // Verified savings: Home's hero -> /savings -> the method sheet -> Reports -> the demo report.
+  await page.getByTestId('savings-hero').click();
+  await page.waitForURL(/\/savings$/);
+  await page.getByTestId('method-note').waitFor();
+  await page.getByText('Verified by your bills').first().waitFor();
+  await shot(page, 'savings-b');
+  await page.getByRole('button', { name: 'How we measure this' }).click();
+  await page.getByText('Fit error, CV(RMSE)').waitFor();
+  await shot(page, 'savings-how', true);
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('navigation').getByRole('link', { name: 'Reports' }).click();
+  await page.waitForURL(/\/reports$/);
+  await page.getByText('Shared with 1, viewed 2 times').waitFor();
+  await shot(page, 'reports');
+  await page.getByTestId('report-row').first().click();
+  await page.waitForURL(/\/reports\/[0-9a-f-]{36}$/);
+  await page.getByText('Document seal').waitFor();
+  await shot(page, 'report-b');
   await page.close();
 
   // ---------- Telugu, 360x800 ----------
@@ -314,6 +339,21 @@ try {
   await te.getByText('ఈ పత్రం నిజమైనది').waitFor();
   await shot(te, 'te-verify');
   await te.close();
+
+  // Demo B in Telugu at 360x800: the chart must stay readable.
+  const tb = await browser.newPage({ viewport: { width: 360, height: 800 } });
+  await tb.addInitScript(() => localStorage.setItem('ecoproof.lang', 'te'));
+  await tb.goto(`${WEB}/start`);
+  await tb.getByText('అదే యూనిట్, 6 నెలల తర్వాత').click();
+  await tb.waitForURL(/\/(consent|home)$/);
+  if (tb.url().endsWith('/consent')) {
+    await tb.getByRole('button', { name: 'నేను అంగీకరిస్తున్నాను' }).click();
+    await tb.waitForURL(/\/home$/);
+  }
+  await tb.goto(`${WEB}/savings`);
+  await tb.getByTestId('method-note').waitFor();
+  await shot(tb, 'te-savings');
+  await tb.close();
 } finally {
   await browser.close();
 }

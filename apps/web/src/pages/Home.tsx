@@ -19,7 +19,8 @@ import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../compone
 import { api, type MonthRow } from '../lib/api';
 import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
-import { nextText, useProgress, type Progress } from '../lib/progress';
+import { nextText, pathText, useProgress, type Progress } from '../lib/progress';
+import { useSavings } from '../lib/savings';
 import { getSession } from '../lib/session';
 
 interface LatestDoc {
@@ -53,6 +54,7 @@ export default function Home() {
     queryKey: ['months', siteId],
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
+  const savings = useSavings();
   const latestDoc = useQuery({
     queryKey: ['latest-doc', siteId],
     queryFn: () => api<LatestDoc | null>(`/sites/${siteId}/documents/latest`),
@@ -78,11 +80,15 @@ export default function Home() {
   const month = top ? monthLabel(top.month, lang) : '';
   const source = t('home.sourceBill', { month });
   // Demo A: the money at stake straight from the API. Demo B and the fallback: the latest bill.
-  // "Rs saved this month / total so far" has no endpoint yet (docs/OPEN_ITEMS.md, UI).
+  // A site with savings leads with "Rs saved this month / total so far" from /savings.
   const atStake = insights.data?.atStake.inrPerMonth ?? 0;
   // Demo A leads with the money at stake: wait for it rather than flash the bill total first.
-  const waitingForStake = session?.demo === 'A' && insights.isPending && !insights.isError;
-  const showAtStake = session?.demo === 'A' && atStake > 0;
+  const waitingForStake =
+    (session?.demo === 'A' && insights.isPending && !insights.isError) ||
+    (savings.isPending && !savings.isError);
+  const sv = savings.data;
+  const hasSavings = !!sv && sv.months.length > 0 && sv.thisMonth != null;
+  const showAtStake = !hasSavings && session?.demo === 'A' && atStake > 0;
   const co2 = top?.co2
     ? t('results.co2Line', {
         grid: formatDecimal(top.co2.scope2TCo2Grid ?? 0),
@@ -131,7 +137,21 @@ export default function Home() {
       {top && !waitingForStake && (
         <Card>
           <h1 className="sr-only">{t('home.latestBill', { month })}</h1>
-          {showAtStake ? (
+          {hasSavings ? (
+            <Link to="/savings" className="block" data-testid="savings-hero">
+              <RupeeHero
+                value={Math.round(sv.thisMonth!.savedInr)}
+                label={t('home.heroSaved')}
+                countUpKey="home-hero"
+                unitsText={t('home.savedTotal', { inr: formatInr(Math.round(sv.totals.savedInr)) })}
+                co2Text={t('savings.co2Line', { value: formatDecimal(sv.totals.savedTco2) })}
+              />
+              <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
+                {t('savings.open')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </span>
+            </Link>
+          ) : showAtStake ? (
             <RupeeHero
               value={Math.round(atStake)}
               label={t('home.heroAtStake')}
@@ -162,7 +182,7 @@ export default function Home() {
       {p && (
         <Link to="/progress" className={`${CARD_CLASS} block`} data-testid="progress-path">
           <h2 className="sr-only">{t('progress.title')}</h2>
-          <ProgressPath currentStage={p.stage} nextStep={nextText(p.next, t)} />
+          <ProgressPath currentStage={p.stage} nextStep={pathText(p.next, t)} />
           <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
             {t('progress.open')}
             <ArrowRight size={16} aria-hidden="true" />

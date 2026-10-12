@@ -130,6 +130,15 @@ export default function Progress() {
                         );
                       })}
                     </ul>
+                    {s.key === 'saving' && s.reached && (
+                      <Link
+                        to="/savings"
+                        className="inline-flex min-h-12 items-center gap-1 font-semibold text-green-700 underline underline-offset-4"
+                      >
+                        {t('savings.open')}
+                        <ArrowRight size={16} aria-hidden="true" />
+                      </Link>
+                    )}
                     <p className="text-small text-ink-muted">
                       {t(s.reached ? 'progress.unlocked' : 'progress.unlocks', {
                         what: t(`progress.unlock.${s.unlocks}`),

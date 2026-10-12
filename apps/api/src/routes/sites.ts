@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { computeProgress } from '../services/progress.js';
+import { computeSavings } from '../services/savings.js';
 import { loadSite } from '../services/scope.js';
 
 export const sitesRouter = Router();
@@ -13,6 +14,12 @@ const n = (d: { toString(): string } | null | undefined) => (d == null ? null : 
 sitesRouter.get('/sites/:siteId/progress', requireAuth, async (req, res) => {
   const site = await loadSite(req.auth.orgId, String(req.params.siteId));
   res.json(await computeProgress(site));
+});
+
+// Verified savings (VER-1): baseline fit, ledger months, totals. Read from stored rows.
+sitesRouter.get('/sites/:siteId/savings', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeSavings(site));
 });
 
 sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {

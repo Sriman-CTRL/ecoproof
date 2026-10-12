@@ -20,8 +20,10 @@ const Landing = lazy(() => import('./pages/Landing'));
 const NewBill = lazy(() => import('./pages/NewBill'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Report = lazy(() => import('./pages/Report'));
+const Reports = lazy(() => import('./pages/Reports'));
 const Results = lazy(() => import('./pages/Results'));
 const ShareView = lazy(() => import('./pages/ShareView'));
+const Savings = lazy(() => import('./pages/Savings'));
 const Start = lazy(() => import('./pages/Start'));
 const Verify = lazy(() => import('./pages/Verify'));
 
@@ -91,6 +93,8 @@ export default function App() {
               <Route path="/health" element={<Health />} />
               <Route path="/actions" element={<Actions />} />
               <Route path="/actions/:code" element={<ActionDetail />} />
+              <Route path="/savings" element={<Savings />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/reports/:id" element={<Report />} />
               <Route path="/progress" element={<Progress />} />
             </Route>

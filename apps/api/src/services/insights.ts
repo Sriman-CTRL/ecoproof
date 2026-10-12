@@ -79,11 +79,15 @@ function ruleRef(r: TariffRule): RuleRef {
 }
 
 /** Rule rows for the site's discom+category that are not withdrawn and valid for the bill period. */
-async function loadRules(site: Site, periodEnd: Date): Promise<Map<string, TariffRule>> {
-  if (!site.discom || !site.tariffCategory) return new Map();
-  const rows = await prisma.tariffRule.findMany({
+/** Every tariff rule row for the site's DISCOM and category; callers filter by bill period. */
+export async function loadSiteRules(site: Site): Promise<TariffRule[]> {
+  if (!site.discom || !site.tariffCategory) return [];
+  return prisma.tariffRule.findMany({
     where: { discom: site.discom, category: site.tariffCategory },
   });
+}
+
+function rulesForPeriod(rows: TariffRule[], periodEnd: Date): Map<string, TariffRule> {
   return new Map(
     rows
       .filter((r) => r.status !== 'withdrawn' && (r.validFrom == null || r.validFrom <= periodEnd))
@@ -161,15 +165,21 @@ export async function computeInsights(
   monthStart: Date,
   shiftableKwh: number | null,
   /** card: false skips the insight card (headroom only needs the findings; keeps Home fast). */
-  opts: { card?: boolean } = {},
+  /**
+   * rules / months: the site's tariff rules and confirmed bills (any order), when the caller
+   * already loaded them for several months in one request.
+   */
+  opts: { card?: boolean; rules?: TariffRule[]; months?: EnergyMonth[] } = {},
 ): Promise<Insights> {
   const orgId = site.orgId;
-  const em = await prisma.energyMonth.findFirst({
-    where: { orgId, siteId: site.id, periodStart: monthStart },
-  });
+  const em = opts.months
+    ? opts.months.find((m) => m.periodStart.getTime() === monthStart.getTime())
+    : await prisma.energyMonth.findFirst({
+        where: { orgId, siteId: site.id, periodStart: monthStart },
+      });
   if (!em) throw new AppError(404, 'NOT_FOUND', 'No confirmed bill for that month');
 
-  const rules = await loadRules(site, em.periodEnd);
+  const rules = rulesForPeriod(opts.rules ?? (await loadSiteRules(site)), em.periodEnd);
   const findings: Finding[] = [];
   const passed: Finding[] = [];
   const skipped: Insights['skipped'] = [];
@@ -288,12 +298,22 @@ export async function computeInsights(
       'contracted demand, maximum demand or demand charges',
     );
     if (bdRule && cd != null && demandRate != null) {
-      const mds = await prisma.energyMonth.findMany({
-        where: { orgId, siteId: site.id, periodStart: { lte: monthStart }, mdKva: { not: null } },
-        orderBy: { periodStart: 'desc' },
-        take: 12,
-        select: { mdKva: true },
-      });
+      const mds = opts.months
+        ? opts.months
+            .filter((m) => m.periodStart <= monthStart && m.mdKva != null)
+            .sort((a, b) => b.periodStart.getTime() - a.periodStart.getTime())
+            .slice(0, 12)
+        : await prisma.energyMonth.findMany({
+            where: {
+              orgId,
+              siteId: site.id,
+              periodStart: { lte: monthStart },
+              mdKva: { not: null },
+            },
+            orderBy: { periodStart: 'desc' },
+            take: 12,
+            select: { mdKva: true },
+          });
       const minBillingPctOfCd = param(bdRule, 'flag_if_md_below_pct_of_cd');
       const flagMonths = param(bdRule, 'flag_months');
       const r = checkContractedDemand({
