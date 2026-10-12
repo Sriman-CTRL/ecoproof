@@ -32,8 +32,10 @@ export interface SavingsMonth {
 export interface Savings {
   baseline: {
     method: string;
-    cvRmse: number | null;
-    nmbe: number | null;
+    /** CV(RMSE) as a percent (0-100), e.g. 0.46 means 0.46%. ASHRAE 14 limit: 15. */
+    cvRmsePct: number | null;
+    /** NMBE as a percent (0-100). Limit: +/-5. */
+    nmbePct: number | null;
     passes: boolean;
     monthsUsed: number;
     a: number;
@@ -74,18 +76,19 @@ export async function computeSavings(site: Site): Promise<Savings> {
         const monthsUsed = energy.filter(
           (e) => e.periodStart >= baselineRow.start && e.periodStart <= baselineRow.end,
         ).length;
-        const cvRmse = num(baselineRow.cvRmse);
-        const nmbe = num(baselineRow.nmbe);
+        // baselines.cv_rmse and .nmbe are stored as percents (calc returns cvRmsePct, nmbePct).
+        const cvRmsePct = num(baselineRow.cvRmse);
+        const nmbePct = num(baselineRow.nmbe);
         return {
           method: baselineRow.method,
-          cvRmse,
-          nmbe,
+          cvRmsePct,
+          nmbePct,
           passes:
-            cvRmse != null &&
-            nmbe != null &&
+            cvRmsePct != null &&
+            nmbePct != null &&
             monthsUsed >= BASELINE_RULES.minMonthsForRegression &&
-            cvRmse <= BASELINE_RULES.maxCvRmsePct &&
-            Math.abs(nmbe) <= BASELINE_RULES.maxAbsNmbePct,
+            cvRmsePct <= BASELINE_RULES.maxCvRmsePct &&
+            Math.abs(nmbePct) <= BASELINE_RULES.maxAbsNmbePct,
           monthsUsed,
           a,
           b,

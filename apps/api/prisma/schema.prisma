@@ -67,14 +67,26 @@ enum SavingsStatus {
 // ---------------------------------------------------------------- business tables
 
 model Organisation {
-  id        String   @id @default(uuid()) @db.Uuid
-  type      OrgType
-  name      String
-  udyamNo   String?  @map("udyam_no")
-  gstin     String?
-  sector    String?
-  state     String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id                String    @id @default(uuid()) @db.Uuid
+  type              OrgType
+  name              String
+  udyamNo           String?   @map("udyam_no")
+  gstin             String?
+  sector            String?
+  state             String?
+  /// ADDITION: not in Doc 07, needed by FIN-1 scheme matcher (owner-entered business profile)
+  udyamCategory     String?   @map("udyam_category")
+  /// ADDITION: not in Doc 07, needed by FIN-1 (SIDBI 4E: 3+ years of operations) and the loan pack cover
+  yearsInOperation  Int?      @map("years_in_operation")
+  /// ADDITION: not in Doc 07, needed by FIN-1 (business profile: GST status)
+  gstRegistered     Boolean?  @map("gst_registered")
+  /// ADDITION: not in Doc 07, needed by FIN-1 (SIDBI 4E: cash profits)
+  cashProfitsLast2y Boolean?  @map("cash_profits_last_2y")
+  /// ADDITION: not in Doc 07, needed by FIN-1 (Telangana MSME Policy 2024: units commencing 18 Sep 2024 - 31 Mar 2029)
+  commencedOn       DateTime? @map("commenced_on") @db.Date
+  /// ADDITION: not in Doc 07, needed by FIN-1 (ZED: +10% subsidy for women/SC/ST owned units)
+  womenScStOwned    Boolean?  @map("women_sc_st_owned")
+  createdAt         DateTime  @default(now()) @map("created_at")
 
   sites                 Site[]
   memberships           Membership[]
@@ -309,7 +321,9 @@ model Baseline {
   end       DateTime @db.Date
   a         Decimal  @db.Decimal(18, 6)
   b         Decimal  @db.Decimal(18, 6)
+  /// Percent (0-100), not a fraction: 0.4648 means 0.46%. ASHRAE 14 limit is 15.
   cvRmse    Decimal? @map("cv_rmse") @db.Decimal(8, 4)
+  /// Percent (0-100). Limit is +/-5.
   nmbe      Decimal? @db.Decimal(8, 4)
   method    String
   createdAt DateTime @default(now()) @map("created_at")
@@ -564,6 +578,8 @@ model ActionLibrary {
 
 model Scheme {
   id            String    @id @default(uuid()) @db.Uuid
+  /// ADDITION: not in Doc 07, natural key for sourced R8 rows (legacy rows have none)
+  code          String?   @unique
   name          String    @unique
   rulesJson     Json      @map("rules_json")
   rateRange     String?   @map("rate_range")
@@ -572,6 +588,13 @@ model Scheme {
   active        Boolean
   statusNote    String?   @map("status_note")
   source        String
+  /// ADDITION: not in Doc 07, needed by FIN-1 (link to the scheme's source and the quoted line)
+  sourceUrl     String?   @map("source_url")
+  quotedLine    String?   @map("quoted_line")
+  /// ADDITION: not in Doc 07, plain-language benefit shown on /schemes
+  benefitText   String?   @map("benefit_text")
+  /// ADDITION: not in Doc 07, display order on /schemes
+  sortOrder     Int       @default(100) @map("sort_order")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   @@map("schemes")
@@ -591,4 +614,33 @@ model Benchmark {
 
   @@unique([sector, metric])
   @@map("benchmarks")
+}
+
+/// ADDITION: not in Doc 07, needed by REP-2 (EU CN codes for the CBAM supplier sheet, R4)
+model CbamCnCode {
+  id                String    @id @default(uuid()) @db.Uuid
+  code              String    @unique
+  description       String
+  inScopeNow        Boolean   @map("in_scope_now")
+  proposedFrom      DateTime? @map("proposed_from") @db.Date
+  /// EU default for India, total column (t CO2e per t of good); null when the source gives none
+  indiaDefaultTotal Decimal?  @map("india_default_total") @db.Decimal(10, 3)
+  source            String
+  sourceUrl         String?   @map("source_url")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@map("cbam_cn_codes")
+}
+
+/// ADDITION: not in Doc 07, needed by REP-2 (mark-up on EU default values by year, R4)
+model CbamMarkup {
+  id         String   @id @default(uuid()) @db.Uuid
+  yearFrom   Int      @unique @map("year_from")
+  pct        Decimal  @db.Decimal(5, 2)
+  source     String
+  sourceUrl  String?  @map("source_url")
+  quotedLine String?  @map("quoted_line")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("cbam_markups")
 }

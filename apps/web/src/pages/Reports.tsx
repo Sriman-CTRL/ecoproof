@@ -6,6 +6,7 @@ import { BUTTON_CLASS } from '../components/kit/Button';
 import { CARD_CLASS } from '../components/kit/Card';
 import { EmptyState } from '../components/kit/EmptyState';
 import { Skeleton } from '../components/kit/Skeleton';
+import { StampBadge } from '../components/kit/StampBadge';
 import { ErrorBox, Page } from '../components/ui';
 import { api } from '../lib/api';
 import { milestoneDate } from '../lib/progress';
@@ -55,6 +56,17 @@ export default function Reports() {
       }
     >
       <h1 className="font-heading text-title font-semibold">{t('reports.title')}</h1>
+      <Link
+        to="/reports/cbam/new"
+        className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+        data-testid="cbam-create"
+      >
+        <span className="space-y-0.5">
+          <span className="block font-semibold">{t('reports.cbamCreate')}</span>
+          <span className="block text-small text-ink-muted">{t('reports.cbamCreateHelp')}</span>
+        </span>
+        <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+      </Link>
       {q.isLoading && <Skeleton />}
       {q.isError && <ErrorBox>{t('reports.loadFailed')}</ErrorBox>}
       {q.isSuccess && rows.length === 0 && (
@@ -80,6 +92,11 @@ export default function Reports() {
                 <span className="num block text-small text-ink-muted">
                   {milestoneDate(r.createdAt, lang)}
                 </span>
+                {r.type === 'cbam_sheet' && (
+                  <span className="block py-1">
+                    <StampBadge variant="estimate" />
+                  </span>
+                )}
                 <span className="block text-small">
                   {t('reports.shared', { shares: r.shareCount, count: r.viewCount })}
                 </span>

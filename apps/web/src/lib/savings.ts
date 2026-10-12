@@ -19,8 +19,10 @@ export interface SavingsMonth {
 export interface Savings {
   baseline: {
     method: string;
-    cvRmse: number | null;
-    nmbe: number | null;
+    /** Percent (0-100): 0.46 means 0.46%. */
+    cvRmsePct: number | null;
+    /** Percent (0-100). */
+    nmbePct: number | null;
     passes: boolean;
     monthsUsed: number;
     a: number;

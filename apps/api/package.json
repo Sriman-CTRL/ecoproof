@@ -26,6 +26,7 @@
     "@supabase/supabase-js": "^2.117.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
+    "exceljs": "4.4.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",

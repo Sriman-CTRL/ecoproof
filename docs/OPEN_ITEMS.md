@@ -39,14 +39,33 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 - [ ] BRSR Core field names.
 - [ ] Loan-ready summary PDF is English only: Telugu and Hindi PDF templates (Doc 05 step 4) still to write and review.
-- [ ] Loan-ready summary cover: "years in operation" and "city" are not stored on `organisations`/`sites`; printed as "not given".
+- [ ] Loan-ready summary cover: "city" is not stored on `organisations`/`sites`; printed as "not given". Years in operation, Udyam category and GST status now come from the owner profile (S8b).
 - [ ] Loan-ready summary: "vendor quotes compared" (Doc 05) needs quote documents; the prototype takes one owner-entered quote.
 - [ ] Loan-ready summary: Doc 05 asks for "intensity before and after"; "after" is only printed for bill fixes ("unchanged"). kWh-saving measures need sourced kWh savings first.
-- [ ] Scheme `last_checked_at` is null, so the report prints tariff rule lines only (Doc 05 asks for the date rules were last checked).
+- [x] Scheme rules now carry `last_checked_at` (12 Oct 2026, research R8); the loan pack prints it next to the tariff rules.
 
 ## Schemes
 
-- [ ] `last_checked_at` for all schemes (currently null). Rules older than 60 days show a warning per Doc 02.
+- [x] `last_checked_at` set for the sourced R8 rows (12 Oct 2026). Rules older than 60 days show a warning per Doc 02. The three legacy unsourced rows are kept inactive (reference rows are never deleted).
+- [ ] No profile screen yet: the owner profile (Udyam category, years in operation, GST, cash profits, commencement date, women/SC/ST owned) is seeded for the demo orgs only. A missing field gives "Check with lender / the scheme office", never "likely".
+- [ ] ZED readiness card: the design plan asks for the ZED energy and environment items EcoProof's data already covers, ticked. No sourced ZED item list yet, so the card leaves it out.
+- [ ] MSE-GIFT: the 890-technology list is not checked, so the matcher says "Check with lender".
+- [ ] ADEETIE: Hyderabad cluster inclusion not found (R8); always "Check with the scheme office".
+- [ ] SIDBI 4E and GFS publish no numeric rate ("MCLR linked"); two SIDBI pages give conflicting 4E terms (live page used).
+- [ ] Telangana MSME Policy 2024 incentives: GHMC area and four named Hyderabad estates are excluded. No site-location field to check this; new or expanding units get "Check with the scheme office".
+- [ ] Bank ZED concessions are lender-published with no date; the card says "re-check with the bank before relying on it".
+- [ ] Scheme names, reasons and benefit text come from `schemes.json` in English only; on the Telugu screen only the status labels are translated.
+- [ ] PM Surya Ghar (household money found, R5) not added until household mode is built.
+
+## CBAM supplier sheet
+
+- [ ] The Commission's .xlsx template could not be opened (R4); tabs follow the Annex IV text of IR 2025/2547 instead.
+- [ ] Direct emissions per tonne divide the installation's fuel emissions by all output in the period (production records); no per-process attribution.
+- [ ] Precursors: only pig iron (owner-entered tonnes x EU India default 2.53, estimate) is counted; purchased steel has no factor, so the sheet always says it is incomplete.
+- [ ] Fuel types other than diesel, LPG, furnace oil and foundry coke (kg or litre) are listed but not counted (no factor mapping).
+- [ ] Carbon price paid in India: printed as "none entered" (Doc 05 says none is recognised as of June 2026).
+- [ ] CN 7325 8-digit subheadings not found (R4); only the 7325 heading is in the picker. COM(2025) 989 is not yet adopted.
+- [ ] Telugu strings under `schemes.*` and `cbam.*` (S8b) are machine-drafted: need native speaker review.
 
 ## Languages
 

@@ -40,13 +40,36 @@ const TariffRow = z.object({
 });
 
 const SchemeRow = z.object({
+  code: z.string().nullable(),
   name: z.string(),
+  sort_order: z.number().int(),
+  benefit_text: z.string().nullable(),
   rules: z.record(z.string(), z.unknown()),
   rate_range: z.string().nullable(),
   source: z.string(),
+  source_url: z.string().nullable(),
+  quoted_line: z.string().nullable(),
   active: z.boolean(),
   status_note: z.string().nullable(),
   last_checked_at: date,
+});
+
+const CbamCnRow = z.object({
+  code: z.string(),
+  description: z.string(),
+  in_scope_now: z.boolean(),
+  proposed_from: date,
+  india_default_total: z.number().nullable(),
+  source: z.string(),
+  source_url: z.string().nullable(),
+});
+
+const CbamMarkupRow = z.object({
+  year_from: z.number().int(),
+  pct: z.number(),
+  source: z.string(),
+  source_url: z.string().nullable(),
+  quoted_line: z.string().nullable(),
 });
 
 const BenchmarkRow = z.object({
@@ -80,6 +103,8 @@ async function main() {
   const schemes = load('schemes.json', z.array(SchemeRow));
   const benchmarks = load('benchmarks.json', z.array(BenchmarkRow));
   const actions = load('action_library.json', z.object({ rows: z.array(ActionRow) })).rows;
+  const cnCodes = load('cbam_cn_codes.json', z.array(CbamCnRow));
+  const markups = load('cbam_markups.json', z.array(CbamMarkupRow));
 
   await prisma.$transaction(async (tx) => {
     for (const f of factors) {
@@ -126,17 +151,57 @@ async function main() {
 
     for (const s of schemes) {
       const data = {
+        name: s.name,
         rulesJson: json(s.rules),
         rateRange: s.rate_range,
         source: s.source,
+        sourceUrl: s.source_url,
+        quotedLine: s.quoted_line,
+        benefitText: s.benefit_text,
+        sortOrder: s.sort_order,
         active: s.active,
         statusNote: s.status_note,
         lastCheckedAt: s.last_checked_at,
       };
-      await tx.scheme.upsert({
-        where: { name: s.name },
+      // Sourced rows are keyed by code; legacy rows (no code) by name.
+      if (s.code) {
+        await tx.scheme.upsert({
+          where: { code: s.code },
+          update: data,
+          create: { code: s.code, ...data },
+        });
+      } else {
+        await tx.scheme.upsert({ where: { name: s.name }, update: data, create: data });
+      }
+    }
+
+    for (const c of cnCodes) {
+      const data = {
+        description: c.description,
+        inScopeNow: c.in_scope_now,
+        proposedFrom: c.proposed_from,
+        indiaDefaultTotal: c.india_default_total,
+        source: c.source,
+        sourceUrl: c.source_url,
+      };
+      await tx.cbamCnCode.upsert({
+        where: { code: c.code },
         update: data,
-        create: { name: s.name, ...data },
+        create: { code: c.code, ...data },
+      });
+    }
+
+    for (const m of markups) {
+      const data = {
+        pct: m.pct,
+        source: m.source,
+        sourceUrl: m.source_url,
+        quotedLine: m.quoted_line,
+      };
+      await tx.cbamMarkup.upsert({
+        where: { yearFrom: m.year_from },
+        update: data,
+        create: { yearFrom: m.year_from, ...data },
       });
     }
 
@@ -174,6 +239,8 @@ async function main() {
     schemes: await prisma.scheme.count(),
     benchmarks: await prisma.benchmark.count(),
     action_library: await prisma.actionLibrary.count(),
+    cbam_cn_codes: await prisma.cbamCnCode.count(),
+    cbam_markups: await prisma.cbamMarkup.count(),
   };
   for (const [table, n] of Object.entries(counts)) console.log(`${table}: ${n}`);
 }

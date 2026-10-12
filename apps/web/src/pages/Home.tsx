@@ -21,6 +21,7 @@ import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { nextText, pathText, useProgress, type Progress } from '../lib/progress';
 import { useSavings } from '../lib/savings';
+import { useSchemes } from '../lib/schemes';
 import { getSession } from '../lib/session';
 
 interface LatestDoc {
@@ -55,6 +56,8 @@ export default function Home() {
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
   const savings = useSavings();
+  const schemes = useSchemes();
+  const moneyFound = schemes.data?.moneyFound.inr ?? 0;
   const latestDoc = useQuery({
     queryKey: ['latest-doc', siteId],
     queryFn: () => api<LatestDoc | null>(`/sites/${siteId}/documents/latest`),
@@ -197,6 +200,22 @@ export default function Home() {
             started={p.headroom.startedInrPerMonth}
           />
         </Card>
+      )}
+
+      {moneyFound > 0 && (
+        <Link
+          to="/schemes"
+          className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+          data-testid="money-found-line"
+        >
+          <span>
+            <span className="block font-semibold">
+              {t('home.moneyFound', { inr: formatInr(moneyFound) })}
+            </span>
+            <span className="block text-small text-ink-muted">{t('schemes.status.likely')}</span>
+          </span>
+          <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+        </Link>
       )}
 
       {months.isLoading || (top && insights.isLoading) ? (

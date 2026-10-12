@@ -1,0 +1,137 @@
+[
+  {
+    "code": "7303 00",
+    "description": "Tubes, pipes and hollow profiles, of cast iron",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 2.84,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I; default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7307 11",
+    "description": "Tube or pipe fittings of non-malleable cast iron",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 3.859,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I (heading 7307); default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7307 19 10",
+    "description": "Tube or pipe fittings of cast iron (excl. of non-malleable)",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 3.859,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I (heading 7307); default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7307 19 90",
+    "description": "Cast tube or pipe fittings of steel",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 4.32,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I (heading 7307); default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7318",
+    "description": "Screws, bolts, nuts, coach screws… and similar articles, of iron or steel",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": null,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02023R0956-20251020"
+  },
+  {
+    "code": "7318 15",
+    "description": "Screws, bolts, nuts, coach screws… and similar articles, of iron or steel",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 5.72,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I; default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7326",
+    "description": "Articles of iron or steel, n.e.s. (excl. cast articles)",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": null,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:02023R0956-20251020"
+  },
+  {
+    "code": "7326 90 98",
+    "description": "Articles of iron or steel, n.e.s. (excl. cast articles)",
+    "in_scope_now": true,
+    "proposed_from": null,
+    "india_default_total": 4.91,
+    "source": "Reg. (EU) 2023/956 consol. 20.10.2025, Annex I; default: IR (EU) 2025/2621 Annex I India, iron and steel, total column, as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740"
+  },
+  {
+    "code": "7325",
+    "description": "Other cast articles of iron or steel",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "7317 00",
+    "description": "Nails, tacks, drawing pins… staples… of iron or steel",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "8454 20 00",
+    "description": "Ingot moulds and ladles…",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "8454 30",
+    "description": "Casting machines… in metallurgy or in metal foundries",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "8708 40",
+    "description": "Gear boxes and parts (motor vehicles)",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "8708 70",
+    "description": "Road wheels and parts (motor vehicles)",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  },
+  {
+    "code": "8708 80",
+    "description": "Suspension systems and parts (motor vehicles)",
+    "in_scope_now": false,
+    "proposed_from": "2028-01-01",
+    "india_default_total": null,
+    "source": "COM(2025) 989, 17.12.2025 (proposal, not yet adopted)",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0989"
+  }
+]

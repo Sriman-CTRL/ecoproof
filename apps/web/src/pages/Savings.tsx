@@ -158,8 +158,11 @@ function HowWeMeasure({ baseline }: { baseline: NonNullable<SavingsData['baselin
       t('savings.m.method'),
       t(`savings.methodName.${baseline.method}`, { defaultValue: baseline.method }),
     ],
-    [t('savings.m.cvrmse'), baseline.cvRmse == null ? '-' : `${formatDecimal(baseline.cvRmse)}%`],
-    [t('savings.m.nmbe'), baseline.nmbe == null ? '-' : `${formatDecimal(baseline.nmbe)}%`],
+    [
+      t('savings.m.cvrmse'),
+      baseline.cvRmsePct == null ? '-' : `${formatDecimal(baseline.cvRmsePct)}%`,
+    ],
+    [t('savings.m.nmbe'), baseline.nmbePct == null ? '-' : `${formatDecimal(baseline.nmbePct)}%`],
     [t('savings.m.result'), t(baseline.passes ? 'savings.m.pass' : 'savings.m.fail')],
     [t('savings.m.months'), String(baseline.monthsUsed)],
   ];

@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { notFound } from '../errors.js';
 import { requireAuth } from '../middleware/auth.js';
+import { CbamBody, createCbamSheet } from '../reports/cbamSheet.js';
 import { createLoanPack, LoanPackBody, verifyView } from '../reports/loanPack.js';
 import { loadSite } from '../services/scope.js';
 
@@ -23,6 +24,41 @@ reportsRouter.post('/sites/:siteId/reports/loan-pack', requireAuth, async (req, 
     ...made,
     downloadUrl: await storage.signedUrl(fileKey, DOWNLOAD_SECONDS),
   });
+});
+
+// REP-2 CBAM supplier sheet (Excel): estimate, not verified. The owner picks each CN code.
+reportsRouter.post('/sites/:siteId/reports/cbam', requireAuth, async (req, res) => {
+  const { orgId } = req.auth;
+  const site = await loadSite(orgId, String(req.params.siteId));
+  const body = CbamBody.parse(req.body);
+  const { fileKey, ...made } = await createCbamSheet(site, body);
+  res.status(201).json({
+    ...made,
+    downloadUrl: await storage.signedUrl(fileKey, DOWNLOAD_SECONDS),
+  });
+});
+
+// CN code picker (reference table, R4). Search by code or description.
+reportsRouter.get('/cbam/cn-codes', requireAuth, async (req, res) => {
+  const q = z.string().trim().max(60).catch('').parse(req.query.q);
+  const digits = q.replace(/\s+/g, '');
+  const rows = await prisma.cbamCnCode.findMany({ orderBy: { code: 'asc' } });
+  const hits = q
+    ? rows.filter(
+        (r) =>
+          r.code.replace(/\s+/g, '').startsWith(digits) ||
+          r.description.toLowerCase().includes(q.toLowerCase()),
+      )
+    : rows;
+  res.json(
+    hits.map((r) => ({
+      code: r.code,
+      description: r.description,
+      inScopeNow: r.inScopeNow,
+      proposedFrom: r.proposedFrom ? r.proposedFrom.toISOString().slice(0, 10) : null,
+      hasIndiaDefault: r.indiaDefaultTotal != null,
+    })),
+  );
 });
 
 reportsRouter.get('/sites/:siteId/reports', requireAuth, async (req, res) => {

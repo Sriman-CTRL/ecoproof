@@ -17,8 +17,10 @@ import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { DEMO_ORG_IDS } from '../demo/ids.js';
 import { AppError } from '../errors.js';
+import type { CbamResults } from './cbamSheet.js';
 import { pdfRenderer } from './pdfRenderer.js';
 import { listActions } from '../services/actions.js';
+import { computeSchemes } from '../services/schemes.js';
 import { ACTION_CODE, BASELINE_RULES, type FindingCode } from '../services/insights.js';
 
 export const LoanPackBody = z.object({
@@ -42,6 +44,8 @@ export type LoanPackBody = z.infer<typeof LoanPackBody>;
 export const LENDER_LINE = "Summary for the lender's own assessment. Not an approval or sanction.";
 export const RUPEES_NOT_UNITS = 'saves rupees, not units of energy';
 const NOT_GIVEN = 'not given';
+export const ZED_LINE =
+  'ZED Bronze certification is free for this unit with the joining reward; several banks offer rate concessions for ZED units.';
 const COST_PENDING = 'cost pending: get a quote';
 
 const FINDING_TITLE: Record<FindingCode, string> = {
@@ -72,8 +76,15 @@ export interface LoanPackResults {
     gstin: string;
     city: string;
     yearsInOperation: string;
+    /** Owner-entered profile (FIN-1); absent on packs made before S8b. */
+    udyamCategory?: string;
+    gstRegistered?: string;
     siteAddress: string;
   };
+  /** One line on the ZED path when the scheme matcher says ZED is likely; else null. */
+  zedLine?: string | null;
+  /** Date the scheme rules used for the ZED line were last checked (Doc 05). */
+  schemesLastChecked?: string | null;
   months: Array<{
     month: string;
     kwh: number | null;
@@ -280,6 +291,7 @@ export async function buildSnapshot(
   const factorIds = [...new Set(results.flatMap((r) => r.factorIds))];
   const factors = await prisma.factor.findMany({ where: { id: { in: factorIds } } });
 
+  const schemes = await computeSchemes(site, ids.issuedAt);
   const resultsJson: LoanPackResults = {
     reportId: ids.reportId,
     version: ids.version,
@@ -291,9 +303,13 @@ export async function buildSnapshot(
       udyamNo: org.udyamNo ?? NOT_GIVEN,
       gstin: org.gstin ?? NOT_GIVEN,
       city: NOT_GIVEN, // no city field stored (OPEN_ITEMS)
-      yearsInOperation: NOT_GIVEN, // not stored (OPEN_ITEMS)
+      yearsInOperation: org.yearsInOperation == null ? NOT_GIVEN : String(org.yearsInOperation),
+      udyamCategory: org.udyamCategory ?? NOT_GIVEN,
+      gstRegistered: org.gstRegistered == null ? NOT_GIVEN : org.gstRegistered ? 'yes' : 'no',
       siteAddress: site.address ?? NOT_GIVEN,
     },
+    zedLine: schemes.zed?.status === 'likely' ? ZED_LINE : null,
+    schemesLastChecked: schemes.zed?.lastChecked ?? null,
     months: months.map((m) => {
       const energy = num(m.energyCharges);
       const demand = num(m.demandCharges);
@@ -510,6 +526,12 @@ export async function renderHtml(r: LoanPackResults, snapshotId: string): Promis
     udyamNo: r.business.udyamNo,
     gstin: r.business.gstin,
     yearsInOperation: r.business.yearsInOperation,
+    udyamCategory: r.business.udyamCategory ?? NOT_GIVEN,
+    gstRegistered: r.business.gstRegistered ?? NOT_GIVEN,
+    zedLine: r.zedLine ? `<p class="muted" style="margin-top:2mm">${esc(r.zedLine)}</p>` : '',
+    schemesChecked: r.schemesLastChecked
+      ? ` Scheme rules last checked ${dateText(`${r.schemesLastChecked}T00:00:00Z`)}.`
+      : '',
     siteAddress: r.business.siteAddress,
     city: r.business.city,
     qrDataUrl,
@@ -609,19 +631,43 @@ export function footerTemplate(reportId: string, verifyUrl: string): string {
 
 /** The only fields the public verify page and share links may show (Doc 05). */
 export function verifyView(report: Report & { snapshot: ReportSnapshot }) {
-  const r = report.snapshot.resultsJson as unknown as LoanPackResults;
-  return {
+  const base = {
     reportId: report.id,
+    type: report.type,
     issuedAt: report.createdAt.toISOString(),
     version: report.version,
+    sha256: report.sha256,
+  };
+  if (report.type === 'cbam_sheet') {
+    const c = report.snapshot.resultsJson as unknown as CbamResults;
+    return {
+      ...base,
+      businessName: c.installation.operatorName,
+      headline: {
+        kind: 'cbam_sheet' as const,
+        label: c.label,
+        period: c.period,
+        products: c.products.map((p) => ({
+          cnCode: p.cnCode,
+          description: p.ownerDescription,
+          tonnes: p.tonnes,
+          inScopeNow: p.inScopeNow,
+          seeDirect: Math.round(p.seeDirect * 1000) / 1000,
+        })),
+      },
+    };
+  }
+  const r = report.snapshot.resultsJson as unknown as LoanPackResults;
+  return {
+    ...base,
     businessName: r.business.name,
     headline: {
+      kind: 'loan_pack' as const,
       measure: r.measure.title,
       monthlySavingLow: r.measure.savingLow,
       monthlySavingHigh: r.measure.savingHigh,
       emi: Math.round(r.loan.emi),
       netMonthly: Math.round(r.loan.netMonthly),
     },
-    sha256: report.sha256,
   };
 }

@@ -170,18 +170,36 @@ export interface LoanPackCreated {
 }
 
 /** The only fields the public verify page shows (apps/api/src/reports/loanPack.ts verifyView). */
+export interface LoanPackHeadline {
+  kind: 'loan_pack';
+  measure: string;
+  monthlySavingLow: number;
+  monthlySavingHigh: number;
+  emi: number;
+  netMonthly: number;
+}
+
+export interface CbamHeadline {
+  kind: 'cbam_sheet';
+  /** "Estimate, not verified" */
+  label: string;
+  period: { from: string; to: string; months: number };
+  products: Array<{
+    cnCode: string;
+    description: string;
+    tonnes: number;
+    inScopeNow: boolean;
+    seeDirect: number;
+  }>;
+}
+
 export interface VerifyView {
   reportId: string;
+  type: 'loan_pack' | 'cbam_sheet';
   issuedAt: string;
   version: number;
   businessName: string;
-  headline: {
-    measure: string;
-    monthlySavingLow: number;
-    monthlySavingHigh: number;
-    emi: number;
-    netMonthly: number;
-  };
+  headline: LoanPackHeadline | CbamHeadline;
   sha256: string;
 }
 

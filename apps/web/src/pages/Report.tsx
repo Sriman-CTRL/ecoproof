@@ -78,18 +78,21 @@ export default function Report() {
 
   const inputClass = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
   const r = q.data;
+  const isCbam = r?.type === 'cbam_sheet';
   return (
     <Page
       tab="reports"
       action={
         r ? (
           <Button disabled={share.isPending} onClick={shareWithLender}>
-            {t('report.shareWithLender')}
+            {t(isCbam ? 'report.shareWithBuyer' : 'report.shareWithLender')}
           </Button>
         ) : undefined
       }
     >
-      <h1 className="font-heading text-title font-semibold">{t('report.title')}</h1>
+      <h1 className="font-heading text-title font-semibold">
+        {t(isCbam ? 'cbam.title' : 'report.title')}
+      </h1>
       {q.isLoading && (
         <>
           <Skeleton />
@@ -113,12 +116,14 @@ export default function Report() {
             rel="noopener noreferrer"
           >
             <DownloadSimple size={20} aria-hidden="true" />
-            {t('report.download')}
+            {t(isCbam ? 'report.downloadExcel' : 'report.download')}
           </a>
 
           <Card className="space-y-2">
             <h2 className="font-heading text-card-title font-semibold">{t('report.sealTitle')}</h2>
-            <p className="text-small text-ink-muted">{t('report.sealHelp')}</p>
+            <p className="text-small text-ink-muted">
+              {t(isCbam ? 'report.sealHelpFile' : 'report.sealHelp')}
+            </p>
             <button
               type="button"
               className="flex min-h-12 items-center gap-2 text-left"
@@ -137,7 +142,9 @@ export default function Report() {
           </Card>
 
           <Card className="space-y-3">
-            <h2 className="font-heading text-card-title font-semibold">{t('report.shareTitle')}</h2>
+            <h2 className="font-heading text-card-title font-semibold">
+              {t(isCbam ? 'report.shareTitleBuyer' : 'report.shareTitle')}
+            </h2>
             <form
               className="space-y-3"
               onSubmit={(e) => {
@@ -197,7 +204,9 @@ export default function Report() {
             )}
           </section>
 
-          <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
+          <p className="text-small text-ink-muted">
+            {t(isCbam ? 'cbam.statusNote' : 'detail.lenderNote')}
+          </p>
         </>
       )}
     </Page>

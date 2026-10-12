@@ -3,6 +3,7 @@ import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { computeProgress } from '../services/progress.js';
 import { computeSavings } from '../services/savings.js';
+import { computeSchemes } from '../services/schemes.js';
 import { loadSite } from '../services/scope.js';
 
 export const sitesRouter = Router();
@@ -20,6 +21,12 @@ sitesRouter.get('/sites/:siteId/progress', requireAuth, async (req, res) => {
 sitesRouter.get('/sites/:siteId/savings', requireAuth, async (req, res) => {
   const site = await loadSite(req.auth.orgId, String(req.params.siteId));
   res.json(await computeSavings(site));
+});
+
+// Scheme matcher (FIN-1), ZED readiness card and the money found counter (plan 6.2).
+sitesRouter.get('/sites/:siteId/schemes', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeSchemes(site));
 });
 
 sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {

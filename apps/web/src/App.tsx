@@ -12,6 +12,7 @@ import { getSession } from './lib/session';
 const ActionDetail = lazy(() => import('./pages/ActionDetail'));
 const Actions = lazy(() => import('./pages/Actions'));
 const Bills = lazy(() => import('./pages/Bills'));
+const CbamNew = lazy(() => import('./pages/CbamNew'));
 const Confirm = lazy(() => import('./pages/Confirm'));
 const Consent = lazy(() => import('./pages/Consent'));
 const Health = lazy(() => import('./pages/Health'));
@@ -24,6 +25,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const Results = lazy(() => import('./pages/Results'));
 const ShareView = lazy(() => import('./pages/ShareView'));
 const Savings = lazy(() => import('./pages/Savings'));
+const Schemes = lazy(() => import('./pages/Schemes'));
 const Start = lazy(() => import('./pages/Start'));
 const Verify = lazy(() => import('./pages/Verify'));
 
@@ -95,8 +97,10 @@ export default function App() {
               <Route path="/actions/:code" element={<ActionDetail />} />
               <Route path="/savings" element={<Savings />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/reports/cbam/new" element={<CbamNew />} />
               <Route path="/reports/:id" element={<Report />} />
               <Route path="/progress" element={<Progress />} />
+              <Route path="/schemes" element={<Schemes />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/home" replace />} />

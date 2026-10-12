@@ -128,6 +128,10 @@
         <dd>{{udyamNo}}</dd>
         <dt>GSTIN</dt>
         <dd>{{gstin}}</dd>
+        <dt>GST registered</dt>
+        <dd>{{gstRegistered}}</dd>
+        <dt>Udyam category</dt>
+        <dd>{{udyamCategory}}</dd>
         <dt>Years in operation</dt>
         <dd>{{yearsInOperation}}</dd>
         <dt>Site address</dt>
@@ -207,6 +211,7 @@
         <dt>Simple payback</dt>
         <dd>{{paybackText}}</dd>
       </dl>
+      {{{zedLine}}}
     </section>
 
     <section>
@@ -232,7 +237,8 @@
       <h3>Factors and rules used</h3>
       {{{factorsTable}}}
       <p class="muted">
-        Formula version {{formulaVersion}}. Snapshot {{snapshotId}}. Tariff rules: {{tariffRules}}.
+        Formula version {{formulaVersion}}. Snapshot {{snapshotId}}. Tariff rules:
+        {{tariffRules}}.{{schemesChecked}}
       </p>
       <p class="label" style="margin-top: 4mm">
         Summary for the lender's own assessment. It is an energy and carbon pre-assessment from the

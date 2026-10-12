@@ -1,0 +1,23 @@
+[
+  {
+    "year_from": 2026,
+    "pct": 10,
+    "source": "IR (EU) 2025/2621 as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740",
+    "quoted_line": "For goods in the cement, iron and steel, aluminium and hydrogen sectors, the mark-up shall be 10 % for the year 2026, 20 % for the year 2027 and 30 % for the year 2028 and onwards."
+  },
+  {
+    "year_from": 2027,
+    "pct": 20,
+    "source": "IR (EU) 2025/2621 as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740",
+    "quoted_line": "For goods in the cement, iron and steel, aluminium and hydrogen sectors, the mark-up shall be 10 % for the year 2026, 20 % for the year 2027 and 30 % for the year 2028 and onwards."
+  },
+  {
+    "year_from": 2028,
+    "pct": 30,
+    "source": "IR (EU) 2025/2621 as corrected by IR (EU) 2026/1740",
+    "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202601740",
+    "quoted_line": "For goods in the cement, iron and steel, aluminium and hydrogen sectors, the mark-up shall be 10 % for the year 2026, 20 % for the year 2027 and 30 % for the year 2028 and onwards."
+  }
+]

@@ -67,9 +67,9 @@ Guardrails (plan 6.3):
 
 Fixed phrases (plan 7): "Energy and carbon pre-assessment", "Summary for the lender's own assessment", "Estimate, not verified", "Too early to confirm", "Likely eligible; confirm with the scheme office".
 
-Banned words (whole word, any case; enforced by `apps/web/src/locales/locales.test.ts`): audit, approved, sanctioned, eligible, certified, compliant, certificate, verified, green certified, eco-friendly, carbon neutral, sustainable unit, green factory.
+Banned words (whole word, any case; list in `packages/shared/src/wording.ts`, enforced by `apps/web/src/locales/locales.test.ts` and the API report tests): audit, approved, sanctioned, eligible, certified, compliant, certificate, verified, green certified, eco-friendly, carbon neutral, sustainable unit, green factory.
 
-Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not an energy audit", "ZED certification", "ZED certificate".
+Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not eligible" (Doc 02 FIN-1, always followed by the reason), "Verified data must be confirmed by an accredited verifier" (Doc 05 CBAM status line), "Not an energy audit", "ZED certification", "ZED certificate".
 
 ## Data rules
 

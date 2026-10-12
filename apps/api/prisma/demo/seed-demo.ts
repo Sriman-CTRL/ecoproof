@@ -115,9 +115,18 @@ async function seedOrg(opts: {
   const md = num('mdKva');
   const billedMd = Math.max(md, 0.8 * cd);
 
+  // SYNTHETIC profile for the scheme matcher (FIN-1): not a real business.
+  const profile = {
+    udyamCategory: 'small',
+    yearsInOperation: 12,
+    gstRegistered: true,
+    cashProfitsLast2y: true,
+    commencedOn: new Date('2014-04-01T00:00:00Z'),
+    womenScStOwned: false,
+  };
   await prisma.organisation.upsert({
     where: { id: orgId },
-    update: { name },
+    update: { name, ...profile },
     create: {
       id: orgId,
       type: 'msme',
@@ -126,6 +135,7 @@ async function seedOrg(opts: {
       gstin: null,
       sector: 'foundry',
       state: 'Telangana',
+      ...profile,
     },
   });
   const siteData = {

@@ -10,6 +10,7 @@ import {
   LENDER_LINE,
   renderHtml,
   verifyUrlFor,
+  ZED_LINE,
   type LoanPackResults,
 } from '../src/reports/loanPack.js';
 import { DEMO_REPORT_ID } from '../src/demo/ids.js';
@@ -132,6 +133,15 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     expect(html).toContain('Sample data (synthetic)');
     expect(html).toContain('1,00,000');
     expect(html).not.toMatch(BANNED);
+    // Owner profile on the cover (S8b) and the ZED path line on the measure page.
+    expect(s.business).toMatchObject({
+      yearsInOperation: '12',
+      udyamCategory: 'small',
+      gstRegistered: 'yes',
+    });
+    expect(s.zedLine).toBe(ZED_LINE);
+    expect(html).toContain(ZED_LINE);
+    expect(html).toContain('Scheme rules last checked 12 October 2026');
 
     const footer = footerTemplate(row.id, verifyUrlFor(row.id));
     expect(LENDER_LINE).toBe(
@@ -175,10 +185,11 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     const r = await request(app).get(`/public/reports/${v1.reportId}/verify`);
     expect(r.status).toBe(200);
     expect(Object.keys(r.body).sort()).toEqual(
-      ['businessName', 'headline', 'issuedAt', 'reportId', 'sha256', 'version'].sort(),
+      ['businessName', 'headline', 'issuedAt', 'reportId', 'sha256', 'type', 'version'].sort(),
     );
+    expect(r.body.type).toBe('loan_pack');
     expect(Object.keys(r.body.headline).sort()).toEqual(
-      ['emi', 'measure', 'monthlySavingHigh', 'monthlySavingLow', 'netMonthly'].sort(),
+      ['emi', 'kind', 'measure', 'monthlySavingHigh', 'monthlySavingLow', 'netMonthly'].sort(),
     );
     expect(r.body.headline.netMonthly).toBe(Math.round(60000 - 20276.39));
     const missing = await request(app).get(

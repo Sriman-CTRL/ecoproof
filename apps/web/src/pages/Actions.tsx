@@ -120,7 +120,16 @@ export default function Actions() {
         </Button>
       }
     >
-      <h1 className="font-heading text-title font-semibold">{t('actions.title')}</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+        <h1 className="font-heading text-title font-semibold">{t('actions.title')}</h1>
+        <Link
+          to="/schemes"
+          className="inline-flex min-h-12 items-center text-small font-semibold text-green-700 underline underline-offset-4"
+          data-testid="plan-schemes-link"
+        >
+          {t('actions.schemesLink')}
+        </Link>
+      </div>
       {q.isLoading && (
         <>
           <Skeleton />

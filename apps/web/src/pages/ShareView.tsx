@@ -48,7 +48,7 @@ export default function ShareView() {
         q.data ? (
           <Button onClick={() => void download()}>
             <DownloadSimple size={24} aria-hidden="true" />
-            {t('report.download')}
+            {t(q.data.type === 'cbam_sheet' ? 'report.downloadExcel' : 'report.download')}
           </Button>
         ) : undefined
       }
@@ -66,7 +66,9 @@ export default function ShareView() {
           <VerifyCard v={q.data} />
           <CheckFileButton variant="secondary" onChange={check.onChange} busy={check.busy} />
           <SealNote expected={q.data.sha256} />
-          <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
+          <p className="text-small text-ink-muted">
+            {t(q.data.type === 'cbam_sheet' ? 'cbam.statusNote' : 'detail.lenderNote')}
+          </p>
         </>
       )}
     </Page>

@@ -100,7 +100,8 @@
     },
     "headroomTitle": "Money found in your bills",
     "heroSaved": "Saved this month",
-    "savedTotal": "{{inr}} total so far"
+    "savedTotal": "{{inr}} total so far",
+    "moneyFound": "Money found for you: {{inr}}"
   },
   "bills": {
     "newTitle": "Add a bill",
@@ -376,7 +377,8 @@
     "perYearShort": "a year",
     "lowCostQuote": "Low cost, quote needed",
     "topThree": "Top actions by rupees",
-    "emptyTitle": "No actions yet"
+    "emptyTitle": "No actions yet",
+    "schemesLink": "Schemes and loans"
   },
   "detail": {
     "plan": "Plan this action",
@@ -386,7 +388,7 @@
     "emiTitle": "Loan instalment vs saving",
     "loan": "Loan amount (Rs)",
     "rate": "Annual interest rate (%)",
-    "rateHelp": "SIDBI green loans have been offered at 7.5-8.6% (Mercom)",
+    "rateHelp": "SIDBI 4E loans are MCLR-linked; ask the lender for today's rate.",
     "tenure": "Tenure (months)",
     "emi": "Monthly instalment (EMI)",
     "savingLow": "Low-end monthly saving",
@@ -433,7 +435,11 @@
     "shortHash": "Seal code",
     "log": "Who has opened it",
     "noShares": "Not shared yet",
-    "copyHash": "Copy full code"
+    "copyHash": "Copy full code",
+    "downloadExcel": "Download Excel",
+    "shareWithBuyer": "Share with a buyer",
+    "shareTitleBuyer": "Share with buyer",
+    "sealHelpFile": "This code (SHA-256) changes if even one cell of the file changes."
   },
   "verify": {
     "business": "Business",
@@ -652,7 +658,7 @@
       },
       "lender": {
         "name": "Lenders and EU buyers",
-        "body": "Lenders get a loan-ready summary for the lender's own assessment. EU buyers get a CBAM supplier sheet: estimate, not verified."
+        "body": "Lenders get a loan-ready summary for the lender's own assessment. For EU buyers: a CBAM supplier sheet (estimate, not verified) for cast pipes and fittings today; most other castings may come into scope from 2028."
       },
       "zed": "We guide you to MSME ZED; Bronze is effectively free with the ₹10,000 joining reward, and some banks cut rates for ZED units"
     },
@@ -760,10 +766,88 @@
     "emptyTitle": "No reports yet",
     "emptyBody": "Make a loan-ready summary for the lender's own assessment. It will be listed here.",
     "type": {
-      "loan_pack": "Loan-ready summary"
+      "loan_pack": "Loan-ready summary",
+      "cbam_sheet": "CBAM supplier sheet (estimate)"
     },
     "version": "Version {{n}}",
     "shared_one": "Shared with {{shares}}, viewed {{count}} time",
-    "shared_other": "Shared with {{shares}}, viewed {{count}} times"
+    "shared_other": "Shared with {{shares}}, viewed {{count}} times",
+    "cbamCreate": "CBAM supplier sheet (estimate)",
+    "cbamCreateHelp": "For EU buyers of cast pipes and fittings"
+  },
+  "schemes": {
+    "title": "Schemes and loans",
+    "loadFailed": "We could not load the schemes. Check your internet and try again.",
+    "moneyFound": "Money found for you: {{inr}} ({{items}})",
+    "money": {
+      "zed_joining_reward": "ZED joining reward"
+    },
+    "status": {
+      "likely": "Likely eligible; confirm with the scheme office",
+      "check_lender": "Check with lender",
+      "check_office": "Check with the scheme office",
+      "not_eligible": "Not eligible"
+    },
+    "notEligible": "Not eligible: {{reason}}",
+    "group": {
+      "likely": "Likely for your unit",
+      "check_lender": "Check with lender",
+      "check_office": "Check with the scheme office",
+      "not_eligible": "Not eligible now"
+    },
+    "stale": "These rules were last checked more than 60 days ago and may have changed. Confirm with the scheme office.",
+    "lastChecked": "Last checked {{date}}",
+    "neverChecked": "Rules not checked yet",
+    "source": "Open the scheme page",
+    "openTop": "Open the top match",
+    "footnote": "EcoProof compares your profile with the published scheme rules. The scheme office or the lender makes the decision.",
+    "size": {
+      "micro": "micro",
+      "small": "small",
+      "medium": "medium"
+    },
+    "zed": {
+      "title": "ZED readiness",
+      "lead": "The {{inr}} ZED joining reward covers the Bronze fee, so Bronze is effectively free for your unit.",
+      "level": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold"
+      },
+      "bronzeFee": "{{inr}}, covered by the reward",
+      "subsidy": "Subsidy on the certification fee for a {{size}} unit: {{pct}}%.",
+      "subsidyUnknown": "Add your Udyam category to see the subsidy for your size (micro 80%, small 60%, medium 50%).",
+      "extraApplied": "Includes {{pct}}% extra for women or SC/ST owned units.",
+      "banksTitle": "Bank concessions for ZED units",
+      "recheck": "Re-check with the bank before relying on it.",
+      "source": "ZED subsidy page",
+      "bankSource": "ZED bank incentives page"
+    }
+  },
+  "cbam": {
+    "title": "CBAM supplier sheet (estimate)",
+    "intro": "An Excel sheet for your EU buyer, in the order of the EU operator report. Choose the CN code for each product: the importer and customs decide the final code.",
+    "directOnly": "Only direct emissions (fuels and precursors) count for iron and steel goods. Grid electricity is shown for information only.",
+    "product": "Product {{n}}",
+    "remove": "Remove product",
+    "cnSearch": "CN code (search by code or name)",
+    "cnHelp": "Ask your EU buyer which CN code they declare.",
+    "changeCode": "Change CN code",
+    "description": "Product description",
+    "tonnes": "Tonnes made in the period",
+    "addProduct": "Add another product",
+    "precursors": "Precursors and scrap (optional)",
+    "precursorsHelp": "Leave blank if you do not know. Without precursors the sheet is marked incomplete.",
+    "pigIron": "Pig iron bought (tonnes)",
+    "scrap": "Scrap used (tonnes)",
+    "preConsumer": "Pre-consumer scrap (% of scrap)",
+    "generate": "Generate the sheet",
+    "generating": "Generating…",
+    "notInScope": "Not in CBAM scope today (proposed from 2028)",
+    "noBills": "Add and confirm your bills first: the sheet uses the last 12 months.",
+    "period": "Period {{from}} to {{to}}",
+    "tonnesShort": "{{t}} t",
+    "seeLine": "{{value}} t CO2e per t (direct only)",
+    "statusNote": "Estimate, not verified. Verified data must be confirmed by an accredited verifier. Actual values replace EU default values only after that check."
   }
 }

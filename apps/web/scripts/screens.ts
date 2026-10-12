@@ -142,6 +142,16 @@ try {
   await page.getByTestId('ritual').waitFor();
   await shot(page, 'home');
 
+  // S8b: Home's money found line -> /schemes (ZED card first).
+  await page.getByTestId('money-found-line').getByText('Money found for you: ₹10,000').waitFor();
+  await page.getByTestId('money-found-line').click();
+  await page.waitForURL(/\/schemes$/);
+  await page.getByTestId('zed-card').waitFor();
+  await page.getByTestId('money-found').waitFor();
+  await shot(page, 'schemes');
+  await page.goBack();
+  await page.getByTestId('progress-path').waitFor();
+
   await page.getByTestId('progress-path').click();
   await page.waitForURL(/\/progress$/);
   await page.getByTestId('stage-2').getByText('Reached').waitFor();
@@ -279,6 +289,31 @@ try {
   await page.getByText('No savings to show yet').waitFor();
   await shot(page, 'savings-empty');
 
+  // S8b: /reports -> CBAM sheet flow. 7325 shows the scope warning; 7307 11 (100 t) is generated.
+  await page.goto(`${WEB}/reports`);
+  await page.getByTestId('cbam-create').waitFor();
+  await page.getByTestId('report-row').first().waitFor();
+  await shot(page, 'reports-a');
+  await page.getByTestId('cbam-create').click();
+  await page.waitForURL(/\/reports\/cbam\/new$/);
+  await page.getByTestId('cn-search').fill('7325');
+  await page.getByRole('button', { name: /^7325/ }).click();
+  await page.getByTestId('scope-warning').waitFor();
+  await shot(page, 'cbam-7325-warning');
+  await page.getByRole('button', { name: 'Change CN code' }).click();
+  await page.getByTestId('cn-search').fill('7307 11');
+  await page.getByRole('button', { name: /^7307 11/ }).click();
+  await page.getByTestId('cbam-description').fill('Cast iron pipe fittings');
+  await page.getByTestId('cbam-tonnes').fill('100');
+  await shot(page, 'cbam-new');
+  await page.getByTestId('cbam-generate').click();
+  await page.waitForURL(/\/reports\/[0-9a-f-]{36}$/);
+  await page.getByRole('link', { name: 'Download Excel' }).waitFor();
+  await shot(page, 'cbam-report');
+  await page.goto(`${WEB}/reports`);
+  await page.getByText('Estimate, not verified').first().waitFor();
+  await shot(page, 'reports-a-cbam');
+
   // ---------- Demo B: its path comes from its own rows ----------
   await page.goto(`${WEB}/start`);
   await page.getByText('Same unit, 6 months later').click();
@@ -338,6 +373,9 @@ try {
   await te.goto(`${WEB}/verify/${reportId}`);
   await te.getByText('ఈ పత్రం నిజమైనది').waitFor();
   await shot(te, 'te-verify');
+  await te.goto(`${WEB}/schemes`);
+  await te.getByTestId('zed-card').waitFor();
+  await shot(te, 'te-schemes');
   await te.close();
 
   // Demo B in Telugu at 360x800: the chart must stay readable.

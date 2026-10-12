@@ -1,8 +1,10 @@
 import request from 'supertest';
+import { fitBaseline } from '@ecoproof/calc';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import { DEMO_REPORT_ID } from '../src/demo/ids.js';
 import { prisma } from '../src/db.js';
+import { BASELINE_RULES } from '../src/services/insights.js';
 import { resetDemo, seedDemo } from '../prisma/demo/seed-demo.js';
 
 const app = createApp();
@@ -69,6 +71,33 @@ describe('GET /sites/:siteId/savings', () => {
     expect(r.body.baseline).toMatchObject({ passes: true });
     expect(r.body.actions.length).toBeGreaterThan(0);
     expect(r.body.methodNote).toContain('not a third-party verification');
+  });
+
+  it('Demo B: cvRmsePct and nmbePct are percents (0-100), refit from the baseline months', async () => {
+    const r = await request(app).get(`/sites/${siteB}/savings`).set(auth(tokenB));
+    const b = r.body.baseline as { cvRmsePct: number; nmbePct: number; passes: boolean };
+    expect(r.body.baseline).not.toHaveProperty('cvRmse');
+    const row = await prisma.baseline.findFirstOrThrow({ where: { siteId: siteB } });
+    const [energy, production] = await Promise.all([
+      prisma.energyMonth.findMany({
+        where: { siteId: siteB, periodStart: { gte: row.start, lte: row.end } },
+        orderBy: { periodStart: 'asc' },
+      }),
+      prisma.productionMonth.findMany({ where: { siteId: siteB } }),
+    ]);
+    const tonnes = new Map(production.map((p) => [p.month.toISOString(), Number(p.quantity)]));
+    const fit = fitBaseline({
+      months: energy.map((e) => ({
+        kwh: Number(e.kwh),
+        productionTonnes: tonnes.get(e.periodStart.toISOString())!,
+      })),
+      rules: BASELINE_RULES,
+    });
+    // fitBaseline returns 100 * s / mean: the API value is that percent, not a fraction.
+    expect(b.cvRmsePct).toBeCloseTo(fit.cvRmsePct!, 3);
+    expect(b.nmbePct).toBeCloseTo(fit.nmbePct!, 3);
+    expect(b.cvRmsePct).toBeLessThanOrEqual(BASELINE_RULES.maxCvRmsePct);
+    expect(b.passes).toBe(true);
   });
 
   it('Demo A: empty state with a reason', async () => {

@@ -1,32 +1,299 @@
 [
   {
-    "name": "SIDBI green loan (energy efficiency)",
-    "rules": { "min_years_operation": 3, "cash_profits": true, "gst_compliant": true },
-    "rate_range": "7.5-8.6%",
-    "source": "Mercom",
-    "active": true,
-    "status_note": null,
-    "last_checked_at": null
-  },
-  {
-    "name": "SIDBI MSE-GIFT",
-    "rules": {},
-    "rate_range": null,
-    "source": "HelloBanker",
-    "active": false,
-    "status_note": "ended 31 March 2026 (HelloBanker)",
-    "last_checked_at": null
-  },
-  {
-    "name": "PM Surya Ghar (household)",
+    "code": "zed_joining_reward",
+    "name": "ZED joining reward and certification subsidy",
+    "sort_order": 1,
+    "benefit_text": "Rs 10,000 joining reward after the ZED pledge. It covers the Bronze fee of Rs 10,000, so Bronze is effectively free. Silver costs Rs 40,000 and Gold Rs 90,000, with a subsidy of 80% (micro), 60% (small) or 50% (medium) of the fee.",
     "rules": {
-      "subsidy_inr": { "1kW": 30000, "2kW": 60000, "3kW": 78000 },
-      "free_units_per_month": 300
+      "org_types": ["msme"],
+      "requires": ["udyam_no"],
+      "unknown_status": "check_office",
+      "when": [],
+      "otherwise": { "status": "likely", "reason": "Open to any MSME with Udyam registration" },
+      "money_inr": 10000,
+      "money_label": "ZED joining reward",
+      "zed": {
+        "fees_inr": { "bronze": 10000, "silver": 40000, "gold": 90000 },
+        "subsidy_pct": { "micro": 80, "small": 60, "medium": 50 },
+        "women_sc_st_extra_pct": 10,
+        "reward_note": "Once only; valid 1 year after the pledge. For Silver or Gold the reward is deducted first, then the subsidy applies.",
+        "fees_source_url": "https://zed.msme.gov.in/uploads/Guideline_Book.pdf",
+        "bank_concessions": [
+          {
+            "bank": "SBI",
+            "bronze": "5 bps interest + 5% processing fee",
+            "silver": "15 bps interest + 15% processing fee",
+            "gold": "25 bps interest + 25% processing fee"
+          },
+          {
+            "bank": "SIDBI",
+            "bronze": "5 bps interest + 5% processing fee",
+            "silver": "15 bps interest + 15% processing fee",
+            "gold": "25 bps interest + 25% processing fee"
+          },
+          {
+            "bank": "Bank of Maharashtra",
+            "bronze": "25 bps interest + 25% processing fee",
+            "silver": "35 bps interest + 25% processing fee",
+            "gold": "50 bps interest + 25% processing fee"
+          },
+          {
+            "bank": "Bank of Baroda",
+            "bronze": "25% processing charges, or 25% + 25 bps interest",
+            "silver": "25% processing charges, or 25% + 25 bps interest",
+            "gold": "25% processing charges, or 25% + 25 bps interest"
+          }
+        ],
+        "bank_note": "Published by each bank on the ZED portal, with no date. Re-check with the bank before relying on it. Bank of Baroda's rate concession applies only if the rate stays at or above BRLLR / MCLR+SP.",
+        "bank_source_url": "https://loginzed.msme.gov.in/Incentive/Details?it=Financial&ct=Bronze"
+      }
     },
     "rate_range": null,
-    "source": "LAEX summary",
+    "source": "ZED subsidy page, MoMSME",
+    "source_url": "https://zed.msme.gov.in/subsidy-on-cost-of-certification",
+    "quoted_line": "if an MSME uses the reward for applying for Bronze Certification, the effective cost to MSME becomes zero",
     "active": true,
     "status_note": null,
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "sidbi_4e",
+    "name": "SIDBI 4E (End to End Energy Efficiency)",
+    "sort_order": 2,
+    "benefit_text": "Loan up to Rs 15 crore for energy-efficiency projects. Rate is MCLR linked (SIDBI publishes no number). Repayment up to 84 months including up to 12 months moratorium. The project must show energy-efficiency or GHG reduction.",
+    "rules": {
+      "org_types": ["msme"],
+      "requires": ["years_in_operation", "cash_profits_last_2y"],
+      "unknown_status": "check_lender",
+      "when": [
+        {
+          "field": "years_in_operation",
+          "op": "lt",
+          "value": 3,
+          "status": "not_eligible",
+          "reason": "needs at least 3 years of operations"
+        },
+        {
+          "field": "cash_profits_last_2y",
+          "op": "eq",
+          "value": false,
+          "status": "not_eligible",
+          "reason": "needs cash profits"
+        }
+      ],
+      "otherwise": { "status": "likely", "reason": "3+ years of operations and cash profits" }
+    },
+    "rate_range": "MCLR linked",
+    "source": "SIDBI green finance page, 4E tab",
+    "source_url": "https://www.sidbi.in/green-finance",
+    "quoted_line": "MSMEs having minimum 3 years of operations and cash profits.",
+    "active": true,
+    "status_note": "An older SIDBI document gives different terms; the live page is used.",
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "mse_gift",
+    "name": "MSE-GIFT interest subvention (RAMP)",
+    "sort_order": 3,
+    "benefit_text": "2% a year interest subvention for up to 5 years on term loans up to Rs 2 crore. Apply through a participating lender.",
+    "rules": {
+      "org_types": ["msme"],
+      "requires": ["udyam_category"],
+      "unknown_status": "check_lender",
+      "when": [
+        {
+          "field": "udyam_category",
+          "op": "eq",
+          "value": "medium",
+          "status": "not_eligible",
+          "reason": "for micro and small units only"
+        }
+      ],
+      "otherwise": {
+        "status": "check_lender",
+        "reason": "The machine must be on the scheme's list of 890 technologies; ask the lender"
+      }
+    },
+    "rate_range": null,
+    "source": "SIDBI MSE-GIFT FAQ, p.1",
+    "source_url": "https://www.sidbi.in/assets/front/pdf/FAQ-GIFT.pdf",
+    "quoted_line": "offering a 2% interest subvention per annum for a maximum of 5 years on term loans up to INR 2 crores",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "sidbi_gfs",
+    "name": "SIDBI Green Finance Scheme",
+    "sort_order": 4,
+    "benefit_text": "Loan up to Rs 50 crore, at most 75% of the project cost. MCLR linked. Repayment up to 10 years including up to 18 months moratorium.",
+    "rules": {
+      "org_types": ["msme"],
+      "requires": [],
+      "unknown_status": "check_lender",
+      "when": [],
+      "otherwise": {
+        "status": "check_lender",
+        "reason": "Terms depend on the project; ask SIDBI or your lender"
+      }
+    },
+    "rate_range": "MCLR linked",
+    "source": "SIDBI green finance page",
+    "source_url": "https://www.sidbi.in/green-finance",
+    "quoted_line": "Financing upto Rs. 50 crore subject to maximum of 75% of the total project cost.",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "adeetie",
+    "name": "ADEETIE (BEE) interest subvention",
+    "sort_order": 5,
+    "benefit_text": "5% interest subvention for micro and small units, 3% for medium, FY 2025-26 to 2027-28. The project must show 10% energy savings.",
+    "rules": {
+      "org_types": ["msme"],
+      "requires": ["sector"],
+      "unknown_status": "check_office",
+      "when": [
+        {
+          "field": "sector",
+          "op": "eq",
+          "value": "foundry",
+          "status": "check_office",
+          "reason": "Foundry is a covered sector, but the Hyderabad cluster is not confirmed"
+        }
+      ],
+      "otherwise": {
+        "status": "check_office",
+        "reason": "Covered sector list not checked for your sector"
+      }
+    },
+    "rate_range": null,
+    "source": "BEE ADEETIE scheme page",
+    "source_url": "https://adeetie.beeindia.gov.in/adeetie-scheme",
+    "quoted_line": "5% interest subvention for Micro and Small Enterprises",
+    "active": true,
+    "status_note": "Hyderabad cluster inclusion not found in the sources opened.",
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "tg_cleaner_production",
+    "name": "Telangana Cleaner Production Subsidy (MSME Policy 2024)",
+    "sort_order": 6,
+    "benefit_text": "25% subsidy on specific cleaner production measures, up to Rs 5 lakh. Claim within 6 months of commercial production.",
+    "rules": {
+      "org_types": ["msme"],
+      "states": ["Telangana"],
+      "requires": ["commenced_on"],
+      "unknown_status": "check_office",
+      "when": [
+        {
+          "field": "commenced_on",
+          "op": "before",
+          "value": "2024-09-18",
+          "status": "not_eligible",
+          "reason": "for new units or expansions only"
+        },
+        {
+          "field": "commenced_on",
+          "op": "after",
+          "value": "2029-03-31",
+          "status": "not_eligible",
+          "reason": "for new units or expansions only"
+        }
+      ],
+      "otherwise": {
+        "status": "check_office",
+        "reason": "GHMC area is excluded except industrial estates; check your location"
+      }
+    },
+    "rate_range": null,
+    "source": "Telangana MSME Policy 2024 operational guidelines, s2.1.11 p.8 and s4.9 p.20",
+    "source_url": "https://industries.telangana.gov.in/Library/Incentives%20guidelines-Final%20Version.pdf",
+    "quoted_line": "Cleaner Production Subsidy : 25% subsidy on Specific Cleaner Production Measures limited to Rs.5.00 Lakhs.",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": "tg_quality_reimbursement",
+    "name": "Telangana ZED and quality reimbursement (MSME Policy 2024)",
+    "sort_order": 7,
+    "benefit_text": "50% of the certification cost, up to Rs 2 lakh (SC/ST/PwD: 100%, up to Rs 3 lakh). The cap counts money from all sources, including central ZED help.",
+    "rules": {
+      "org_types": ["msme"],
+      "states": ["Telangana"],
+      "requires": ["commenced_on"],
+      "unknown_status": "check_office",
+      "when": [
+        {
+          "field": "commenced_on",
+          "op": "before",
+          "value": "2024-09-18",
+          "status": "not_eligible",
+          "reason": "for new units or expansions only"
+        },
+        {
+          "field": "commenced_on",
+          "op": "after",
+          "value": "2029-03-31",
+          "status": "not_eligible",
+          "reason": "for new units or expansions only"
+        }
+      ],
+      "otherwise": {
+        "status": "check_office",
+        "reason": "GHMC area is excluded except industrial estates; Sanathnagar, Azamabad, Chandulal Baradari and Kattedan estates are fully excluded"
+      }
+    },
+    "rate_range": null,
+    "source": "Telangana MSME Policy 2024 operational guidelines, s4.8 p.19 and s1.2 p.6",
+    "source_url": "https://industries.telangana.gov.in/Library/Incentives%20guidelines-Final%20Version.pdf",
+    "quoted_line": "the total subsidy from all sources is limited to Rs.2.00 Lakhs/certificate.",
+    "active": true,
+    "status_note": null,
+    "last_checked_at": "2026-10-12"
+  },
+  {
+    "code": null,
+    "name": "SIDBI green loan (energy efficiency)",
+    "sort_order": 100,
+    "benefit_text": null,
+    "rules": {},
+    "rate_range": null,
+    "source": "superseded: unsourced legacy row",
+    "source_url": null,
+    "quoted_line": null,
+    "active": false,
+    "status_note": "Superseded by the sourced R8 rows (12 Oct 2026); kept because reference rows are never deleted.",
+    "last_checked_at": null
+  },
+  {
+    "code": null,
+    "name": "SIDBI MSE-GIFT",
+    "sort_order": 100,
+    "benefit_text": null,
+    "rules": {},
+    "rate_range": null,
+    "source": "superseded: unsourced legacy row",
+    "source_url": null,
+    "quoted_line": null,
+    "active": false,
+    "status_note": "Superseded by mse_gift (R8, 12 Oct 2026); kept because reference rows are never deleted.",
+    "last_checked_at": null
+  },
+  {
+    "code": null,
+    "name": "PM Surya Ghar (household)",
+    "sort_order": 100,
+    "benefit_text": null,
+    "rules": {},
+    "rate_range": null,
+    "source": "superseded: unsourced legacy row",
+    "source_url": null,
+    "quoted_line": null,
+    "active": false,
+    "status_note": "Household mode is not built yet; re-add from research R5 when it is.",
     "last_checked_at": null
   }
 ]

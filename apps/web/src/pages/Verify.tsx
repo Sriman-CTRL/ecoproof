@@ -44,7 +44,9 @@ export default function Verify() {
           <VerifyHeadline result={check.result} />
           <VerifyCard v={q.data} />
           <SealNote expected={q.data.sha256} />
-          <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
+          <p className="text-small text-ink-muted">
+            {t(q.data.type === 'cbam_sheet' ? 'cbam.statusNote' : 'detail.lenderNote')}
+          </p>
         </>
       )}
     </Page>

@@ -1,8 +1,8 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileMagnifyingGlass } from '@phosphor-icons/react/dist/csr/FileMagnifyingGlass';
-import type { VerifyView } from '../lib/api';
-import { formatInr } from '../lib/format';
+import type { CbamHeadline, LoanPackHeadline, VerifyView } from '../lib/api';
+import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { BUTTON_CLASS } from './kit/Button';
 import { PaperSheet } from './kit/PaperSheet';
 import { SkeletonBlock } from './kit/Skeleton';
@@ -101,13 +101,6 @@ export function VerifyHeadline({ result }: { result: CheckResult }) {
 /** Report ID, issue date, business name and headline figures: nothing else (Doc 05). */
 export function VerifyCard({ v, sourced = false }: { v: VerifyView; sourced?: boolean }) {
   const { t, i18n } = useTranslation();
-  const h = v.headline;
-  const fig = (text: ReactNode) =>
-    sourced ? <SourceChip lineName={h.measure}>{text}</SourceChip> : <>{text}</>;
-  const range =
-    h.monthlySavingLow === h.monthlySavingHigh
-      ? formatInr(Math.round(h.monthlySavingLow))
-      : `${formatInr(Math.round(h.monthlySavingLow))} - ${formatInr(Math.round(h.monthlySavingHigh))}`;
   return (
     <PaperSheet className="space-y-3">
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-small">
@@ -121,21 +114,72 @@ export function VerifyCard({ v, sourced = false }: { v: VerifyView; sourced?: bo
           {t('verify.version', { n: v.version })}
         </dd>
       </dl>
-      <div className="space-y-1 border-t pt-3">
-        <p className="font-heading text-card-title font-semibold">{h.measure}</p>
-        <p>
-          {t('verify.saving')}: <b className="num">{fig(range)}</b> {t('health.perMonth')}
-        </p>
-        <p>
-          {t('detail.emi')}: <b className="num">{fig(formatInr(h.emi))}</b>
-        </p>
-        <p>
-          {t('verify.net')}:{' '}
-          <b className="num text-card-title">{fig(<Rupees value={h.netMonthly} />)}</b>{' '}
-          {t('health.perMonth')}
-        </p>
-      </div>
+      {v.headline.kind === 'cbam_sheet' ? (
+        <CbamLines h={v.headline} />
+      ) : (
+        <LoanLines h={v.headline} sourced={sourced} />
+      )}
     </PaperSheet>
+  );
+}
+
+function LoanLines({ h, sourced }: { h: LoanPackHeadline; sourced: boolean }) {
+  const { t } = useTranslation();
+  const fig = (text: ReactNode) =>
+    sourced ? <SourceChip lineName={h.measure}>{text}</SourceChip> : <>{text}</>;
+  const range =
+    h.monthlySavingLow === h.monthlySavingHigh
+      ? formatInr(Math.round(h.monthlySavingLow))
+      : `${formatInr(Math.round(h.monthlySavingLow))} - ${formatInr(Math.round(h.monthlySavingHigh))}`;
+  return (
+    <div className="space-y-1 border-t pt-3">
+      <p className="font-heading text-card-title font-semibold">{h.measure}</p>
+      <p>
+        {t('verify.saving')}: <b className="num">{fig(range)}</b> {t('health.perMonth')}
+      </p>
+      <p>
+        {t('detail.emi')}: <b className="num">{fig(formatInr(h.emi))}</b>
+      </p>
+      <p>
+        {t('verify.net')}:{' '}
+        <b className="num text-card-title">{fig(<Rupees value={h.netMonthly} />)}</b>{' '}
+        {t('health.perMonth')}
+      </p>
+    </div>
+  );
+}
+
+/** CBAM sheet: products and direct t CO2e per t only, always under the estimate stamp (Doc 05). */
+function CbamLines({ h }: { h: CbamHeadline }) {
+  const { t, i18n } = useTranslation();
+  const month = (iso: string) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString(
+      i18n.resolvedLanguage === 'te' ? 'te-IN' : 'en-IN',
+      { month: 'short', year: 'numeric', timeZone: 'UTC' },
+    );
+  return (
+    <div className="space-y-2 border-t pt-3">
+      <p className="font-heading text-card-title font-semibold">{t('cbam.title')}</p>
+      <StampBadge variant="estimate" />
+      <p className="text-small text-ink-muted">
+        {t('cbam.period', { from: month(h.period.from), to: month(h.period.to) })}
+      </p>
+      <ul className="space-y-1">
+        {h.products.map((p) => (
+          <li key={`${p.cnCode}-${p.description}`}>
+            <span className="font-mono font-semibold">{p.cnCode}</span> · {p.description} ·{' '}
+            <span className="num">{t('cbam.tonnesShort', { t: formatNumber(p.tonnes) })}</span>
+            <br />
+            <span className="text-small">
+              {p.inScopeNow
+                ? t('cbam.seeLine', { value: formatDecimal(p.seeDirect) })
+                : t('cbam.notInScope')}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-small text-ink-muted">{t('cbam.directOnly')}</p>
+    </div>
   );
 }
 
