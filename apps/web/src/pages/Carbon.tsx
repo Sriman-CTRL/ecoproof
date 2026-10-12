@@ -48,18 +48,20 @@ export default function Carbon() {
       {c && (
         <>
           <div className="grid gap-3 lg:grid-cols-12 lg:gap-6">
-            <Card className="lg:col-span-8">
+            <Card className="space-y-4 lg:col-span-8">
               <CarbonTile c={c} />
+              <section className="space-y-2 border-t pt-3">
+                <h2 className="font-heading text-card-title font-semibold">
+                  {t('carbon.bySource')}
+                </h2>
+                <SourceSplitBar parts={c.bySource} />
+              </section>
             </Card>
             <MethodCard c={c} className="lg:col-span-4" />
           </div>
           <Card className="space-y-3">
             <h2 className="font-heading text-card-title font-semibold">{t('carbon.trendTitle')}</h2>
             <CarbonTrend c={c} />
-          </Card>
-          <Card className="space-y-2">
-            <h2 className="font-heading text-card-title font-semibold">{t('carbon.bySource')}</h2>
-            <SourceSplitBar parts={c.bySource} />
           </Card>
           {c.savedSoFar && <AvoidedCard saved={c.savedSoFar} />}
           {!c.household && (

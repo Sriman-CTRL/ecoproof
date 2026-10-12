@@ -56,40 +56,42 @@ export default function Reports() {
       }
     >
       <h1 className="font-heading text-title font-semibold">{t('reports.title')}</h1>
-      <Link
-        to="/reports/cbam/new"
-        className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
-        data-testid="cbam-create"
-      >
-        <span className="space-y-0.5">
-          <span className="block font-semibold">{t('reports.cbamCreate')}</span>
-          <span className="block text-small text-ink-muted">{t('reports.cbamCreateHelp')}</span>
-        </span>
-        <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
-      </Link>
-      <Link
-        to="/carbon"
-        className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
-        data-testid="carbon-create"
-      >
-        <span className="space-y-0.5">
-          <span className="block font-semibold">{t('reports.carbonCreate')}</span>
-          <span className="block text-small text-ink-muted">{t('reports.carbonCreateHelp')}</span>
-        </span>
-        <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
-      </Link>
+      <div className="grid gap-3 lg:grid-cols-2 lg:gap-6">
+        <Link
+          to="/reports/cbam/new"
+          className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+          data-testid="cbam-create"
+        >
+          <span className="space-y-0.5">
+            <span className="block font-semibold">{t('reports.cbamCreate')}</span>
+            <span className="block text-small text-ink-muted">{t('reports.cbamCreateHelp')}</span>
+          </span>
+          <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+        </Link>
+        <Link
+          to="/carbon"
+          className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+          data-testid="carbon-create"
+        >
+          <span className="space-y-0.5">
+            <span className="block font-semibold">{t('reports.carbonCreate')}</span>
+            <span className="block text-small text-ink-muted">{t('reports.carbonCreateHelp')}</span>
+          </span>
+          <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+        </Link>
+      </div>
       {q.isLoading && <Skeleton />}
       {q.isError && <ErrorBox>{t('reports.loadFailed')}</ErrorBox>}
       {q.isSuccess && rows.length === 0 && (
         <EmptyState icon={Files} title={t('reports.emptyTitle')} body={t('reports.emptyBody')} />
       )}
       {rows.length > 0 && (
-        <ul className="space-y-2">
+        <ul className="grid gap-2 lg:grid-cols-2 lg:gap-4">
           {rows.map((r) => (
             <li key={r.id}>
               <Link
                 to={`/reports/${r.id}`}
-                className={`${CARD_CLASS} block space-y-1`}
+                className={`${CARD_CLASS} block h-full space-y-1`}
                 data-testid="report-row"
               >
                 <span className="flex flex-wrap items-baseline justify-between gap-x-3">

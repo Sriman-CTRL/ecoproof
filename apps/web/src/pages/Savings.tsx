@@ -121,7 +121,7 @@ export default function Savings() {
           </Card>
           <section className="space-y-2">
             <h2 className="font-heading text-card-title font-semibold">{t('savings.byMonth')}</h2>
-            <ul className="space-y-2">
+            <ul className="grid gap-2 lg:grid-cols-3 lg:gap-4">
               {s.months.map((m) => (
                 <li key={m.month}>
                   <Card className="space-y-1" data-testid={`month-${m.month}`}>

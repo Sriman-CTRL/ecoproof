@@ -128,3 +128,11 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 - [ ] CORS allows only `WEB_ORIGIN` (the Vercel production URL) and localhost: Vercel preview deployments cannot call the API.
 - [ ] The Dockerfile was not built locally (Docker not enabled in WSL); Render builds it on each push to `main`.
 - [ ] The "E" mark icon (`apps/web/public/icon.svg`) is a placeholder logo made for the web app manifest.
+
+## Carbon screens (D6a)
+
+- [ ] Action CO2 uses the same kWh basis as the rupee range: the 12-month kWh (scaled to a year) x end-use share x saving %, so Demo A's IGBT shows 41-50 t CO2 a year (Sep 2026 bills), not 42.8-51.9 t from the latest month x 12.
+- [ ] Fuel-saving actions: no action-library row saves diesel or another fuel yet, so no action CO2 uses a fuel factor; a fuel row needs litres or kg saved, not kWh.
+- [ ] The peak-hour shift (ToD) is listed as "bill charge only": it moves kWh to other hours and claims no CO2 change.
+- [ ] Telugu strings added in D6a (`carbon.*`, `health.carbonLine`, `health.billChargeNote`, `nav.carbon`, `reports.carbonCreate*`, `verify.footprint`) are machine-drafted: need native speaker review.
+- [ ] Carbon statement is English only (like the loan-ready summary); no Telugu PDF template.

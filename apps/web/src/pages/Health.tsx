@@ -2,6 +2,8 @@ import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CarbonTile } from '../components/CarbonTile';
+import { useCarbon } from '../lib/carbon';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check } from '@phosphor-icons/react/dist/csr/Check';
 import { Info } from '@phosphor-icons/react/dist/csr/Info';
@@ -74,6 +76,7 @@ export default function Health() {
   const lang = i18n.resolvedLanguage ?? 'en';
   const findings = d ? [...d.findings].sort(biggestFirst) : [];
   const topAction = useActions(month, true).data?.actions[0]?.code ?? null;
+  const carbon = useCarbon();
 
   return (
     <Page
@@ -104,38 +107,49 @@ export default function Health() {
           <p className="text-body" data-testid="health-carbon-line">
             {t('health.carbonLine')}
           </p>
-          <Card>
-            <RupeeHero
-              value={Math.round(d.atStake.inrPerMonth)}
-              label={t('health.total')}
-              countUpKey={`health-${d.month}`}
-              source={{ lineName: t('results.healthSource'), month: monthLabel(d.month, lang) }}
-            />
-            {d.atStake.pendingCodes.includes('peak_use') && (
-              <p className="mt-1 text-small text-ink-muted">{t('results.peakPending')}</p>
-            )}
-          </Card>
-          {findings.length === 0 && (
-            <EmptyState icon={Check} title={t('health.noFindings')} body={t('health.passed')} />
-          )}
-          {findings.map((f) => (
-            <FindingCard key={f.code} f={f} shiftable={shiftable} onShiftable={setShiftable} />
-          ))}
-          {d.passed.length > 0 && (
-            <section>
-              <h2 className="mb-1 text-small font-semibold text-ink-muted">
-                {t('health.passedTitle')}
-              </h2>
-              <ul className="space-y-1 rounded-card bg-paper p-3 text-ink-muted">
-                {d.passed.map((f) => (
-                  <li key={f.code} className="flex items-center gap-2">
-                    <Check size={18} weight="bold" aria-hidden="true" />
-                    {t(`health.passedLabel.${f.code}`)}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
+          <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <div className="space-y-3 lg:sticky lg:top-6 lg:col-span-5 lg:space-y-6">
+              <Card>
+                <RupeeHero
+                  value={Math.round(d.atStake.inrPerMonth)}
+                  label={t('health.total')}
+                  countUpKey={`health-${d.month}`}
+                  source={{ lineName: t('results.healthSource'), month: monthLabel(d.month, lang) }}
+                />
+                {d.atStake.pendingCodes.includes('peak_use') && (
+                  <p className="mt-1 text-small text-ink-muted">{t('results.peakPending')}</p>
+                )}
+              </Card>
+              {carbon.data && carbon.data.latestMonth.month.slice(0, 7) === d.month.slice(0, 7) && (
+                <Card>
+                  <CarbonTile c={carbon.data} />
+                </Card>
+              )}
+              {d.passed.length > 0 && (
+                <section>
+                  <h2 className="mb-1 text-small font-semibold text-ink-muted">
+                    {t('health.passedTitle')}
+                  </h2>
+                  <ul className="space-y-1 rounded-card bg-paper p-3 text-ink-muted">
+                    {d.passed.map((f) => (
+                      <li key={f.code} className="flex items-center gap-2">
+                        <Check size={18} weight="bold" aria-hidden="true" />
+                        {t(`health.passedLabel.${f.code}`)}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
+            <div className="space-y-3 lg:col-span-7">
+              {findings.length === 0 && (
+                <EmptyState icon={Check} title={t('health.noFindings')} body={t('health.passed')} />
+              )}
+              {findings.map((f) => (
+                <FindingCard key={f.code} f={f} shiftable={shiftable} onShiftable={setShiftable} />
+              ))}
+            </div>
+          </div>
         </>
       )}
     </Page>

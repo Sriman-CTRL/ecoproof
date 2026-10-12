@@ -6,7 +6,7 @@ import { Card } from './kit/Card';
 import { SourceChip } from './kit/SourceChip';
 import { monthLabel } from './ui';
 
-/** Month, rupees, units, tonnes CO2 as a ledger table. Rupees come first (Doc 06). */
+/** Month, rupees, units, tonnes CO2 as a ledger table: rupees and CO2 at equal weight (12 Oct 2026). */
 export function MonthLedger({
   rows,
   linkResults = true,
@@ -74,7 +74,7 @@ export function MonthLedger({
                     '-'
                   )}
                 </td>
-                <td className="num py-1 text-right text-ink-muted">
+                <td className="num py-1 text-right font-semibold text-green-700">
                   {co2 != null ? formatDecimal(co2) : '-'}
                 </td>
               </tr>

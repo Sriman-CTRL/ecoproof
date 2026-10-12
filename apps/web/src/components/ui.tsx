@@ -33,7 +33,7 @@ export function Header({
   showBusiness?: boolean;
   wide?: boolean;
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const session = getSession();
   return (
     <header className="bg-green-900 text-white">
@@ -58,31 +58,39 @@ export function Header({
             </div>
           )}
         </div>
-        <div
-          role="group"
-          aria-label={t('language.label')}
-          className="flex shrink-0 items-center justify-end"
-        >
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              type="button"
-              lang={l.code}
-              aria-pressed={i18n.resolvedLanguage === l.code}
-              title={l.label}
-              className={`min-h-12 min-w-12 px-2 text-small ${
-                i18n.resolvedLanguage === l.code
-                  ? 'font-bold text-copper-500 underline underline-offset-4'
-                  : 'text-green-200'
-              }`}
-              onClick={() => void i18n.changeLanguage(l.code)}
-            >
-              {SHORT_LANG[l.code]}
-            </button>
-          ))}
-        </div>
+        <LanguageSwitch />
       </div>
     </header>
+  );
+}
+
+/** EN / తె / हि as text buttons, not flags (plan 3). */
+function LanguageSwitch({ className = '' }: { className?: string }) {
+  const { t, i18n } = useTranslation();
+  return (
+    <div
+      role="group"
+      aria-label={t('language.label')}
+      className={`flex shrink-0 items-center justify-end ${className}`}
+    >
+      {LANGUAGES.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          lang={l.code}
+          aria-pressed={i18n.resolvedLanguage === l.code}
+          title={l.label}
+          className={`min-h-12 min-w-12 px-2 text-small ${
+            i18n.resolvedLanguage === l.code
+              ? 'font-bold text-copper-500 underline underline-offset-4'
+              : 'text-green-200'
+          }`}
+          onClick={() => void i18n.changeLanguage(l.code)}
+        >
+          {SHORT_LANG[l.code]}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -122,13 +130,21 @@ const HOUSEHOLD_TABS: typeof TABS = [
 ];
 
 /** 64px white bar, icon + word. Hidden on the capture flow and on public pages. */
-export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
+export function TabBar({
+  active,
+  wide,
+  className = '',
+}: {
+  active: TabId;
+  wide: boolean;
+  className?: string;
+}) {
   const { t } = useTranslation();
   const tabs = isHousehold() ? HOUSEHOLD_TABS : TABS;
   return (
     <nav
       aria-label={t('nav.label')}
-      className="sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content"
+      className={`sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content ${className}`}
     >
       <ul
         className={`${wide ? WIDE : FULL_WIDTH} grid h-16 ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'}`}
@@ -152,7 +168,62 @@ export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
   );
 }
 
-/** Mobile-first page: content scrolls, the single primary button sits above the tab bar. */
+/** Desktop (>= 1024px) navigation: the tab bar's items down a 240px green-900 column. */
+function Sidebar({ active }: { active: TabId }) {
+  const { t } = useTranslation();
+  const session = getSession();
+  const tabs = isHousehold() ? HOUSEHOLD_TABS : TABS;
+  return (
+    <aside
+      className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 bg-green-900 px-4 py-6 text-white lg:flex"
+      data-testid="sidebar"
+    >
+      <div className="space-y-1">
+        <Link
+          to="/home"
+          className="flex min-h-12 items-center font-heading text-title font-semibold"
+        >
+          {t('app.title')}
+        </Link>
+        {session && (
+          <div className="space-y-1">
+            <p className="text-small">{session.orgName}</p>
+            <span className="inline-block rounded-chip bg-copper-500 px-2 text-small font-semibold text-green-900">
+              {t('common.sampleBadge')}
+            </span>
+          </div>
+        )}
+      </div>
+      <nav aria-label={t('nav.label')}>
+        <ul className="space-y-1">
+          {tabs.map(({ id, to, icon: IconCmp, key }) => (
+            <li key={id}>
+              <Link
+                to={to}
+                aria-current={active === id ? 'page' : undefined}
+                className={`flex min-h-12 items-center gap-3 rounded-button px-3 ${
+                  active === id
+                    ? 'bg-green-700 font-semibold text-white'
+                    : 'text-green-100 hover:bg-green-700/50'
+                }`}
+              >
+                <IconCmp size={22} weight={active === id ? 'fill' : 'regular'} aria-hidden="true" />
+                {t(key)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <LanguageSwitch className="mt-auto justify-start" />
+    </aside>
+  );
+}
+
+/**
+ * Mobile-first page: content scrolls, the single primary button sits above the tab bar. From
+ * 1024px the tab pages get the sidebar, a 1200px content area and the primary button as a normal
+ * right-aligned button at the top (rendered once; flex order moves it).
+ */
 export function Page({
   children,
   action,
@@ -164,7 +235,7 @@ export function Page({
   children: ReactNode;
   action?: ReactNode;
   showBusiness?: boolean;
-  /** Shows the bottom tab bar with this tab marked; leave out to hide it. */
+  /** Shows the bottom tab bar (desktop: sidebar) with this tab marked; leave out to hide it. */
   tab?: TabId;
   /** Two columns at 1024px and up (confirm screen). */
   wide?: boolean;
@@ -172,19 +243,45 @@ export function Page({
   isPublic?: boolean;
 }) {
   const tabs = tab && !isPublic ? tab : undefined;
+  if (!tabs) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-paper">
+        <Header showBusiness={isPublic ? false : showBusiness} wide={wide} />
+        <main className={`${wide ? WIDE : FULL_WIDTH} flex-1 space-y-3 p-4`}>{children}</main>
+        {action && (
+          <StickyPrimaryBar>
+            <div className={wide ? WIDE : FULL_WIDTH}>{action}</div>
+          </StickyPrimaryBar>
+        )}
+      </div>
+    );
+  }
   return (
     <div
-      className="flex min-h-dvh flex-col bg-paper"
-      style={tabs ? ({ '--tabbar-h': '64px' } as React.CSSProperties) : undefined}
+      className="min-h-dvh bg-paper lg:flex"
+      style={{ '--tabbar-h': '64px' } as React.CSSProperties}
     >
-      <Header showBusiness={isPublic ? false : showBusiness} wide={wide} />
-      <main className={`${wide ? WIDE : FULL_WIDTH} flex-1 space-y-3 p-4`}>{children}</main>
-      {action && (
-        <StickyPrimaryBar>
-          <div className={wide ? WIDE : FULL_WIDTH}>{action}</div>
-        </StickyPrimaryBar>
-      )}
-      {tabs && <TabBar active={tabs} wide={wide} />}
+      <Sidebar active={tabs} />
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+        <div className="lg:hidden">
+          <Header showBusiness={showBusiness} />
+        </div>
+        <main
+          className={`${FULL_WIDTH} order-1 flex-1 space-y-3 p-4 lg:order-2 lg:max-w-[1200px] lg:space-y-6 lg:px-8 lg:pt-2 lg:pb-12`}
+        >
+          {children}
+        </main>
+        {action && (
+          <StickyPrimaryBar className="order-2 lg:static lg:order-1 lg:border-0 lg:bg-transparent lg:px-8 lg:pt-6 lg:pb-2">
+            <div
+              className={`${FULL_WIDTH} lg:flex lg:max-w-[1200px] lg:justify-end lg:[&>*]:w-auto lg:[&>*]:min-w-64`}
+            >
+              {action}
+            </div>
+          </StickyPrimaryBar>
+        )}
+        <TabBar active={tabs} wide={false} className="order-3 lg:hidden" />
+      </div>
     </div>
   );
 }

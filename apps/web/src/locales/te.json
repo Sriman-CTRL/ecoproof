@@ -790,7 +790,8 @@
     },
     "co2Total": "{{value}} t CO2 తగ్గింది",
     "co2Label": "ఇప్పటివరకు తగ్గిన CO2",
-    "twinTitle": "ఇప్పటివరకు ఆదా"
+    "twinTitle": "ఇప్పటివరకు ఆదా",
+    "axisTitle": "నెలకు kWh"
   },
   "reports": {
     "title": "నివేదికలు",

@@ -15,7 +15,9 @@ import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { YearStrip } from '../components/kit/YearStrip';
 import { CarbonTile } from '../components/CarbonTile';
+import { DualAxisChart } from '../components/DualAxisChart';
 import { MonthLedger } from '../components/MonthLedger';
+import { SourceSplitBar } from '../components/SourceSplitBar';
 import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
 import { useInsights } from './Health';
@@ -200,74 +202,95 @@ export default function Home() {
         </div>
       )}
 
-      {progress.isLoading && <Skeleton />}
-      {p && (
-        <Link to="/progress" className={`${CARD_CLASS} block`} data-testid="progress-path">
-          <h2 className="sr-only">{t('progress.title')}</h2>
-          <ProgressPath currentStage={p.stage} nextStep={pathText(p.next, t)} />
-          <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
-            {t('progress.open')}
-            <ArrowRight size={16} aria-hidden="true" />
-          </span>
-        </Link>
-      )}
-      {p && p.headroom.foundInrPerMonth > 0 && (
-        <Card>
-          <h2 className="sr-only">{t('home.headroomTitle')}</h2>
-          <HeadroomMeter
-            found={p.headroom.foundInrPerMonth}
-            started={p.headroom.startedInrPerMonth}
-          />
-        </Card>
-      )}
+      <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+        <div className="space-y-3 lg:col-span-7 lg:space-y-6">
+          {progress.isLoading && <Skeleton />}
+          {p && (
+            <Link to="/progress" className={`${CARD_CLASS} block`} data-testid="progress-path">
+              <h2 className="sr-only">{t('progress.title')}</h2>
+              <ProgressPath currentStage={p.stage} nextStep={pathText(p.next, t)} />
+              <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
+                {t('progress.open')}
+                <ArrowRight size={16} aria-hidden="true" />
+              </span>
+            </Link>
+          )}
+          {p && p.headroom.foundInrPerMonth > 0 && (
+            <Card>
+              <h2 className="sr-only">{t('home.headroomTitle')}</h2>
+              <HeadroomMeter
+                found={p.headroom.foundInrPerMonth}
+                started={p.headroom.startedInrPerMonth}
+              />
+            </Card>
+          )}
 
-      {moneyFound > 0 && (
-        <Link
-          to="/schemes"
-          className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
-          data-testid="money-found-line"
-        >
-          <span>
-            <span className="block font-semibold">
-              {t('home.moneyFound', { inr: formatInr(moneyFound) })}
-            </span>
-            <span className="block text-small text-ink-muted">{t('schemes.status.likely')}</span>
-          </span>
-          <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
-        </Link>
-      )}
+          {moneyFound > 0 && (
+            <Link
+              to="/schemes"
+              className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+              data-testid="money-found-line"
+            >
+              <span>
+                <span className="block font-semibold">
+                  {t('home.moneyFound', { inr: formatInr(moneyFound) })}
+                </span>
+                <span className="block text-small text-ink-muted">
+                  {t('schemes.status.likely')}
+                </span>
+              </span>
+              <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+            </Link>
+          )}
 
-      {months.isLoading || (top && insights.isLoading) ? (
-        <Skeleton />
-      ) : (
-        card?.change &&
-        card.largestDriver && (
-          <p
-            className="rounded-card border bg-surface p-4 shadow-card"
-            data-testid="insight-sentence"
-          >
-            {t('home.insight', {
-              direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
-              inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
-              kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
-              co2: co2Parts(card.change, t),
-              driver: t(`home.driver.${card.largestDriver}`),
-            })}
-          </p>
-        )
-      )}
+          {months.isLoading || (top && insights.isLoading) ? (
+            <Skeleton />
+          ) : (
+            card?.change &&
+            card.largestDriver && (
+              <p
+                className="rounded-card border bg-surface p-4 shadow-card"
+                data-testid="insight-sentence"
+              >
+                {t('home.insight', {
+                  direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
+                  inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
+                  kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
+                  co2: co2Parts(card.change, t),
+                  driver: t(`home.driver.${card.largestDriver}`),
+                })}
+              </p>
+            )
+          )}
+        </div>
+        <div className="space-y-3 lg:col-span-5 lg:space-y-6">
+          {carbon.data && (
+            <Card className="space-y-2">
+              <h2 className="font-heading text-card-title font-semibold">{t('carbon.bySource')}</h2>
+              <SourceSplitBar parts={carbon.data.bySource} />
+            </Card>
+          )}
+          {ritual?.month && <RitualCard ritual={ritual} done={ritualDone} lang={lang} />}
+          {list.length > 0 && (
+            <Card>
+              <YearStrip
+                months={yearMonths(
+                  list,
+                  lang,
+                  ritual?.month ? { month: ritual.month, done: ritualDone } : null,
+                )}
+              />
+            </Card>
+          )}
+        </div>
+      </div>
 
-      {ritual?.month && <RitualCard ritual={ritual} done={ritualDone} lang={lang} />}
-
-      {list.length > 0 && (
-        <Card>
-          <YearStrip
-            months={yearMonths(
-              list,
-              lang,
-              ritual?.month ? { month: ritual.month, done: ritualDone } : null,
-            )}
-          />
+      {list.length > 1 && (
+        <Card className="space-y-3" data-testid="home-dual-chart">
+          <h2 className="font-heading text-card-title font-semibold">
+            {t('carbon.homeChartTitle')}
+          </h2>
+          <RupeesCarbonChart rows={list} lang={lang} />
         </Card>
       )}
 
@@ -345,5 +368,36 @@ function RitualCard({
         </p>
       )}
     </Card>
+  );
+}
+
+/** Home row 3: bill rupees (bars) and t CO2 (line) for the last 12 months, both axes labelled. */
+function RupeesCarbonChart({ rows, lang }: { rows: MonthRow[]; lang: string }) {
+  const { t } = useTranslation();
+  const data = rows
+    .slice(0, 12)
+    .filter((m) => m.rupees.total != null)
+    .reverse()
+    .map((m) => ({
+      key: m.month,
+      short: monthLabel(m.month, lang).split(' ')[0]!,
+      label: monthLabel(m.month, lang),
+      bar: m.rupees.total!,
+      line: m.co2 ? (m.co2.scope2TCo2Grid ?? 0) + (m.co2.scope1TCo2eFuels ?? 0) : null,
+    }));
+  return (
+    <DualAxisChart
+      rows={data}
+      ariaLabel={t('carbon.homeChartLabel')}
+      monthHeader={t('carbon.monthCol')}
+      barTitle={t('carbon.rupeeBar')}
+      lineTitle={t('carbon.co2Line')}
+      barTick={(v) => (v === 0 ? '0' : `${formatDecimal(v / 100000)} ${t('kit.rupee.lakh')}`)}
+      lineTick={(v) => formatDecimal(v)}
+      barValue={(v) => formatInr(Math.round(v))}
+      lineValue={(v) => `${formatDecimal(v)} t`}
+      barColor="var(--color-copper-500)"
+      lineColor="var(--color-green-900)"
+    />
   );
 }

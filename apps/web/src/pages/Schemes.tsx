@@ -175,34 +175,40 @@ export default function Schemes() {
         </>
       )}
       {q.isError && <ErrorBox>{t('schemes.loadFailed')}</ErrorBox>}
-      {v && v.moneyFound.inr > 0 && (
-        <Card className="space-y-1" data-testid="money-found">
-          <p className="font-heading text-card-title font-semibold">
-            {t('schemes.moneyFound', {
-              inr: formatInr(v.moneyFound.inr),
-              items: v.moneyFound.items
-                .map((i) => t(`schemes.money.${i.code}`, { defaultValue: i.label }))
-                .join(', '),
-            })}
-          </p>
-          <p className="text-small text-ink-muted">{t('schemes.status.likely')}</p>
-        </Card>
-      )}
-      {v?.zed && <ZedReadiness z={v.zed} lang={lang} />}
-      {ORDER.map((s) => {
-        const group = others.filter((m) => m.status === s);
-        if (!group.length) return null;
-        return (
-          <section key={s} className="space-y-2">
-            <h2 className="font-heading text-card-title font-semibold">
-              {t(`schemes.group.${s}`)}
-            </h2>
-            {group.map((m) => (
-              <MatchCard key={m.code} m={m} lang={lang} />
-            ))}
-          </section>
-        );
-      })}
+      <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+        <div className="space-y-3 lg:col-span-6 lg:space-y-6">
+          {v && v.moneyFound.inr > 0 && (
+            <Card className="space-y-1" data-testid="money-found">
+              <p className="font-heading text-card-title font-semibold">
+                {t('schemes.moneyFound', {
+                  inr: formatInr(v.moneyFound.inr),
+                  items: v.moneyFound.items
+                    .map((i) => t(`schemes.money.${i.code}`, { defaultValue: i.label }))
+                    .join(', '),
+                })}
+              </p>
+              <p className="text-small text-ink-muted">{t('schemes.status.likely')}</p>
+            </Card>
+          )}
+          {v?.zed && <ZedReadiness z={v.zed} lang={lang} />}
+        </div>
+        <div className="space-y-3 lg:col-span-6">
+          {ORDER.map((s) => {
+            const group = others.filter((m) => m.status === s);
+            if (!group.length) return null;
+            return (
+              <section key={s} className="space-y-2">
+                <h2 className="font-heading text-card-title font-semibold">
+                  {t(`schemes.group.${s}`)}
+                </h2>
+                {group.map((m) => (
+                  <MatchCard key={m.code} m={m} lang={lang} />
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      </div>
       <p className="text-small text-ink-muted">{t('schemes.footnote')}</p>
     </Page>
   );

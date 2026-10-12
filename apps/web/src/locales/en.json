@@ -790,7 +790,8 @@
     },
     "co2Total": "{{value}} t CO2 avoided",
     "co2Label": "CO2 avoided so far",
-    "twinTitle": "Saved so far"
+    "twinTitle": "Saved so far",
+    "axisTitle": "kWh a month"
   },
   "reports": {
     "title": "Reports",

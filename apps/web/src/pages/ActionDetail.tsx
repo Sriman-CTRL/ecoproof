@@ -132,134 +132,141 @@ export default function ActionDetail() {
             <ActionStatus status={planned && a.status === 'suggested' ? 'planned' : a.status} />
             <CostBadge a={a} />
           </div>
-          <Card className="space-y-2">
-            {range ? (
-              <>
-                <p className="text-small text-ink-muted">{t('detail.range')}</p>
-                <p className="num font-heading text-title font-semibold">
-                  <SourceChip lineName={a.source}>{range}</SourceChip>{' '}
-                  <span className="text-body font-normal text-ink-muted">
-                    {t('health.perMonth')}
-                  </span>
-                </p>
-                {a.annualInrMid != null && (
-                  <p className="num text-ink-muted">
-                    <Rupees value={a.annualInrMid} /> {t('actions.perYear')}
-                  </p>
+          <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <div className="space-y-3 lg:col-span-7 lg:space-y-6">
+              <Card className="space-y-2">
+                {range ? (
+                  <>
+                    <p className="text-small text-ink-muted">{t('detail.range')}</p>
+                    <p className="num font-heading text-title font-semibold">
+                      <SourceChip lineName={a.source}>{range}</SourceChip>{' '}
+                      <span className="text-body font-normal text-ink-muted">
+                        {t('health.perMonth')}
+                      </span>
+                    </p>
+                    {a.annualInrMid != null && (
+                      <p className="num text-ink-muted">
+                        <Rupees value={a.annualInrMid} /> {t('actions.perYear')}
+                      </p>
+                    )}
+                    {a.kwhPerYearLow != null && a.kwhPerYearHigh != null && (
+                      <p className="num text-ink-muted">
+                        {t('actions.kwhRange', {
+                          low: formatNumber(Math.round(a.kwhPerYearLow)),
+                          high: formatNumber(Math.round(a.kwhPerYearHigh)),
+                        })}
+                      </p>
+                    )}
+                    {actionCo2Text(a, t) && (
+                      <p
+                        className="num font-heading text-title font-semibold text-green-700"
+                        data-testid="detail-co2"
+                      >
+                        {actionCo2Text(a, t)}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="font-semibold">{savingPendingText(a, t)}</p>
                 )}
-                {a.kwhPerYearLow != null && a.kwhPerYearHigh != null && (
-                  <p className="num text-ink-muted">
-                    {t('actions.kwhRange', {
-                      low: formatNumber(Math.round(a.kwhPerYearLow)),
-                      high: formatNumber(Math.round(a.kwhPerYearHigh)),
-                    })}
-                  </p>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+                  <dt className="text-ink-muted">{t('actions.cost')}</dt>
+                  <dd className="num">
+                    <ActionCost a={a} />
+                  </dd>
+                  <dt className="text-ink-muted">{t('actions.payback')}</dt>
+                  <dd className="num">{paybackText(a, t)}</dd>
+                </dl>
+                {a.co2Note === 'bill_charge_only' && (
+                  <p className="text-small text-ink-muted">{t('health.billChargeNote')}</p>
                 )}
-                {actionCo2Text(a, t) && (
-                  <p
-                    className="num font-heading text-card-title font-semibold text-green-700"
-                    data-testid="detail-co2"
-                  >
-                    {actionCo2Text(a, t)}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="font-semibold">{savingPendingText(a, t)}</p>
-            )}
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-              <dt className="text-ink-muted">{t('actions.cost')}</dt>
-              <dd className="num">
-                <ActionCost a={a} />
-              </dd>
-              <dt className="text-ink-muted">{t('actions.payback')}</dt>
-              <dd className="num">{paybackText(a, t)}</dd>
-            </dl>
-            {a.co2Note === 'bill_charge_only' && (
-              <p className="text-small text-ink-muted">{t('health.billChargeNote')}</p>
-            )}
-          </Card>
+              </Card>
 
-          <Card className="space-y-3">
-            <h2 className="font-heading text-card-title font-semibold">{t('detail.emiTitle')}</h2>
-            <label className={labelClass}>
-              <span className="font-semibold">{t('detail.loan')}</span>
-              <input
-                inputMode="numeric"
-                className={inputClass}
-                value={loan}
-                onChange={(e) => {
-                  const n = digits(e.target.value);
-                  setLoan(n ? new Intl.NumberFormat('en-IN').format(n) : '');
-                }}
-              />
-            </label>
-            <label className={labelClass}>
-              <span className="font-semibold">{t('detail.rate')}</span>
-              <input
-                inputMode="decimal"
-                className={inputClass}
-                value={rate}
-                onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))}
-              />
-              <span className="text-small text-ink-muted">{t('detail.rateHelp')}</span>
-            </label>
-            <label className={labelClass}>
-              <span className="font-semibold">{t('detail.tenure')}</span>
-              <input
-                inputMode="numeric"
-                className={inputClass}
-                value={months}
-                onChange={(e) => setMonths(e.target.value.replace(/[^\d]/g, ''))}
-              />
-            </label>
-            {calc && (
-              <div className="space-y-3 border-t pt-3" data-testid="emi-panel">
-                <EmiVsSavingBar emi={Math.round(calc.emi)} saving={Math.round(monthlyLow)} />
-                {calc.test.cashPositiveFromMonth1 && (
-                  <StatusPill tone="positive">
-                    <CheckCircle size={18} weight="fill" aria-hidden="true" />
-                    {t('detail.cashPositive')}
-                  </StatusPill>
+              {planned && (
+                <Card className="space-y-3">
+                  <h2 className="font-heading text-card-title font-semibold">
+                    {t('detail.packTitle')}
+                  </h2>
+                  <p className="flex items-center gap-2 rounded-card bg-green-50 p-2 text-small font-semibold text-green-700">
+                    <CheckCircle size={20} weight="fill" aria-hidden="true" />
+                    {t('detail.planned')}
+                  </p>
+                  <label className={labelClass}>
+                    <span className="font-semibold">{t('detail.vendor')}</span>
+                    <input
+                      className={inputClass}
+                      value={vendor}
+                      onChange={(e) => setVendor(e.target.value)}
+                    />
+                  </label>
+                  <label className={labelClass}>
+                    <span className="font-semibold">{t('detail.quote')}</span>
+                    <input
+                      inputMode="numeric"
+                      className={inputClass}
+                      value={quote}
+                      onChange={(e) => {
+                        const n = digits(e.target.value);
+                        setQuote(n ? new Intl.NumberFormat('en-IN').format(n) : '');
+                      }}
+                    />
+                    <span className="text-small text-ink-muted">{t('detail.quoteHelp')}</span>
+                  </label>
+                  {!calc && <p className="text-small text-ink-muted">{t('detail.needLoan')}</p>}
+                </Card>
+              )}
+            </div>
+            <div className="space-y-3 lg:col-span-5">
+              <Card className="space-y-3">
+                <h2 className="font-heading text-card-title font-semibold">
+                  {t('detail.emiTitle')}
+                </h2>
+                <label className={labelClass}>
+                  <span className="font-semibold">{t('detail.loan')}</span>
+                  <input
+                    inputMode="numeric"
+                    className={inputClass}
+                    value={loan}
+                    onChange={(e) => {
+                      const n = digits(e.target.value);
+                      setLoan(n ? new Intl.NumberFormat('en-IN').format(n) : '');
+                    }}
+                  />
+                </label>
+                <label className={labelClass}>
+                  <span className="font-semibold">{t('detail.rate')}</span>
+                  <input
+                    inputMode="decimal"
+                    className={inputClass}
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))}
+                  />
+                  <span className="text-small text-ink-muted">{t('detail.rateHelp')}</span>
+                </label>
+                <label className={labelClass}>
+                  <span className="font-semibold">{t('detail.tenure')}</span>
+                  <input
+                    inputMode="numeric"
+                    className={inputClass}
+                    value={months}
+                    onChange={(e) => setMonths(e.target.value.replace(/[^\d]/g, ''))}
+                  />
+                </label>
+                {calc && (
+                  <div className="space-y-3 border-t pt-3" data-testid="emi-panel">
+                    <EmiVsSavingBar emi={Math.round(calc.emi)} saving={Math.round(monthlyLow)} />
+                    {calc.test.cashPositiveFromMonth1 && (
+                      <StatusPill tone="positive">
+                        <CheckCircle size={18} weight="fill" aria-hidden="true" />
+                        {t('detail.cashPositive')}
+                      </StatusPill>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
-          </Card>
-
-          {planned && (
-            <Card className="space-y-3">
-              <h2 className="font-heading text-card-title font-semibold">
-                {t('detail.packTitle')}
-              </h2>
-              <p className="flex items-center gap-2 rounded-card bg-green-50 p-2 text-small font-semibold text-green-700">
-                <CheckCircle size={20} weight="fill" aria-hidden="true" />
-                {t('detail.planned')}
-              </p>
-              <label className={labelClass}>
-                <span className="font-semibold">{t('detail.vendor')}</span>
-                <input
-                  className={inputClass}
-                  value={vendor}
-                  onChange={(e) => setVendor(e.target.value)}
-                />
-              </label>
-              <label className={labelClass}>
-                <span className="font-semibold">{t('detail.quote')}</span>
-                <input
-                  inputMode="numeric"
-                  className={inputClass}
-                  value={quote}
-                  onChange={(e) => {
-                    const n = digits(e.target.value);
-                    setQuote(n ? new Intl.NumberFormat('en-IN').format(n) : '');
-                  }}
-                />
-                <span className="text-small text-ink-muted">{t('detail.quoteHelp')}</span>
-              </label>
-              {!calc && <p className="text-small text-ink-muted">{t('detail.needLoan')}</p>}
-            </Card>
-          )}
+                <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
+              </Card>
+            </div>
+          </div>
         </>
       )}
     </Page>

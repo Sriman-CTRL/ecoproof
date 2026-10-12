@@ -71,95 +71,106 @@ export default function HouseholdSolar() {
       {plan.isError && <ErrorBox>{t('household.solar.loadFailed')}</ErrorBox>}
       {p && (
         <>
-          <Card className="space-y-2">
-            <p className="text-small text-ink-muted">{t('household.solar.sizeLabel')}</p>
-            {p.belowMinimum ? (
-              <p>{t('household.solar.belowMinimum')}</p>
-            ) : (
-              <p className="num font-heading text-hero font-semibold">
-                {t('household.solar.size', { kwp: formatDecimal(p.kwp) })}
-              </p>
-            )}
-            <p>{limitText(p, t)}</p>
-            <p className="text-small text-ink-muted">
-              {t('household.solar.conservative', {
-                area: formatNumber(p.conservative.areaPerKwp),
-                kwp: formatDecimal(p.conservative.kwp),
-              })}
-            </p>
-          </Card>
-
-          {!p.belowMinimum && (
-            <Card className="px-4 py-2">
-              {/* Rupees and CO2 side by side; kWh is the supporting line. */}
-              <Row
-                label={t('household.solar.savingLabel')}
-                value={
-                  p.monthlySavingInr == null ? (
-                    pending
-                  ) : (
-                    <Rupees value={Math.round(p.monthlySavingInr)} />
-                  )
-                }
-                note={`${t('household.solar.savingNote')} ${t('household.fsaNote')}`}
-              />
-              <Row
-                label={t('household.solar.co2Label')}
-                value={
-                  <span className="text-green-700" data-testid="solar-co2">
-                    {t('household.solar.co2Line', { value: formatDecimal(p.co2AvoidedT) })}
-                  </span>
-                }
-              />
-              <Row
-                label={t('household.solar.costLabel')}
-                value={<Rupees value={p.benchmarkCostInr} />}
-                note={t('household.solar.costNote')}
-              />
-              <Row
-                label={t('household.solar.cfaLabel')}
-                value={<Rupees value={p.cfaInr} />}
-                note={t('household.solar.cfaNote')}
-              />
-              <Row label={t('household.solar.netLabel')} value={<Rupees value={p.netCostInr} />} />
-              <Row
-                label={t('household.solar.paybackLabel')}
-                value={
-                  p.paybackYears == null
-                    ? pending
-                    : p.paybackYears < 1
-                      ? t('household.solar.paybackMonths', {
-                          value: formatDecimal(Math.round(p.paybackYears * 12 * 10) / 10),
-                        })
-                      : t('household.solar.paybackYears', { value: formatDecimal(p.paybackYears) })
-                }
-              />
-              <p className="pt-2 text-small">
-                {t('household.solar.genLine', { kwh: formatNumber(Math.round(p.annualGenKwh)) })}
-              </p>
-            </Card>
-          )}
-
-          <Card className="space-y-2">
-            <h2 className="font-heading text-card-title font-semibold">
-              {t('household.solar.conditionsTitle')}
-            </h2>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>{t('household.solar.condition1')}</li>
-              <li>{t('household.solar.condition2')}</li>
-              <li>{t('household.solar.condition3')}</li>
-            </ul>
-            <p className="text-small text-ink-muted">{t('household.solar.surplus')}</p>
-            <a
-              href={p.portalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${BUTTON_CLASS.secondary} gap-1`}
-            >
-              {t('household.solar.applyLink')}
-              <ArrowSquareOut size={18} aria-hidden="true" />
-            </a>
-          </Card>
+          <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <div className="space-y-3 lg:col-span-5 lg:space-y-6">
+              <Card className="space-y-2">
+                <p className="text-small text-ink-muted">{t('household.solar.sizeLabel')}</p>
+                {p.belowMinimum ? (
+                  <p>{t('household.solar.belowMinimum')}</p>
+                ) : (
+                  <p className="num font-heading text-hero font-semibold">
+                    {t('household.solar.size', { kwp: formatDecimal(p.kwp) })}
+                  </p>
+                )}
+                <p>{limitText(p, t)}</p>
+                <p className="text-small text-ink-muted">
+                  {t('household.solar.conservative', {
+                    area: formatNumber(p.conservative.areaPerKwp),
+                    kwp: formatDecimal(p.conservative.kwp),
+                  })}
+                </p>
+              </Card>
+              <Card className="space-y-2">
+                <h2 className="font-heading text-card-title font-semibold">
+                  {t('household.solar.conditionsTitle')}
+                </h2>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>{t('household.solar.condition1')}</li>
+                  <li>{t('household.solar.condition2')}</li>
+                  <li>{t('household.solar.condition3')}</li>
+                </ul>
+                <p className="text-small text-ink-muted">{t('household.solar.surplus')}</p>
+                <a
+                  href={p.portalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${BUTTON_CLASS.secondary} gap-1`}
+                >
+                  {t('household.solar.applyLink')}
+                  <ArrowSquareOut size={18} aria-hidden="true" />
+                </a>
+              </Card>
+            </div>
+            <div className="space-y-3 lg:col-span-7">
+              {!p.belowMinimum && (
+                <Card className="px-4 py-2">
+                  {/* Rupees and CO2 side by side; kWh is the supporting line. */}
+                  <Row
+                    label={t('household.solar.savingLabel')}
+                    value={
+                      p.monthlySavingInr == null ? (
+                        pending
+                      ) : (
+                        <Rupees value={Math.round(p.monthlySavingInr)} />
+                      )
+                    }
+                    note={`${t('household.solar.savingNote')} ${t('household.fsaNote')}`}
+                  />
+                  <Row
+                    label={t('household.solar.co2Label')}
+                    value={
+                      <span className="text-green-700" data-testid="solar-co2">
+                        {t('household.solar.co2Line', { value: formatDecimal(p.co2AvoidedT) })}
+                      </span>
+                    }
+                  />
+                  <Row
+                    label={t('household.solar.costLabel')}
+                    value={<Rupees value={p.benchmarkCostInr} />}
+                    note={t('household.solar.costNote')}
+                  />
+                  <Row
+                    label={t('household.solar.cfaLabel')}
+                    value={<Rupees value={p.cfaInr} />}
+                    note={t('household.solar.cfaNote')}
+                  />
+                  <Row
+                    label={t('household.solar.netLabel')}
+                    value={<Rupees value={p.netCostInr} />}
+                  />
+                  <Row
+                    label={t('household.solar.paybackLabel')}
+                    value={
+                      p.paybackYears == null
+                        ? pending
+                        : p.paybackYears < 1
+                          ? t('household.solar.paybackMonths', {
+                              value: formatDecimal(Math.round(p.paybackYears * 12 * 10) / 10),
+                            })
+                          : t('household.solar.paybackYears', {
+                              value: formatDecimal(p.paybackYears),
+                            })
+                    }
+                  />
+                  <p className="pt-2 text-small">
+                    {t('household.solar.genLine', {
+                      kwh: formatNumber(Math.round(p.annualGenKwh)),
+                    })}
+                  </p>
+                </Card>
+              )}
+            </div>
+          </div>
 
           <Button variant="secondary" onClick={() => setSourcesOpen(true)}>
             {t('household.solar.sources')}

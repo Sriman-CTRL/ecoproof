@@ -1,7 +1,8 @@
 /**
  * Self-check: walks Demo A, B and H on a 390x844 phone in English, then re-visits four screens at 360x800
- * in Telugu, and saves a PNG of each screen. Also reports horizontal overflow, tap targets under
- * 48px and anything hidden behind the tab bar.
+ * in Telugu, then the D6a carbon and desktop screens (1440x900, and 360x800 in EN and TE), and saves
+ * a PNG of each screen. Also reports horizontal overflow, tap targets under 48px, anything hidden
+ * behind the tab bar and tab labels that do not fit.
  * Needs the API (DOCUMENT_READER=fake) and the web dev server running. Reset the demo afterwards.
  *   pnpm --filter @ecoproof/web screens
  */
@@ -38,15 +39,30 @@ async function audit(page: Page, name: string) {
     }
     // Scrolled to the end, the last content must sit above the sticky bar and the tab bar.
     window.scrollTo(0, root.scrollHeight);
+    // Bottom-pinned bars only: on desktop the tab bar is hidden and the sidebar is not one.
     const bars = [...document.querySelectorAll('nav, div.sticky')]
-      .filter((e) => !e.closest('main'))
+      .filter(
+        (e) =>
+          !e.closest('main') &&
+          e.getBoundingClientRect().height > 0 &&
+          getComputedStyle(e).position === 'sticky' &&
+          getComputedStyle(e).top === 'auto',
+      )
       .map((e) => e.getBoundingClientRect().top);
     const main = document.querySelector('main')?.getBoundingClientRect().bottom ?? 0;
     if (bars.length && main > Math.min(...bars) + 1) issues.push('content hidden under the bars');
     window.scrollTo(0, 0);
+    // Tab labels must fit their slot (5 tabs at 360px, Telugu included).
+    for (const a of document.querySelectorAll<HTMLElement>('nav li a')) {
+      if (a.offsetParent === null || a.closest('aside')) continue;
+      if (a.scrollWidth > a.clientWidth + 1 || a.scrollHeight > a.clientHeight + 1) {
+        issues.push(`tab label does not fit: ${(a.textContent ?? '').trim()}`);
+      }
+    }
     const primary = [...document.querySelectorAll<HTMLElement>('.bg-green-700')].filter(
       (el) =>
         el.offsetParent !== null &&
+        !el.closest('aside') &&
         el.getBoundingClientRect().width > 200 &&
         el.getBoundingClientRect().height >= 48,
     );
@@ -166,7 +182,7 @@ try {
   await page.getByRole('navigation').getByRole('link', { name: 'Bills' }).click();
   await page.waitForURL(/\/bills$/);
   await page.getByText('Your bills').waitFor();
-  await page.getByRole('table').waitFor();
+  await page.getByRole('table', { name: 'Your confirmed bills, newest first' }).waitFor();
   await shot(page, 'bills');
 
   await page.getByRole('link', { name: 'Add a bill' }).click();
@@ -223,9 +239,9 @@ try {
   await page.getByText('Not started').first().waitFor();
   await shot(page, 'actions');
   await page.getByText(/See all \(/).click();
-  await page.getByText('Fix power factor (APFC panel)').waitFor();
+  await page.getByText('Fix power factor (APFC panel)').first().waitFor();
 
-  await page.getByText('Fix power factor (APFC panel)').click();
+  await page.getByText('Fix power factor (APFC panel)').first().click();
   await page.waitForURL(/\/actions\/fix_power_factor/);
   await page.getByLabel(/Loan amount/).fill('10,00,000');
   await page.getByText('Cash-positive from month 1').waitFor();
@@ -445,6 +461,79 @@ try {
   await th.getByText('పైకప్పు సోలార్ ప్లాన్').waitFor();
   await shot(th, 'te-home-h');
   await th.close();
+
+  // ---------- D6a: carbon tab, carbon statement, desktop layout ----------
+  /** Signs in to a demo on a fresh page; the language is set after the sample chooser. */
+  async function demoPage(demo: 'A' | 'B' | 'H', w: number, h: number, lang: 'en' | 'te') {
+    const card = {
+      A: 'Sri Lakshmi Castings: before',
+      B: 'Same unit, 6 months later',
+      H: 'A home in Hyderabad (sample)',
+    }[demo];
+    const p = await browser.newPage({ viewport: { width: w, height: h } });
+    await p.goto(`${WEB}/start`);
+    await p.getByText(card).click();
+    await p.waitForURL(/\/(consent|home)$/);
+    if (p.url().endsWith('/consent')) {
+      await p.getByRole('button', { name: 'I agree' }).click();
+      await p.waitForURL(/\/home$/);
+    }
+    await p.evaluate((l) => localStorage.setItem('ecoproof.lang', l), lang);
+    return p;
+  }
+
+  // Demo A: Carbon tab at 390, then a carbon statement and its public verify page.
+  const ca = await demoPage('A', 390, 844, 'en');
+  await ca.goto(`${WEB}/carbon`);
+  await ca
+    .getByTestId('carbon-method')
+    .getByText(/kWh x 0\.675 t CO2\/MWh/)
+    .waitFor();
+  await ca.getByTestId('carbon-charge-only').waitFor();
+  await shot(ca, 'carbon-a');
+  await ca.getByTestId('make-carbon-statement').click();
+  await ca.waitForURL(/\/reports\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+  await ca.getByText('Document seal').waitFor();
+  const carbonReportId = ca.url().split('/reports/')[1]!;
+  await shot(ca, 'carbon-statement');
+  await ca.goto(`${WEB}/verify/${carbonReportId}`);
+  await ca.getByTestId('verify-carbon').waitFor();
+  await shot(ca, 'verify-carbon');
+  console.log('carbon statement', carbonReportId);
+  await ca.close();
+
+  // Desktop 1440x900: sidebar, no tab bar, two-column grids.
+  for (const [demo, path, name, ready] of [
+    ['A', '/home', 'desk-home-a', 'hero-pair'],
+    ['A', '/carbon', 'desk-carbon-a', 'carbon-method'],
+    ['A', '/actions', 'desk-plan-a', 'action-table'],
+    ['A', '/actions/igbt_furnace', 'desk-action-igbt', 'detail-co2'],
+    ['A', '/reports', 'desk-reports-a', 'carbon-create'],
+    ['B', '/home', 'desk-home-b', 'carbon-avoided'],
+    ['B', '/carbon', 'desk-carbon-b', 'carbon-avoided-card'],
+    ['B', '/savings', 'desk-savings-b', 'savings-twin'],
+    ['H', '/home', 'desk-home-h', 'carbon-solar'],
+    ['H', '/carbon', 'desk-carbon-h', 'carbon-method'],
+  ] as const) {
+    const d = await demoPage(demo, 1440, 900, 'en');
+    await d.goto(`${WEB}${path}`);
+    await d.getByTestId(ready).first().waitFor();
+    await d.getByTestId('sidebar').waitFor();
+    await shot(d, name);
+    await d.close();
+  }
+
+  // 360x800, English and Telugu: Home and Carbon (heroes stack; 5 tabs fit).
+  for (const lang of ['en', 'te'] as const) {
+    const m = await demoPage('A', 360, 800, lang);
+    await m.goto(`${WEB}/home`);
+    await m.getByTestId('carbon-tile').waitFor();
+    await shot(m, `m360-${lang}-home`);
+    await m.goto(`${WEB}/carbon`);
+    await m.getByTestId('carbon-method').waitFor();
+    await shot(m, `m360-${lang}-carbon`);
+    await m.close();
+  }
 } finally {
   await browser.close();
 }

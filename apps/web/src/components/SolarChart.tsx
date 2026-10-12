@@ -1,17 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '../lib/format';
 import type { SolarMonth } from '../lib/solar';
+import { niceMax, useWidth } from './DualAxisChart';
 import { monthLabel } from './ui';
 
-const W = 320;
-const H = 190;
-const PAD = { l: 38, r: 8, t: 10, b: 26 };
-
-/** A round upper limit for the axis: 1, 2 or 5 times a power of ten. */
-function niceMax(v: number): number {
-  const p = 10 ** Math.floor(Math.log10(v));
-  return ([1, 2, 5, 10].find((m) => m * p >= v) ?? 10) * p;
-}
+const PAD = { l: 44, r: 8, t: 12, b: 28 };
 
 /**
  * Import (green) and export (copper) kWh side by side, one slot per month after solar. Same
@@ -19,12 +12,15 @@ function niceMax(v: number): number {
  */
 export function SolarChart({ months, lang }: { months: SolarMonth[]; lang: string }) {
   const { t } = useTranslation();
+  // Drawn at the container's width so labels stay 12px from phone to desktop.
+  const [ref, W] = useWidth<HTMLDivElement>(320);
   if (months.length === 0) return null;
+  const H = W >= 640 ? 260 : 200;
   const max = niceMax(Math.max(1, ...months.flatMap((m) => [m.importKwh, m.exportKwh])));
   const slot = (W - PAD.l - PAD.r) / months.length;
   const y = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / max);
   const x = (i: number) => PAD.l + slot * (i + 0.5);
-  const barW = Math.min(16, slot * 0.32);
+  const barW = Math.min(28, slot * 0.32);
   const ticks = [0, 0.5, 1].map((f) => f * max);
   const short = (m: SolarMonth) => monthLabel(m.month, lang).split(' ')[0];
   const bars = [
@@ -44,58 +40,62 @@ export function SolarChart({ months, lang }: { months: SolarMonth[]; lang: strin
 
   return (
     <figure className="space-y-2">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="h-auto w-full"
-        role="img"
-        aria-label={t('household.after.chartLabel')}
-      >
-        {ticks.map((v) => (
-          <g key={v}>
-            <line
-              x1={PAD.l}
-              x2={W - PAD.r}
-              y1={y(v)}
-              y2={y(v)}
-              stroke="var(--color-line)"
-              strokeWidth={1}
-            />
-            <text
-              x={PAD.l - 4}
-              y={y(v) + 4}
-              textAnchor="end"
-              fontSize={11}
-              fill="var(--color-ink-muted)"
-            >
-              {formatNumber(v)}
-            </text>
-          </g>
-        ))}
-        {months.map((m, i) => (
-          <g key={m.month}>
-            {bars.map((b) => (
-              <rect
-                key={b.key}
-                x={x(i) + b.dx - barW / 2}
-                y={y(b.v(m))}
-                width={barW}
-                height={y(0) - y(b.v(m))}
-                rx={2}
-                fill={b.fill}
+      <div ref={ref} className="w-full">
+        <svg
+          width={W}
+          height={H}
+          viewBox={`0 0 ${W} ${H}`}
+          className="block max-w-full"
+          role="img"
+          aria-label={t('household.after.chartLabel')}
+        >
+          {ticks.map((v) => (
+            <g key={v}>
+              <line
+                x1={PAD.l}
+                x2={W - PAD.r}
+                y1={y(v)}
+                y2={y(v)}
+                stroke="var(--color-line)"
+                strokeWidth={1}
               />
-            ))}
-            <text
-              x={x(i)}
-              y={H - 8}
-              textAnchor="middle"
-              fontSize={11}
-              fill="var(--color-ink-muted)"
-            >
-              {short(m)}
-            </text>
-          </g>
-        ))}
-      </svg>
+              <text
+                x={PAD.l - 4}
+                y={y(v) + 4}
+                textAnchor="end"
+                fontSize={12}
+                fill="var(--color-ink-muted)"
+              >
+                {formatNumber(v)}
+              </text>
+            </g>
+          ))}
+          {months.map((m, i) => (
+            <g key={m.month}>
+              {bars.map((b) => (
+                <rect
+                  key={b.key}
+                  x={x(i) + b.dx - barW / 2}
+                  y={y(b.v(m))}
+                  width={barW}
+                  height={y(0) - y(b.v(m))}
+                  rx={2}
+                  fill={b.fill}
+                />
+              ))}
+              <text
+                x={x(i)}
+                y={H - 8}
+                textAnchor="middle"
+                fontSize={12}
+                fill="var(--color-ink-muted)"
+              >
+                {short(m)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
       <figcaption className="space-y-1 text-small">
         <span className="flex items-center gap-2">
           <span aria-hidden="true" className="size-3 rounded-[2px] bg-green-600" />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 /** A round upper limit for an axis: 1, 2 or 5 times a power of ten. */
 export function niceMax(v: number): number {
@@ -8,7 +8,7 @@ export function niceMax(v: number): number {
 }
 
 /** Width of the element in CSS px, so the SVG draws at 1:1 and text stays 12px at any width. */
-function useWidth<T extends HTMLElement>(fallback: number) {
+export function useWidth<T extends HTMLElement>(fallback: number) {
   const ref = useRef<T>(null);
   const [w, setW] = useState(fallback);
   useEffect(() => {
@@ -49,6 +49,10 @@ export function DualAxisChart({
   barColor = 'var(--color-green-600)',
   lineColor = 'var(--color-copper-700)',
   monthHeader,
+  sharedAxis = false,
+  barLegend,
+  lineLegend,
+  caption,
 }: {
   rows: DualRow[];
   ariaLabel: string;
@@ -63,15 +67,23 @@ export function DualAxisChart({
   barColor?: string;
   lineColor?: string;
   monthHeader: string;
+  /** Bars and line in the same unit: one left axis, no right axis. */
+  sharedAxis?: boolean;
+  /** Longer legend words than the axis titles (default: the titles). */
+  barLegend?: string;
+  lineLegend?: string;
+  /** Extra lines under the legend. */
+  caption?: ReactNode;
 }) {
   const [ref, W] = useWidth<HTMLDivElement>(320);
   if (rows.length === 0) return null;
   const hasLine = !!lineTitle && rows.some((r) => r.line != null);
   const H = W >= 640 ? 260 : 220;
-  const PAD = { l: 52, r: hasLine ? 52 : 12, t: 28, b: 28 };
-  const barMax = niceMax(Math.max(...rows.map((r) => r.bar)));
+  const twoAxes = hasLine && !sharedAxis;
+  const PAD = { l: 52, r: twoAxes ? 52 : 12, t: 28, b: 28 };
   const lineVals = rows.flatMap((r) => (r.line == null ? [] : [r.line]));
-  const lineMax = hasLine ? niceMax(Math.max(...lineVals)) : 1;
+  const barMax = niceMax(Math.max(...rows.map((r) => r.bar), ...(sharedAxis ? lineVals : [])));
+  const lineMax = sharedAxis ? barMax : hasLine ? niceMax(Math.max(...lineVals)) : 1;
   const slot = (W - PAD.l - PAD.r) / rows.length;
   const yb = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / barMax);
   const yl = (v: number) => PAD.t + (H - PAD.t - PAD.b) * (1 - v / lineMax);
@@ -101,7 +113,7 @@ export function DualAxisChart({
           <text x={4} y={12} fontSize={12} fontWeight={600} fill="var(--color-ink-muted)">
             {barTitle}
           </text>
-          {hasLine && (
+          {twoAxes && (
             <text
               x={W - 4}
               y={12}
@@ -131,7 +143,7 @@ export function DualAxisChart({
               >
                 {barTick(f * barMax)}
               </text>
-              {hasLine && lineTick && (
+              {twoAxes && lineTick && (
                 <text
                   x={W - PAD.r + 6}
                   y={yl(f * lineMax) + 4}
@@ -169,7 +181,12 @@ export function DualAxisChart({
           ))}
           <text
             x={x(last)}
-            y={yb(rows[last]!.bar) - 6}
+            y={
+              Math.min(
+                yb(rows[last]!.bar),
+                hasLine && rows[last]!.line != null ? yl(rows[last]!.line!) - 4 : Infinity,
+              ) - 8
+            }
             textAnchor={slot < 60 ? 'end' : 'middle'}
             fontSize={12}
             fontWeight={700}
@@ -204,14 +221,15 @@ export function DualAxisChart({
             className="size-3 rounded-[2px]"
             style={{ background: barColor }}
           />
-          {barTitle}
+          {barLegend ?? barTitle}
         </span>
         {hasLine && (
           <span className="flex items-center gap-2">
             <span aria-hidden="true" className="h-0.5 w-5" style={{ background: lineColor }} />
-            {lineTitle}
+            {lineLegend ?? lineTitle}
           </span>
         )}
+        {caption && <span className="w-full space-y-1">{caption}</span>}
       </figcaption>
       <div className="sr-only">
         <table>

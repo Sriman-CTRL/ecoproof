@@ -38,90 +38,95 @@ export default function HouseholdAfter() {
             <SolarChart months={r.months} lang={lang} />
           </Card>
 
-          <Card className="space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-small text-ink-muted">{t('household.after.savedLabel')}</p>
-              {/* S8a rule: "Verified by your bills" only when the API says the test passed. */}
-              <StampBadge variant={r.status === 'verified' ? 'verified' : 'early'} />
+          <div className="grid gap-3 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <div className="lg:col-span-5">
+              <Card className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-small text-ink-muted">{t('household.after.savedLabel')}</p>
+                  {/* S8a rule: "Verified by your bills" only when the API says the test passed. */}
+                  <StampBadge variant={r.status === 'verified' ? 'verified' : 'early'} />
+                </div>
+                {tot.savedInr != null ? (
+                  <RupeeHero
+                    value={Math.round(tot.savedInr)}
+                    unitsText={
+                      tot.savedKwh != null
+                        ? t('household.after.savedUnits', { kwh: formatNumber(tot.savedKwh) })
+                        : undefined
+                    }
+                    co2Text={
+                      tot.gridTco2 != null
+                        ? t('household.after.co2', { value: formatDecimal(tot.gridTco2) })
+                        : undefined
+                    }
+                  />
+                ) : (
+                  <>
+                    {tot.savedKwh != null && (
+                      <p className="num font-heading text-title font-semibold">
+                        {t('household.after.savedUnits', { kwh: formatNumber(tot.savedKwh) })}
+                      </p>
+                    )}
+                    {tot.gridTco2 != null && (
+                      <p className="text-ink-muted">
+                        {t('household.after.co2', { value: formatDecimal(tot.gridTco2) })}
+                      </p>
+                    )}
+                    <p className="text-small text-copper-800">{t('household.noRupees')}</p>
+                  </>
+                )}
+                <p className="text-small text-ink-muted">{t('household.after.methodNote')}</p>
+                <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
+              </Card>
             </div>
-            {tot.savedInr != null ? (
-              <RupeeHero
-                value={Math.round(tot.savedInr)}
-                unitsText={
-                  tot.savedKwh != null
-                    ? t('household.after.savedUnits', { kwh: formatNumber(tot.savedKwh) })
-                    : undefined
-                }
-                co2Text={
-                  tot.gridTco2 != null
-                    ? t('household.after.co2', { value: formatDecimal(tot.gridTco2) })
-                    : undefined
-                }
-              />
-            ) : (
-              <>
-                {tot.savedKwh != null && (
-                  <p className="num font-heading text-title font-semibold">
-                    {t('household.after.savedUnits', { kwh: formatNumber(tot.savedKwh) })}
-                  </p>
-                )}
-                {tot.gridTco2 != null && (
-                  <p className="text-ink-muted">
-                    {t('household.after.co2', { value: formatDecimal(tot.gridTco2) })}
-                  </p>
-                )}
-                <p className="text-small text-copper-800">{t('household.noRupees')}</p>
-              </>
-            )}
-            <p className="text-small text-ink-muted">{t('household.after.methodNote')}</p>
-            <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
-          </Card>
-
-          <Card className="px-2">
-            <table className="w-full text-small">
-              <caption className="py-2 text-left font-heading text-card-title font-semibold">
-                {t('household.after.byMonth')}
-              </caption>
-              <thead>
-                <tr className="border-b text-left text-ink-muted">
-                  <th scope="col" className="py-2 pr-2 font-semibold">
-                    {t('household.after.col.month')}
-                  </th>
-                  <th scope="col" className="py-2 pr-2 text-right font-semibold">
-                    {t('household.after.col.saved')}
-                  </th>
-                  <th scope="col" className="py-2 pr-2 text-right font-semibold">
-                    {t('household.after.col.import')}
-                  </th>
-                  <th scope="col" className="py-2 pr-2 text-right font-semibold">
-                    {t('household.after.col.export')}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-semibold">
-                    {t('household.after.col.billed')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.months.map((m) => (
-                  <tr key={m.month} className="border-b last:border-b-0">
-                    <th scope="row" className="py-2 pr-2 text-left font-medium">
-                      {monthLabel(m.month, lang)}
-                    </th>
-                    <td className="num py-2 pr-2 text-right font-semibold">
-                      {m.savedInr != null
-                        ? formatInr(Math.round(m.savedInr))
-                        : m.savedKwh != null
-                          ? `${formatNumber(m.savedKwh)} kWh`
-                          : '-'}
-                    </td>
-                    <td className="num py-2 pr-2 text-right">{formatNumber(m.importKwh)}</td>
-                    <td className="num py-2 pr-2 text-right">{formatNumber(m.exportKwh)}</td>
-                    <td className="num py-2 text-right">{formatNumber(m.billedKwh)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
+            <div className="lg:col-span-7">
+              <Card className="px-2">
+                <table className="w-full text-small">
+                  <caption className="py-2 text-left font-heading text-card-title font-semibold">
+                    {t('household.after.byMonth')}
+                  </caption>
+                  <thead>
+                    <tr className="border-b text-left text-ink-muted">
+                      <th scope="col" className="py-2 pr-2 font-semibold">
+                        {t('household.after.col.month')}
+                      </th>
+                      <th scope="col" className="py-2 pr-2 text-right font-semibold">
+                        {t('household.after.col.saved')}
+                      </th>
+                      <th scope="col" className="py-2 pr-2 text-right font-semibold">
+                        {t('household.after.col.import')}
+                      </th>
+                      <th scope="col" className="py-2 pr-2 text-right font-semibold">
+                        {t('household.after.col.export')}
+                      </th>
+                      <th scope="col" className="py-2 text-right font-semibold">
+                        {t('household.after.col.billed')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {r.months.map((m) => (
+                      <tr key={m.month} className="border-b last:border-b-0">
+                        <th scope="row" className="py-2 pr-2 text-left font-medium">
+                          {monthLabel(m.month, lang)}
+                        </th>
+                        <td className="num py-2 pr-2 text-right font-semibold">
+                          {m.savedInr != null
+                            ? formatInr(Math.round(m.savedInr))
+                            : m.savedKwh != null
+                              ? `${formatNumber(m.savedKwh)} kWh`
+                              : '-'}
+                        </td>
+                        <td className="num py-2 pr-2 text-right">{formatNumber(m.importKwh)}</td>
+                        <td className="num py-2 pr-2 text-right">{formatNumber(m.exportKwh)}</td>
+                        <td className="num py-2 text-right">{formatNumber(m.billedKwh)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            </div>
+          </div>
           <p className="text-small text-ink-muted">{t('household.after.surplusNote')}</p>
           <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
         </>

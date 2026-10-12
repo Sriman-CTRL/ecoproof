@@ -10,7 +10,7 @@ import { EmptyState } from '../components/kit/EmptyState';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { StatusPill, type PillTone } from '../components/kit/StatusPill';
-import { actionCo2Text, CostText, ErrorBox, Page } from '../components/ui';
+import { actionCo2Text, CostText, ErrorBox, Page, tonnesText } from '../components/ui';
 import { api, type ActionItem, type ActionsResponse } from '../lib/api';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
@@ -192,13 +192,16 @@ export default function Actions() {
         <EmptyState icon={ListChecks} title={t('actions.emptyTitle')} body={t('actions.none')} />
       )}
       {d && d.actions.length > 0 && (
-        <Card className="py-1">
-          <ul>
-            {d.actions.map((a) => (
-              <ActionRow key={a.code} a={a} month={month} />
-            ))}
-          </ul>
-        </Card>
+        <>
+          <Card className="py-1 lg:hidden">
+            <ul>
+              {d.actions.map((a) => (
+                <ActionRow key={a.code} a={a} month={month} />
+              ))}
+            </ul>
+          </Card>
+          <ActionTable actions={d.actions} month={month} />
+        </>
       )}
       {d && !all && d.total > d.actions.length && (
         <Button variant="secondary" className="w-full" onClick={() => setAll(true)}>
@@ -209,5 +212,80 @@ export default function Actions() {
         <SourceChip lineName={t('actions.rankNote')}>{t('actions.rankLabel')}</SourceChip>
       </p>
     </Page>
+  );
+}
+
+/** Desktop (>= 1024px): the plan as one ledger table, rupees and CO2 side by side. */
+function ActionTable({ actions, month }: { actions: ActionItem[]; month: string | null }) {
+  const { t } = useTranslation();
+  const th = 'px-4 py-3 text-left text-small font-semibold text-ink-muted';
+  return (
+    <Card className="hidden overflow-hidden p-0 lg:block" data-testid="action-table">
+      <table className="w-full border-collapse">
+        <thead className="border-b bg-paper">
+          <tr>
+            <th scope="col" className={th}>
+              {t('actions.actionCol')}
+            </th>
+            <th scope="col" className={`${th} text-right`}>
+              {t('actions.inrCol')}
+            </th>
+            <th scope="col" className={`${th} text-right`}>
+              {t('actions.co2Col')}
+            </th>
+            <th scope="col" className={th}>
+              {t('actions.cost')}
+            </th>
+            <th scope="col" className={th}>
+              {t('actions.payback')}
+            </th>
+            <th scope="col" className={th}>
+              {t('actions.statusCol')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {actions.map((a) => {
+            const co2 = actionCo2Text(a, t);
+            return (
+              <tr key={a.code} className="border-b align-top last:border-b-0">
+                <th scope="row" className="px-4 py-3 text-left font-normal">
+                  <Link
+                    to={`/actions/${a.code}${month ? `?month=${month}` : ''}`}
+                    className="inline-flex min-h-12 items-center font-semibold text-green-700 underline underline-offset-4"
+                  >
+                    {actionTitle(a, t)}
+                  </Link>
+                  <div className="flex flex-wrap gap-1">
+                    <CostBadge a={a} />
+                  </div>
+                </th>
+                <td className="num px-4 py-3 text-right font-semibold whitespace-nowrap">
+                  {a.annualInrMid != null ? (
+                    <SourceChip lineName={a.source}>{annualRange(a)}</SourceChip>
+                  ) : (
+                    <span className="text-small font-normal">{savingPendingText(a, t)}</span>
+                  )}
+                </td>
+                <td
+                  className={`num px-4 py-3 text-right ${a.co2 ? 'font-semibold whitespace-nowrap text-green-700' : 'text-small text-ink-muted'}`}
+                >
+                  {a.co2
+                    ? `${tonnesText(a.co2.tPerYearLow)}-${tonnesText(a.co2.tPerYearHigh)}`
+                    : (co2 ?? '-')}
+                </td>
+                <td className="num px-4 py-3">
+                  <ActionCost a={a} />
+                </td>
+                <td className="num px-4 py-3 whitespace-nowrap">{paybackText(a, t)}</td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <ActionStatus status={a.status} />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
   );
 }
