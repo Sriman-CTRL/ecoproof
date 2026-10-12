@@ -117,3 +117,14 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 - [ ] Telugu strings added in S8a (`savings.*`, `reports.*`, `nav.reports`, `home.heroSaved`) are machine-drafted: need native speaker review.
 - [ ] Savings chart bars start at zero, so a 5-6% saving is a small gap between bars and line; the rupee and kWh figures carry the message. Revisit if owners find it hard to read.
 - [x] Home for Demo B now shows "Rs saved this month / total so far" from `GET /sites/:siteId/savings` (S8a).
+
+## Deploy (free tier, S10)
+
+- [ ] Render free web service sleeps after 15 minutes idle: cold start NOT MEASURED: after 17 minutes with no smoke traffic (12 Oct 2026) the service had not slept (first `/health` 230 ms). Warm `/health` is 67-98 ms from Hyderabad. Open the site (or `GET /health`) a few minutes before a demo to wake it.
+- [ ] Render free has 512 MB RAM. Chromium is launched per PDF and closed after; one loan-ready summary took 12.6 s live and the API process logged rss 262 MB with the browser open (Chromium's own processes are extra). Two PDFs at once could exceed 512 MB; not tested.
+- [ ] Public demo runs `DOCUMENT_READER=fake`: uploads store and read the sample bill, never the owner's photo, and the upload and confirm screens say so. Live bill reading needs a paid or consented Gemini setup before real bills.
+- [ ] Anyone with the public link can change demo data (plan actions, make reports, upload). Reset before a pitch: `PUBLIC_WEB_URL=https://ecoproof-gray.vercel.app pnpm --filter @ecoproof/api db:demo:reset` (the URL sets the demo report's QR).
+- [ ] Supabase free tier pauses inactive projects (check the current limit in Supabase docs); Vercel Hobby and Render free are non-commercial / hobby plans. Move to paid plans (Doc 07: AWS Mumbai) before real users.
+- [ ] CORS allows only `WEB_ORIGIN` (the Vercel production URL) and localhost: Vercel preview deployments cannot call the API.
+- [ ] The Dockerfile was not built locally (Docker not enabled in WSL); Render builds it on each push to `main`.
+- [ ] The "E" mark icon (`apps/web/public/icon.svg`) is a placeholder logo made for the web app manifest.

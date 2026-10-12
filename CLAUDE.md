@@ -81,9 +81,18 @@ Verbatim source quotes are exempt: a stored `quoted_line` shown inside quote mar
 - Schema additions not in Doc 07 are marked `/// ADDITION:` in `apps/api/prisma/schema.prisma`.
 - Demo numbers (SYNTHETIC, `apps/api/prisma/demo/assumptions.json`): TGERC FY 2026-27 HT-I(A) 11 kV rates Rs 7.65/kVAh, Rs 500/kVA, Rs 2,000 customer charge; CEA v22.0 grid 0.675 t CO2/MWh. Demo A Oct 2026: PF Rs 61,200 + contracted demand Rs 50,000 = Rs 1,11,200 a month at stake. Web copy reads sample figures from `apps/web/src/lib/sampleBill.ts`, never hard-coded rupees.
 
+## Deploy (free tier)
+
+- Web: Vercel Hobby, https://ecoproof-gray.vercel.app (root dir `apps/web`, `apps/web/vercel.json` SPA rewrite). `VITE_API_URL` = the API URL at build time.
+- API: Render free, Docker (`Dockerfile`, `render.yaml`), Singapore, https://ecoproof-api.onrender.com. Env names in `render.yaml`; secrets set in the Render dashboard. `DOCUMENT_READER=fake` on the public site. `DATABASE_URL` uses the transaction pooler with `pgbouncer=true&connection_limit=3`.
+- `calc` and `shared` build to `dist` for production only (`ecoproof-dist` export condition); dev, tests and Vercel use `src`.
+- Migrations run from your machine (`prisma migrate deploy`), never on deploy. No public reset endpoint.
+- Before a pitch: `PUBLIC_WEB_URL=https://ecoproof-gray.vercel.app pnpm --filter @ecoproof/api db:demo:reset`, then `pnpm smoke https://ecoproof-api.onrender.com https://ecoproof-gray.vercel.app` (wakes the API).
+- Pushing to `main` redeploys both.
+
 ## Commands
 
-`pnpm dev | build | test | lint | typecheck | format`
+`pnpm dev | build | test | lint | typecheck | format | smoke <apiUrl> <webUrl>`
 `pnpm --filter @ecoproof/api exec prisma migrate dev` and `pnpm --filter @ecoproof/api run db:seed`
 
 ## Glossary
