@@ -10,9 +10,9 @@ import { EmiVsSavingBar } from '../components/kit/EmiVsSavingBar';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { StatusPill } from '../components/kit/StatusPill';
-import { ErrorBox, Page, Rupees } from '../components/ui';
+import { actionCo2Text, ErrorBox, Page, Rupees } from '../components/ui';
 import { api, postJson, type ActionsResponse, type LoanPackCreated } from '../lib/api';
-import { formatDecimal, formatInr, formatNumber } from '../lib/format';
+import { formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
 import {
   ActionCost,
@@ -153,8 +153,14 @@ export default function ActionDetail() {
                       low: formatNumber(Math.round(a.kwhPerYearLow)),
                       high: formatNumber(Math.round(a.kwhPerYearHigh)),
                     })}
-                    {a.co2TonnesPerYear != null &&
-                      ` · ${t('actions.co2Year', { n: formatDecimal(a.co2TonnesPerYear) })}`}
+                  </p>
+                )}
+                {actionCo2Text(a, t) && (
+                  <p
+                    className="num font-heading text-card-title font-semibold text-green-700"
+                    data-testid="detail-co2"
+                  >
+                    {actionCo2Text(a, t)}
                   </p>
                 )}
               </>
@@ -169,7 +175,9 @@ export default function ActionDetail() {
               <dt className="text-ink-muted">{t('actions.payback')}</dt>
               <dd className="num">{paybackText(a, t)}</dd>
             </dl>
-            {a.co2Note && <p className="text-small text-ink-muted">{t('detail.noCo2')}</p>}
+            {a.co2Note === 'bill_charge_only' && (
+              <p className="text-small text-ink-muted">{t('health.billChargeNote')}</p>
+            )}
           </Card>
 
           <Card className="space-y-3">

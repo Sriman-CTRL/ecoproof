@@ -1,6 +1,7 @@
 export { BillStubCard } from './BillStubCard';
 export { BottomSheet } from './BottomSheet';
 export { Button, BUTTON_CLASS, type ButtonVariant } from './Button';
+export { CarbonHero } from './CarbonHero';
 export { Card, CARD_CLASS } from './Card';
 export { DataQualityRing } from './DataQualityRing';
 export { EmiVsSavingBar } from './EmiVsSavingBar';

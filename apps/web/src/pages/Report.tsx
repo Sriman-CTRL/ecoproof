@@ -79,19 +79,26 @@ export default function Report() {
   const inputClass = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
   const r = q.data;
   const isCbam = r?.type === 'cbam_sheet';
+  const isCarbon = r?.type === 'carbon_statement';
   return (
     <Page
       tab="reports"
       action={
         r ? (
           <Button disabled={share.isPending} onClick={shareWithLender}>
-            {t(isCbam ? 'report.shareWithBuyer' : 'report.shareWithLender')}
+            {t(
+              isCbam
+                ? 'report.shareWithBuyer'
+                : isCarbon
+                  ? 'report.shareCarbon'
+                  : 'report.shareWithLender',
+            )}
           </Button>
         ) : undefined
       }
     >
       <h1 className="font-heading text-title font-semibold">
-        {t(isCbam ? 'cbam.title' : 'report.title')}
+        {t(isCbam ? 'cbam.title' : isCarbon ? 'carbon.statementTitle' : 'report.title')}
       </h1>
       {q.isLoading && (
         <>
@@ -143,7 +150,13 @@ export default function Report() {
 
           <Card className="space-y-3">
             <h2 className="font-heading text-card-title font-semibold">
-              {t(isCbam ? 'report.shareTitleBuyer' : 'report.shareTitle')}
+              {t(
+                isCbam
+                  ? 'report.shareTitleBuyer'
+                  : isCarbon
+                    ? 'report.shareCarbon'
+                    : 'report.shareTitle',
+              )}
             </h2>
             <form
               className="space-y-3"
@@ -205,7 +218,7 @@ export default function Report() {
           </section>
 
           <p className="text-small text-ink-muted">
-            {t(isCbam ? 'cbam.statusNote' : 'detail.lenderNote')}
+            {t(isCbam ? 'cbam.statusNote' : isCarbon ? 'report.carbonNote' : 'detail.lenderNote')}
           </p>
         </>
       )}

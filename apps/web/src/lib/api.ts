@@ -157,8 +157,12 @@ export interface ActionItem {
   costLow: number | null;
   costHigh: number | null;
   paybackYears: number | null;
+  /** Midpoint of co2 (t a year). */
   co2TonnesPerYear: number | null;
-  co2Note: string | null;
+  /** t CO2 a year, from the same kWh low-high as the rupee range x the grid factor row. */
+  co2: { tPerYearLow: number; tPerYearHigh: number; factorId: string } | null;
+  /** A bill fix that saves rupees, not kWh: no CO2 change is claimed. */
+  co2Note: 'bill_charge_only' | null;
   /** Bill-health finding this action comes from; null for library rows without a bill-derived saving. */
   finding: string | null;
   source: string;
@@ -208,13 +212,27 @@ export interface CbamHeadline {
   }>;
 }
 
+/** Carbon footprint statement headline (D6a). avoidedVerified: stamp only from verified months. */
+export interface CarbonHeadline {
+  kind: 'carbon_statement';
+  period: { from: string; to: string };
+  month: string;
+  totalT: number;
+  scope2T: number;
+  scope1T: number;
+  intensity: number | null;
+  label: string;
+  avoidedT: number | null;
+  avoidedVerified: boolean;
+}
+
 export interface VerifyView {
   reportId: string;
-  type: 'loan_pack' | 'cbam_sheet';
+  type: 'loan_pack' | 'cbam_sheet' | 'carbon_statement';
   issuedAt: string;
   version: number;
   businessName: string;
-  headline: LoanPackHeadline | CbamHeadline;
+  headline: LoanPackHeadline | CbamHeadline | CarbonHeadline;
   sha256: string;
 }
 

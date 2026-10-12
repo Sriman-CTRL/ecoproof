@@ -8,6 +8,7 @@ import { BUTTON_CLASS } from '../components/kit/Button';
 import { Card } from '../components/kit/Card';
 import { EmptyState } from '../components/kit/EmptyState';
 import { prefersReducedMotion } from '../components/kit/motion';
+import { CarbonHero } from '../components/kit/CarbonHero';
 import { RupeeHero } from '../components/kit/RupeeHero';
 import { Skeleton } from '../components/kit/Skeleton';
 import { StampBadge } from '../components/kit/StampBadge';
@@ -75,20 +76,38 @@ export default function Savings() {
       )}
       {s && s.months.length > 0 && (
         <>
-          <Card>
-            <RupeeHero
-              value={Math.round(s.totals.savedInr)}
-              label={t('savings.heroLabel')}
-              countUpKey="savings-hero"
-              unitsText={<Units s={s} />}
-              co2Text={t('savings.co2Line', { value: formatDecimal(s.totals.savedTco2) })}
-            />
-          </Card>
+          <div className="grid gap-3 sm:grid-cols-2 lg:gap-6" data-testid="savings-twin">
+            <Card>
+              <RupeeHero
+                value={Math.round(s.totals.savedInr)}
+                label={t('savings.heroLabel')}
+                countUpKey="savings-hero"
+                unitsText={<Units s={s} />}
+              />
+            </Card>
+            <Card className="space-y-2">
+              <CarbonHero
+                tonnes={s.totals.savedTco2}
+                unit={t('carbon.unit')}
+                label={t('savings.co2Label')}
+                splitText={t('savings.unitsLine', {
+                  kwh: formatNumber(Math.round(s.totals.savedKwh)),
+                })}
+              />
+              {s.months.some((m) => m.status === 'verified') && <StampBadge variant="verified" />}
+            </Card>
+          </div>
           <Card className="space-y-3">
             <h2 className="font-heading text-card-title font-semibold">
               {t('savings.chartTitle')}
             </h2>
-            <SavingsChart months={s.months} lang={lang} />
+            <SavingsChart
+              months={s.months}
+              lang={lang}
+              summary={`${formatInr(Math.round(s.totals.savedInr))} · ${t('savings.co2Total', {
+                value: formatDecimal(s.totals.savedTco2),
+              })}`}
+            />
             <p className="text-small text-ink-muted" data-testid="method-note">
               {t('savings.methodNote')}
             </p>
@@ -146,7 +165,6 @@ function Units({ s }: { s: SavingsData }) {
           {t('savings.thisMonth', { inr: formatInr(Math.round(s.thisMonth.savedInr)) })}
         </p>
       )}
-      <p>{t('savings.unitsLine', { kwh: formatNumber(Math.round(s.totals.savedKwh)) })}</p>
     </>
   );
 }

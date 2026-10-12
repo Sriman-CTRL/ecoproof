@@ -346,7 +346,9 @@
       "contracted_demand": "You agreed {{cd}} kVA with the DISCOM, but your highest demand in the last {{months}} bills was {{md}} kVA. You are billed on at least {{billed}} kVA ({{pct}}% of {{cd}}) at ₹{{rate}} per kVA, so the gap costs {{inr}} a month.",
       "minimum_charges": "Your bill must cover at least {{min}} kVAh; you used {{actual}} kVAh. The {{gap}} kVAh gap is billed at ₹{{rate}} = {{inr}} a month.",
       "lt_surcharges": "This bill carries {{inr}} of power factor or capacitor surcharges."
-    }
+    },
+    "carbonLine": "Your bill shows where the money goes and where the carbon comes from.",
+    "billChargeNote": "Bill charge: no CO2 change. The rupees it frees can fund the fixes that cut CO2."
   },
   "actions": {
     "title": "Your action plan",
@@ -392,7 +394,11 @@
     "savingMeasure": "Saving pending: needs compressor energy measurement",
     "savingNotQuantified": "Saving not quantified for your unit",
     "kwhRange": "{{low}} to {{high}} kWh a year",
-    "co2Year": "{{n}} t CO2 a year (grid)"
+    "co2Year": "{{n}} t CO2 a year (grid)",
+    "co2Col": "t CO2 a year",
+    "inrCol": "Rs a year",
+    "actionCol": "Action",
+    "statusCol": "Status"
   },
   "detail": {
     "plan": "Plan this action",
@@ -453,7 +459,9 @@
     "downloadExcel": "Download Excel",
     "shareWithBuyer": "Share with a buyer",
     "shareTitleBuyer": "Share with buyer",
-    "sealHelpFile": "This code (SHA-256) changes if even one cell of the file changes."
+    "sealHelpFile": "This code (SHA-256) changes if even one cell of the file changes.",
+    "shareCarbon": "Share the statement",
+    "carbonNote": "Energy and carbon pre-assessment from your own bills. Not a third-party verification."
   },
   "verify": {
     "business": "Business",
@@ -472,7 +480,10 @@
     "noMatchHelp": "The PDF you chose was changed or is a different version. Ask the business for the original.",
     "checkFile": "Check a PDF file",
     "checking": "Checking your file...",
-    "privacy": "The file is checked on this device and not uploaded."
+    "privacy": "The file is checked on this device and not uploaded.",
+    "footprint": "Footprint",
+    "avoided": "CO2 avoided so far",
+    "carbonPeriod": "{{from}} to {{to}}"
   },
   "kit": {
     "rupee": {
@@ -582,7 +593,9 @@
     "bills": "Bills",
     "plan": "Plan",
     "reports": "Reports",
-    "solar": "Solar"
+    "solar": "Solar",
+    "carbon": "Carbon",
+    "sidebar": "Sections"
   },
   "landing": {
     "nav": {
@@ -774,7 +787,10 @@
       "months": "Months used",
       "formula": "Formula",
       "formulaText": "Expected kWh in a month = {{a}} kWh + {{b}} kWh x tonnes produced that month. Saved kWh = expected kWh minus actual kWh."
-    }
+    },
+    "co2Total": "{{value}} t CO2 avoided",
+    "co2Label": "CO2 avoided so far",
+    "twinTitle": "Saved so far"
   },
   "reports": {
     "title": "Reports",
@@ -784,13 +800,16 @@
     "emptyBody": "Make a loan-ready summary for the lender's own assessment. It will be listed here.",
     "type": {
       "loan_pack": "Loan-ready summary",
-      "cbam_sheet": "CBAM supplier sheet (estimate)"
+      "cbam_sheet": "CBAM supplier sheet (estimate)",
+      "carbon_statement": "Carbon footprint statement"
     },
     "version": "Version {{n}}",
     "shared_one": "Shared with {{shares}}, viewed {{count}} time",
     "shared_other": "Shared with {{shares}}, viewed {{count}} times",
     "cbamCreate": "CBAM supplier sheet (estimate)",
-    "cbamCreateHelp": "For EU buyers of cast pipes and fittings"
+    "cbamCreateHelp": "For EU buyers of cast pipes and fittings",
+    "carbonCreate": "Carbon footprint statement",
+    "carbonCreateHelp": "Monthly t CO2, factors and method, with a QR check"
   },
   "schemes": {
     "title": "Schemes and loans",
@@ -918,7 +937,8 @@
       "applyLink": "Apply on pmsuryaghar.gov.in",
       "sources": "Where these numbers come from",
       "sourcesTitle": "Sources",
-      "loadFailed": "We could not load your solar plan. Check your internet and try again."
+      "loadFailed": "We could not load your solar plan. Check your internet and try again.",
+      "co2Label": "CO2 avoided"
     },
     "after": {
       "title": "Bills after solar",
@@ -944,5 +964,52 @@
       "empty": "No bills after solar yet.",
       "loadFailed": "We could not load your bills after solar. Check your internet and try again."
     }
+  },
+  "carbon": {
+    "title": "Your carbon",
+    "unit": "t CO2",
+    "unitE": "t CO2e",
+    "heroLabel": "Carbon this month ({{month}})",
+    "split": "{{grid}} t CO2 electricity + {{diesel}} t CO2e diesel",
+    "splitGridOnly": "{{grid}} t CO2, all from grid electricity",
+    "intensity": "{{value}} t CO2 per tonne of castings",
+    "trendUp": "{{value}} t more than last month",
+    "trendDown": "{{value}} t less than last month",
+    "avoided": "{{value}} t CO2 avoided so far",
+    "avoidedTitle": "CO2 avoided so far",
+    "avoidedMonths": "Over {{n}} months, from the electricity saved after your actions.",
+    "solarAvoid": "{{kwp}} kW solar would avoid {{value}} t CO2 a year",
+    "co2Year": "{{value}} t CO2 a year",
+    "co2YearRange": "{{low}}-{{high}} t CO2 a year",
+    "noCo2Change": "no CO2 change: bill charge fix",
+    "trendTitle": "Last 12 months",
+    "chartLabel": "Tonnes of CO2 each month (bars) and tonnes of CO2 per tonne of castings (line)",
+    "chartLabelHome": "Tonnes of CO2 from grid electricity each month",
+    "barTitle": "t CO2 a month",
+    "lineTitle": "t CO2 per tonne",
+    "monthCol": "Month",
+    "bySource": "Where your carbon comes from",
+    "source": {
+      "grid_electricity": "Grid electricity",
+      "diesel": "Diesel"
+    },
+    "sourceLine": "{{name}}: {{t}} {{unit}} ({{pct}}%)",
+    "methodTitle": "How this number is calculated",
+    "factorLine": "Grid factor: CEA {{version}}, {{value}} t CO2 per MWh",
+    "methodNote": "Grid electricity is t CO2 (grid); fuels are t CO2e. Self-used rooftop solar counts as zero.",
+    "cutsTitle": "What cuts your carbon",
+    "cutsEmpty": "No action with a kWh saving yet.",
+    "chargeTitle": "Fixes that save money but not carbon",
+    "fundingLine": "Bill charge: no CO2 change. The rupees it frees can fund the fixes that cut CO2.",
+    "make": "Make a carbon statement",
+    "making": "Making your statement...",
+    "loadFailed": "We could not load your carbon numbers. Check your internet and try again.",
+    "open": "See your carbon",
+    "statementTitle": "Carbon footprint statement",
+    "calculated": "Calculated from your bills",
+    "homeChartTitle": "Rupees and carbon, last 12 months",
+    "homeChartLabel": "Bill rupees each month (bars) and tonnes of CO2 (line)",
+    "rupeeBar": "Bill (Rs a month)",
+    "co2Line": "t CO2 a month"
   }
 }

@@ -121,7 +121,8 @@ describe('GET /sites/:siteId/schemes (FIN-1)', () => {
     } finally {
       await seedDemo();
     }
-  });
+    // The reseed alone takes ~37 s over the pooler, past the 30 s default.
+  }, 90_000);
 
   it("another org's site is 404", async () => {
     const r = await request(app).get(`/sites/${siteA}/schemes`).set(auth(tokenB));

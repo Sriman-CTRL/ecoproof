@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import type { TFunction } from 'i18next';
 import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight';
+import { Cloud } from '@phosphor-icons/react/dist/csr/Cloud';
 import { Files } from '@phosphor-icons/react/dist/csr/Files';
 import { House } from '@phosphor-icons/react/dist/csr/House';
 import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
@@ -9,7 +11,7 @@ import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
 import { Sun } from '@phosphor-icons/react/dist/csr/Sun';
 import type { Icon } from '@phosphor-icons/react';
 import { LANGUAGES } from '../i18n';
-import { formatInr, inrWords } from '../lib/format';
+import { formatDecimal, formatInr, formatNumber, inrWords } from '../lib/format';
 import { getSession, isHousehold, setSession } from '../lib/session';
 import { BUTTON_CLASS } from './kit/Button';
 import { ErrorNote } from './kit/ErrorNote';
@@ -103,17 +105,19 @@ export function SwitchSample() {
   );
 }
 
-export type TabId = 'home' | 'bills' | 'plan' | 'reports' | 'solar';
+export type TabId = 'home' | 'carbon' | 'bills' | 'plan' | 'reports' | 'solar';
 const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'home', to: '/home', icon: House, key: 'nav.home' },
+  { id: 'carbon', to: '/carbon', icon: Cloud, key: 'nav.carbon' },
   { id: 'bills', to: '/bills', icon: Receipt, key: 'nav.bills' },
   { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
   { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
 ];
-/** Households have no plan or reports (HH-1): Home, Bills, Solar. */
+/** Households have no plan or reports (HH-1): Home, Carbon, Bills, Solar. */
 const HOUSEHOLD_TABS: typeof TABS = [
   TABS[0]!,
   TABS[1]!,
+  TABS[2]!,
   { id: 'solar', to: '/household/solar', icon: Sun, key: 'nav.solar' },
 ];
 
@@ -127,14 +131,14 @@ export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
       className="sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content"
     >
       <ul
-        className={`${wide ? WIDE : FULL_WIDTH} grid h-16 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}
+        className={`${wide ? WIDE : FULL_WIDTH} grid h-16 ${tabs.length === 4 ? 'grid-cols-4' : 'grid-cols-5'}`}
       >
         {tabs.map(({ id, to, icon: IconCmp, key }) => (
           <li key={id}>
             <Link
               to={to}
               aria-current={active === id ? 'page' : undefined}
-              className={`flex h-16 flex-col items-center justify-center gap-0.5 text-small ${
+              className={`flex h-16 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-small leading-tight ${
                 active === id ? 'font-semibold text-green-700' : 'text-ink-muted'
               }`}
             >
@@ -268,4 +272,26 @@ export function yearMonths(
       ...(ritual?.month === key ? { ritual: { done: ritual.done } } : {}),
     };
   });
+}
+
+/** Tonnes for a CO2 line: whole tonnes from 10 t up, one decimal below. */
+export const tonnesText = (n: number): string =>
+  n >= 10 ? formatNumber(Math.round(n)) : formatDecimal(Math.round(n * 10) / 10);
+
+/**
+ * The CO2 partner of an action's rupee figure: "43-52 t CO2 a year", or "no CO2 change: bill
+ * charge fix" for fixes that save rupees but not kWh. Null when there is no kWh figure yet.
+ */
+export function actionCo2Text(
+  a: { co2: { tPerYearLow: number; tPerYearHigh: number } | null; co2Note: string | null },
+  t: TFunction,
+): string | null {
+  if (a.co2) {
+    const low = tonnesText(a.co2.tPerYearLow);
+    const high = tonnesText(a.co2.tPerYearHigh);
+    return low === high
+      ? t('carbon.co2Year', { value: low })
+      : t('carbon.co2YearRange', { low, high });
+  }
+  return a.co2Note === 'bill_charge_only' ? t('carbon.noCo2Change') : null;
 }

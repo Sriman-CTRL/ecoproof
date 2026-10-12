@@ -91,7 +91,7 @@ export default function HouseholdSolar() {
 
           {!p.belowMinimum && (
             <Card className="px-4 py-2">
-              {/* Rupees first, kWh second, CO2 third. */}
+              {/* Rupees and CO2 side by side; kWh is the supporting line. */}
               <Row
                 label={t('household.solar.savingLabel')}
                 value={
@@ -102,6 +102,14 @@ export default function HouseholdSolar() {
                   )
                 }
                 note={`${t('household.solar.savingNote')} ${t('household.fsaNote')}`}
+              />
+              <Row
+                label={t('household.solar.co2Label')}
+                value={
+                  <span className="text-green-700" data-testid="solar-co2">
+                    {t('household.solar.co2Line', { value: formatDecimal(p.co2AvoidedT) })}
+                  </span>
+                }
               />
               <Row
                 label={t('household.solar.costLabel')}
@@ -128,9 +136,6 @@ export default function HouseholdSolar() {
               />
               <p className="pt-2 text-small">
                 {t('household.solar.genLine', { kwh: formatNumber(Math.round(p.annualGenKwh)) })}
-              </p>
-              <p className="pb-1 text-small text-ink-muted">
-                {t('household.solar.co2Line', { value: formatDecimal(p.co2AvoidedT) })}
               </p>
             </Card>
           )}

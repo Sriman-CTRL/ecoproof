@@ -14,12 +14,14 @@ import { RupeeHero } from '../components/kit/RupeeHero';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { YearStrip } from '../components/kit/YearStrip';
+import { CarbonTile } from '../components/CarbonTile';
 import { MonthLedger } from '../components/MonthLedger';
 import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
 import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { nextText, pathText, useProgress, type Progress } from '../lib/progress';
+import { useCarbon } from '../lib/carbon';
 import { useSavings } from '../lib/savings';
 import { useSchemes } from '../lib/schemes';
 import { getSession } from '../lib/session';
@@ -56,6 +58,7 @@ export default function Home() {
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
   const savings = useSavings();
+  const carbon = useCarbon();
   const schemes = useSchemes();
   const moneyFound = schemes.data?.moneyFound.inr ?? 0;
   const latestDoc = useQuery({
@@ -138,47 +141,63 @@ export default function Home() {
 
       {top && waitingForStake && <Skeleton />}
       {top && !waitingForStake && (
-        <Card>
-          <h1 className="sr-only">{t('home.latestBill', { month })}</h1>
-          {hasSavings ? (
-            <Link to="/savings" className="block" data-testid="savings-hero">
+        <div className="grid gap-3 sm:grid-cols-2 lg:gap-6" data-testid="hero-pair">
+          <Card>
+            <h1 className="sr-only">{t('home.latestBill', { month })}</h1>
+            {hasSavings ? (
+              <Link to="/savings" className="block" data-testid="savings-hero">
+                <RupeeHero
+                  value={Math.round(sv.thisMonth!.savedInr)}
+                  label={t('home.heroSaved')}
+                  countUpKey="home-hero"
+                  unitsText={t('home.savedTotal', {
+                    inr: formatInr(Math.round(sv.totals.savedInr)),
+                  })}
+                />
+                <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
+                  {t('savings.open')}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </Link>
+            ) : showAtStake ? (
               <RupeeHero
-                value={Math.round(sv.thisMonth!.savedInr)}
-                label={t('home.heroSaved')}
+                value={Math.round(atStake)}
+                label={t('home.heroAtStake')}
                 countUpKey="home-hero"
-                unitsText={t('home.savedTotal', { inr: formatInr(Math.round(sv.totals.savedInr)) })}
-                co2Text={t('savings.co2Line', { value: formatDecimal(sv.totals.savedTco2) })}
+                source={{ lineName: t('results.healthSource'), month, quality: 'fromBill' }}
+                unitsText={t('health.perMonth')}
               />
-              <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
-                {t('savings.open')}
-                <ArrowRight size={16} aria-hidden="true" />
-              </span>
-            </Link>
-          ) : showAtStake ? (
-            <RupeeHero
-              value={Math.round(atStake)}
-              label={t('home.heroAtStake')}
-              countUpKey="home-hero"
-              source={{ lineName: t('results.healthSource'), month, quality: 'fromBill' }}
-              unitsText={t('health.perMonth')}
-            />
-          ) : top.rupees.total != null ? (
-            <RupeeHero
-              value={Math.round(top.rupees.total)}
-              label={t('home.heroBill')}
-              countUpKey="home-hero"
-              source={{ lineName: source, month, quality: 'fromBill' }}
-              unitsText={
-                top.kwh != null ? (
-                  <SourceChip lineName={source} month={month} quality="fromBill">
-                    {t('home.unitsLine', { units: formatNumber(top.kwh) })}
-                  </SourceChip>
-                ) : undefined
-              }
-              co2Text={co2}
-            />
-          ) : null}
-        </Card>
+            ) : top.rupees.total != null ? (
+              <RupeeHero
+                value={Math.round(top.rupees.total)}
+                label={t('home.heroBill')}
+                countUpKey="home-hero"
+                source={{ lineName: source, month, quality: 'fromBill' }}
+                unitsText={
+                  top.kwh != null ? (
+                    <SourceChip lineName={source} month={month} quality="fromBill">
+                      {t('home.unitsLine', { units: formatNumber(top.kwh) })}
+                    </SourceChip>
+                  ) : undefined
+                }
+                co2Text={carbon.data ? undefined : co2}
+              />
+            ) : null}
+          </Card>
+          <Card>
+            {carbon.isLoading && <Skeleton />}
+            {carbon.data && (
+              <Link to="/carbon" className="block" data-testid="carbon-tile">
+                <CarbonTile c={carbon.data} />
+                <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
+                  {t('carbon.open')}
+                  <ArrowRight size={16} aria-hidden="true" />
+                </span>
+              </Link>
+            )}
+            {carbon.isError && co2 && <p className="num">{co2}</p>}
+          </Card>
+        </div>
       )}
 
       {progress.isLoading && <Skeleton />}

@@ -1,7 +1,7 @@
-import { actionSavingRange, rankActions, simplePaybackYears } from '@ecoproof/calc';
-import type { ActionLibrary, EnergyMonth, Site } from '@prisma/client';
+import { actionSavingRange, co2Tonnes, rankActions, simplePaybackYears } from '@ecoproof/calc';
+import type { ActionLibrary, EnergyMonth, Factor as FactorRow, Site } from '@prisma/client';
 import { prisma } from '../db.js';
-import { factorFor } from '../jobs/calculate.js';
+import { factorFor, toCalcFactor } from '../jobs/calculate.js';
 import { ACTION_CODE, computeInsights, type Finding, type Insights } from './insights.js';
 
 const n = (d: { toString(): string } | null | undefined) => (d == null ? null : Number(d));
@@ -27,8 +27,12 @@ export interface ActionItem {
   costLow: number | null;
   costHigh: number | null;
   paybackYears: number | null;
+  /** Midpoint of `co2`; kept for the loan-ready summary. */
   co2TonnesPerYear: number | null;
-  co2Note: string | null;
+  /** t CO2 a year from the same kWh low-high as the rupee range, x the grid factor row. */
+  co2: { tPerYearLow: number; tPerYearHigh: number; factorId: string } | null;
+  /** "bill_charge_only": a bill fix that saves rupees, not kWh, so no CO2 is claimed. */
+  co2Note: 'bill_charge_only' | null;
   source: string;
   finding: string | null;
   status: string;
@@ -55,10 +59,10 @@ export interface ActionItem {
 function enduseSaving(
   a: ActionLibrary,
   months: EnergyMonth[],
-  gridTPerKwh: number | null,
+  grid: FactorRow | null,
 ): Pick<
   ActionItem,
-  'inrPerMonthLow' | 'inrPerMonthHigh' | 'kwhPerYearLow' | 'kwhPerYearHigh' | 'co2TonnesPerYear'
+  'inrPerMonthLow' | 'inrPerMonthHigh' | 'kwhPerYearLow' | 'kwhPerYearHigh' | 'co2'
 > | null {
   const [pctLow, pctHigh, shareLow, shareHigh] = [
     a.savingLow,
@@ -93,7 +97,15 @@ function enduseSaving(
     kwhPerYearHigh: high,
     inrPerMonthLow: (low / 12) * (charges / kvah),
     inrPerMonthHigh: (high / 12) * (charges / kwh),
-    co2TonnesPerYear: gridTPerKwh == null ? null : ((low + high) / 2) * gridTPerKwh,
+    // Same kWh basis as the rupees: low kWh -> low t, high kWh -> high t.
+    co2:
+      grid == null
+        ? null
+        : {
+            tPerYearLow: co2Tonnes(low, toCalcFactor(grid)).tonnes,
+            tPerYearHigh: co2Tonnes(high, toCalcFactor(grid)).tonnes,
+            factorId: grid.id,
+          },
   };
 }
 
@@ -123,7 +135,7 @@ export async function listActions(
     ).filter((a) => !HIDDEN_STATUS.has(a.status));
   const grid =
     months[0] && library.some((a) => a.enduseShareLow != null)
-      ? Number((await factorFor('grid_electricity_india', months[0].periodEnd)).value) / 1000
+      ? await factorFor('grid_electricity_india', months[0].periodEnd)
       : null;
   const byAction = new Map<string, Finding>();
   for (const f of insights.findings) byAction.set(ACTION_CODE[f.code], f);
@@ -146,7 +158,8 @@ export async function listActions(
         : a.savingLow != null
           ? 'pending_measurement'
           : 'not_quantified';
-    const co2 = share?.co2TonnesPerYear ?? null;
+    const co2Range = share?.co2 ?? null;
+    const co2 = co2Range ? (co2Range.tPerYearLow + co2Range.tPerYearHigh) / 2 : null;
     const payback =
       costLow == null || costHigh == null || annualInrMid == null
         ? null
@@ -168,9 +181,8 @@ export async function listActions(
         paybackYears: payback,
         // kVAh, demand and billing fixes save rupees, not kWh, so there is no CO2 figure.
         co2TonnesPerYear: co2,
-        co2Note: finding
-          ? 'This fix saves rupees on the bill, not kWh, so no CO2 saving is claimed.'
-          : null,
+        co2: co2Range,
+        co2Note: finding ? ('bill_charge_only' as const) : null,
         source: finding ? `${finding.rule.line}; ${a.source}` : a.source,
         finding: finding?.code ?? null,
         status: siteAction?.status ?? 'suggested',

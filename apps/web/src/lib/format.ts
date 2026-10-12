@@ -13,6 +13,10 @@ export const formatNumber = (n: number): string => indian.format(n);
 /** Up to 2 decimals with Indian grouping, for tonnes and intensities. */
 export const formatDecimal = (n: number): string => indian2.format(n);
 
+const factor3 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 3 });
+/** An emission factor exactly as published, up to 3 decimals, e.g. 0.675 -> "0.675". */
+export const formatFactor = (n: number): string => factor3.format(n);
+
 /** A per-unit rupee rate, always 2 decimals (paise), e.g. 7.5 -> "7.50". */
 export const formatRate = (n: number): string => rate.format(n);
 

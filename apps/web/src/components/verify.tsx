@@ -1,14 +1,14 @@
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileMagnifyingGlass } from '@phosphor-icons/react/dist/csr/FileMagnifyingGlass';
-import type { CbamHeadline, LoanPackHeadline, VerifyView } from '../lib/api';
-import { formatDecimal, formatInr, formatNumber } from '../lib/format';
+import type { CarbonHeadline, CbamHeadline, LoanPackHeadline, VerifyView } from '../lib/api';
+import { formatDecimal, formatInr, formatNumber, formatRate } from '../lib/format';
 import { BUTTON_CLASS } from './kit/Button';
 import { PaperSheet } from './kit/PaperSheet';
 import { SkeletonBlock } from './kit/Skeleton';
 import { SourceChip } from './kit/SourceChip';
 import { StampBadge } from './kit/StampBadge';
-import { Rupees } from './ui';
+import { monthLabel, Rupees } from './ui';
 
 /** SHA-256 of a file, computed in the browser (Web Crypto); the file never leaves the device. */
 export async function sha256Hex(file: Blob): Promise<string> {
@@ -116,6 +116,8 @@ export function VerifyCard({ v, sourced = false }: { v: VerifyView; sourced?: bo
       </dl>
       {v.headline.kind === 'cbam_sheet' ? (
         <CbamLines h={v.headline} />
+      ) : v.headline.kind === 'carbon_statement' ? (
+        <CarbonLines h={v.headline} />
       ) : (
         <LoanLines h={v.headline} sourced={sourced} />
       )}
@@ -145,6 +147,50 @@ function LoanLines({ h, sourced }: { h: LoanPackHeadline; sourced: boolean }) {
         <b className="num text-card-title">{fig(<Rupees value={h.netMonthly} />)}</b>{' '}
         {t('health.perMonth')}
       </p>
+    </div>
+  );
+}
+
+/** Carbon footprint statement: footprint, intensity and CO2 avoided (stamped only when verified). */
+function CarbonLines({ h }: { h: CarbonHeadline }) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage ?? 'en';
+  const one = (n: number) => formatDecimal(Math.round(n * 10) / 10);
+  return (
+    <div className="space-y-1 border-t pt-3" data-testid="verify-carbon">
+      <p className="font-heading text-card-title font-semibold">{t('carbon.statementTitle')}</p>
+      <p className="text-small text-ink-muted">
+        {t('verify.carbonPeriod', {
+          from: monthLabel(h.period.from, lang),
+          to: monthLabel(h.period.to, lang),
+        })}
+      </p>
+      <p>
+        {t('verify.footprint')} ({monthLabel(h.month, lang)}):{' '}
+        <b className="num text-card-title">
+          {one(h.totalT)} {t('carbon.unit')}
+        </b>
+      </p>
+      <p className="num text-small">
+        {h.scope1T > 0
+          ? t('carbon.split', { grid: one(h.scope2T), diesel: one(h.scope1T) })
+          : t('carbon.splitGridOnly', { grid: one(h.scope2T) })}
+      </p>
+      {h.intensity != null && (
+        <p className="num text-small">
+          {t('carbon.intensity', { value: formatRate(h.intensity) })}
+        </p>
+      )}
+      {h.avoidedT != null && (
+        <div className="space-y-1 pt-1">
+          {h.avoidedVerified ? (
+            <StampBadge variant="verified" />
+          ) : (
+            <p className="text-small font-semibold">{t('carbon.calculated')}</p>
+          )}
+          <p className="num font-semibold">{t('carbon.avoided', { value: one(h.avoidedT) })}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -202,3 +248,11 @@ export function VerifySkeleton() {
     </div>
   );
 }
+
+/** The status line under a report: CBAM estimate, carbon method note, or the lender line. */
+export const noteKey = (type: string) =>
+  type === 'cbam_sheet'
+    ? 'cbam.statusNote'
+    : type === 'carbon_statement'
+      ? 'report.carbonNote'
+      : 'detail.lenderNote';

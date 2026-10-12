@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { notFound } from '../errors.js';
 import { requireAuth } from '../middleware/auth.js';
+import { CarbonStatementBody, createCarbonStatement } from '../reports/carbonStatement.js';
 import { CbamBody, createCbamSheet } from '../reports/cbamSheet.js';
 import { createLoanPack, LoanPackBody, verifyView } from '../reports/loanPack.js';
 import { loadSite } from '../services/scope.js';
@@ -20,6 +21,18 @@ reportsRouter.post('/sites/:siteId/reports/loan-pack', requireAuth, async (req, 
   const site = await loadSite(orgId, String(req.params.siteId));
   const body = LoanPackBody.parse(req.body);
   const { fileKey, ...made } = await createLoanPack(site, body);
+  res.status(201).json({
+    ...made,
+    downloadUrl: await storage.signedUrl(fileKey, DOWNLOAD_SECONDS),
+  });
+});
+
+// D6a carbon footprint statement (PDF + /verify QR). Never called a certificate.
+reportsRouter.post('/sites/:siteId/reports/carbon-statement', requireAuth, async (req, res) => {
+  const { orgId } = req.auth;
+  const site = await loadSite(orgId, String(req.params.siteId));
+  const body = CarbonStatementBody.parse(req.body ?? {});
+  const { fileKey, ...made } = await createCarbonStatement(site, body);
   res.status(201).json({
     ...made,
     downloadUrl: await storage.signedUrl(fileKey, DOWNLOAD_SECONDS),

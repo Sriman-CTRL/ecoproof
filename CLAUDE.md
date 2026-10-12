@@ -39,7 +39,7 @@ Open gaps live in `docs/OPEN_ITEMS.md`. Never invent a number, factor, tariff, r
 - Say "energy and carbon pre-assessment", never "energy audit".
 - Say "loan-ready summary for the lender's own assessment", never "approved" or "sanctioned".
 - CBAM outputs say "estimate, not verified".
-- Show rupees first, kWh second, CO2 third. Indian number grouping (1,00,000) via `Intl.NumberFormat('en-IN')` (`apps/web/src/lib/format.ts`).
+- Rupees and CO2 side by side, equal weight; kWh is the supporting detail (decision 12 Oct 2026). Indian number grouping (1,00,000) via `Intl.NumberFormat('en-IN')` (`apps/web/src/lib/format.ts`).
 - Grid factor is CO2-only: label totals "t CO2 (grid) + t CO2e (fuels)".
 
 ## Prototype deviations from Doc 07

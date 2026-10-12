@@ -17,7 +17,16 @@ function niceMax(v: number): number {
  * Adjusted baseline (line) against actual kWh (bars), one slot per month after the action.
  * Hand-drawn SVG in kit tokens; the same numbers sit in a visually hidden table for screen readers.
  */
-export function SavingsChart({ months, lang }: { months: SavingsMonth[]; lang: string }) {
+export function SavingsChart({
+  months,
+  lang,
+  summary,
+}: {
+  months: SavingsMonth[];
+  lang: string;
+  /** Rupees and t CO2 saved, as twin totals under the legend. */
+  summary?: string;
+}) {
   const { t } = useTranslation();
   if (months.length === 0) return null;
   const max = niceMax(Math.max(...months.flatMap((m) => [m.actualKwh, m.adjustedBaselineKwh])));
@@ -104,6 +113,11 @@ export function SavingsChart({ months, lang }: { months: SavingsMonth[]; lang: s
           <span aria-hidden="true" className="size-3 rounded-[2px] bg-green-600" />
           {t('savings.legendActual')}
         </span>
+        {summary && (
+          <span className="num block font-semibold" data-testid="savings-chart-summary">
+            {t('savings.twinTitle')}: {summary}
+          </span>
+        )}
         <span className="block text-ink-muted">{t('savings.axisNote')}</span>
       </figcaption>
       <div className="sr-only">

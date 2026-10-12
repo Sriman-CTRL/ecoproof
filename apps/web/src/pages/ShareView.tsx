@@ -6,6 +6,7 @@ import { DownloadSimple } from '@phosphor-icons/react/dist/csr/DownloadSimple';
 import { Button } from '../components/kit/Button';
 import {
   CheckFileButton,
+  noteKey,
   SealNote,
   VerifyCard,
   VerifyHeadline,
@@ -66,9 +67,7 @@ export default function ShareView() {
           <VerifyCard v={q.data} />
           <CheckFileButton variant="secondary" onChange={check.onChange} busy={check.busy} />
           <SealNote expected={q.data.sha256} />
-          <p className="text-small text-ink-muted">
-            {t(q.data.type === 'cbam_sheet' ? 'cbam.statusNote' : 'detail.lenderNote')}
-          </p>
+          <p className="text-small text-ink-muted">{t(noteKey(q.data.type))}</p>
         </>
       )}
     </Page>

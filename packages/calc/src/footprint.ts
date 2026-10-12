@@ -78,6 +78,30 @@ export function footprint(input: FootprintInput, options: CalcOptions = {}): Foo
   };
 }
 
+export interface Co2TonnesResult extends ResultMeta {
+  tonnes: number;
+  isEstimate: boolean;
+}
+
+/**
+ * Tonnes of CO2 (grid) or CO2e (fuels) for an activity amount, e.g. an action's kWh saved.
+ * Grid: kWh / 1000 x t CO2 per MWh. Fuel: quantity x kg per unit / 1000. Same arithmetic.
+ */
+export function co2Tonnes(
+  quantity: number,
+  factor: Factor,
+  options: CalcOptions = {},
+): Co2TonnesResult {
+  assertNonNegative('quantity', quantity);
+  const isEstimate = checkFactor(factor, options.allowUnverified);
+  return {
+    tonnes: (quantity / 1000) * factor.value,
+    isEstimate,
+    factorIds: [factor.id],
+    formulaVersion: FORMULA_VERSION,
+  };
+}
+
 function footprintLabel(grid: GasBasis | null, fuel: GasBasis | null, hasFuels: boolean): string {
   const gridPart = `t ${grid ?? '(gas basis not stated)'}`;
   if (!hasFuels) return `${gridPart} (grid)`;

@@ -10,9 +10,9 @@ import { EmptyState } from '../components/kit/EmptyState';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { StatusPill, type PillTone } from '../components/kit/StatusPill';
-import { CostText, ErrorBox, Page } from '../components/ui';
+import { actionCo2Text, CostText, ErrorBox, Page } from '../components/ui';
 import { api, type ActionItem, type ActionsResponse } from '../lib/api';
-import { formatDecimal, formatInr } from '../lib/format';
+import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
 
 export function useActions(month: string | null, all: boolean, enabled = true) {
@@ -69,6 +69,16 @@ const PENDING_KEY: Record<ActionItem['savingBasis'], string> = {
 export const savingPendingText = (a: ActionItem, t: TFunction) =>
   t(PENDING_KEY[a.savingBasis] ?? 'actions.savingPendingOther');
 
+/** Rupees a year as a low-high range ("Rs 4,73,364-6,24,780"), or one figure when they match. */
+export function annualRange(a: ActionItem): string {
+  if (a.inrPerMonthLow == null || a.inrPerMonthHigh == null) {
+    return a.annualInrMid == null ? '-' : formatInr(Math.round(a.annualInrMid));
+  }
+  const low = Math.round(a.inrPerMonthLow * 12);
+  const high = Math.round(a.inrPerMonthHigh * 12);
+  return low === high ? formatInr(low) : `${formatInr(low)}-${formatNumber(high)}`;
+}
+
 /** Payback under a year reads in months (a PF fix pays back in weeks, not "0.1 years"). */
 export function paybackText(a: ActionItem, t: TFunction): string {
   if (a.paybackYears == null) return '-';
@@ -95,6 +105,7 @@ export function ActionCost({ a }: { a: ActionItem }) {
 /** One ledger row: title and status on top, then rupees a year, cost and payback in columns. */
 export function ActionRow({ a, month }: { a: ActionItem; month: string | null }) {
   const { t } = useTranslation();
+  const co2 = actionCo2Text(a, t);
   return (
     <li className="space-y-2 border-b py-3 last:border-b-0">
       <div className="flex items-start justify-between gap-2">
@@ -113,9 +124,17 @@ export function ActionRow({ a, month }: { a: ActionItem; month: string | null })
         <dt className="text-ink-muted">{t('actions.perYear')}</dt>
         <dd className="num font-semibold">
           {a.annualInrMid != null ? (
-            <SourceChip lineName={a.source}>{formatInr(Math.round(a.annualInrMid))}</SourceChip>
+            <SourceChip lineName={a.source}>{annualRange(a)}</SourceChip>
           ) : (
             savingPendingText(a, t)
+          )}
+          {co2 && (
+            <span
+              className={`block font-semibold ${a.co2 ? 'text-green-700' : 'text-ink-muted'}`}
+              data-testid={`co2-${a.code}`}
+            >
+              {co2}
+            </span>
           )}
         </dd>
         <dt className="text-ink-muted">{t('actions.cost')}</dt>

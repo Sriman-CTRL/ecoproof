@@ -67,6 +67,17 @@ export default function Reports() {
         </span>
         <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
       </Link>
+      <Link
+        to="/carbon"
+        className={`${CARD_CLASS} flex min-h-12 items-center justify-between gap-2`}
+        data-testid="carbon-create"
+      >
+        <span className="space-y-0.5">
+          <span className="block font-semibold">{t('reports.carbonCreate')}</span>
+          <span className="block text-small text-ink-muted">{t('reports.carbonCreateHelp')}</span>
+        </span>
+        <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
+      </Link>
       {q.isLoading && <Skeleton />}
       {q.isError && <ErrorBox>{t('reports.loadFailed')}</ErrorBox>}
       {q.isSuccess && rows.length === 0 && (

@@ -3,6 +3,7 @@ import { I18nextProvider } from 'react-i18next';
 import { afterEach, describe, expect, it } from 'vitest';
 import i18n from '../../i18n';
 import { findBanned } from '../../locales/wording';
+import { CarbonHero } from './CarbonHero';
 import { EmiVsSavingBar } from './EmiVsSavingBar';
 import { RupeeHero } from './RupeeHero';
 import { StampBadge, type StampVariant } from './StampBadge';
@@ -14,6 +15,19 @@ describe('RupeeHero', () => {
     render(<RupeeHero value={100000} />);
     expect(screen.getByText('₹1,00,000')).toBeTruthy();
     expect(screen.getByText('about ₹1 lakh')).toBeTruthy();
+  });
+});
+
+describe('CarbonHero', () => {
+  it('shows tonnes with one decimal and the trend in words', () => {
+    render(<CarbonHero tonnes={66.795} unit="t CO2" label="Carbon this month" trend={-3.4} />);
+    expect(screen.getByTestId('carbon-hero').textContent).toContain('66.8 t CO2');
+    expect(screen.getByText('3.4 t less than last month')).toBeTruthy();
+  });
+
+  it('hides the arrow for a change under 0.05 t', () => {
+    render(<CarbonHero tonnes={1} unit="t CO2" label="x" trend={0.01} />);
+    expect(screen.queryByText(/than last month/)).toBeNull();
   });
 });
 

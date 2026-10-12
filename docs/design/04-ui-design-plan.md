@@ -85,7 +85,7 @@ Rules:
 
 | Component | What it looks like | Doc rule it serves |
 |---|---|---|
-| **Rupee hero** | Big tabular ₹ figure, words underneath, then units, then CO₂ in smaller muted text | Rupees first, kWh second, CO₂ third (Doc 06 principle 1) |
+| **Rupee hero** | Big tabular ₹ figure, words underneath, then units, then CO₂ in smaller muted text | Rupees and CO₂ side by side, equal weight; kWh is the supporting detail (decision 12 Oct 2026, replaces "rupees first, kWh second, CO₂ third"). The rupee hero is paired with a same-size carbon tile |
 | **Source chip** | Every number has a dotted underline. Tap opens a bottom sheet with the crop of the bill around that value, the line name ("Maximum demand, from your Oct 2026 bill") and the quality tag ("from your bill" / "you entered") | Show the source (Doc 06 principle 4) |
 | **Bill stub card** | A card with a perforated tear edge on the left (CSS radial-gradient notches), the ₹ per month on the stub, the one-line fix on the body | Bill health findings (Doc 06, INS-1) |
 | **Jargon chip** | kVAh, power factor, maximum demand shown with a small "?" chip; tap gives one line ("Power factor: how much of the power you pay for does useful work. Below 0.95 the DISCOM charges extra.") | Jargon rule (Doc 06) |
@@ -103,9 +103,9 @@ Rules:
 
 ## 3. Layout and navigation (in-app)
 
-- Mobile-first at 390 px (already the S5 rule). On desktop (≥1024 px), the app sits in a centred 480 px column on the paper background, except the confirm screen and loan pack, which go two-column (bill image left, fields right).
+- Mobile-first at 390 px (already the S5 rule). On desktop (≥1024 px, D6a): a 240 px green-900 left sidebar (logo, business name + "Sample data" chip, the tab items with icons, language switch at the bottom) replaces the header and bottom tab bar; content sits in a 1200 px max, 32 px gutter, 12-column grid on the paper background, two columns wherever content allows. The sticky primary button becomes a right-aligned button in the page header.
 - **Header (56 px, green-900):** EcoProof wordmark, business name (wraps, as fixed in S5), "Sample data" chip, language switch (EN / తె / हि as text buttons, not a flag).
-- **Bottom tab bar (64 px, white, 4 tabs, icon + word):** Home · Bills · Plan · Reports. Settings and Sharing sit behind the business-name menu in the header. Tabs hide on the capture flow (upload → confirm → result) so the owner focuses on one job.
+- **Bottom tab bar (64 px, white, 5 tabs, icon + word):** Home · Carbon · Bills · Plan · Reports (households: Home · Carbon · Bills · Solar). Settings and Sharing sit behind the business-name menu in the header. Tabs hide on the capture flow (upload → confirm → result) so the owner focuses on one job.
 - The single primary button sits above the tab bar in the sticky bar. Secondary actions are plain text links.
 
 ---
@@ -120,6 +120,7 @@ Status column: **Built** = exists after S5/S6 and needs a restyle only; **S7/S8/
 | `/start` | Built | Two large cards: "Sri Lakshmi Castings: before" and "Same unit, 6 months later", each with a mini rupee hero and year strip preview | (tap a card) | Make the cards look like two bill envelopes. "Sample data (synthetic)" label stays |
 | `/consent` | Built | One-screen notice in 4 short blocks with icons: what we store, why, who sees it, how to delete | "I agree" | Big "Your data is shared with nobody until you share it" line in a green-50 box (Doc 06 trust rule) |
 | `/home` | Built | **Rupee hero**: Demo B shows "₹ saved this month / total so far" (Doc 06). Demo A has nothing saved yet, so it shows "₹1,01,435 a month at stake, found in your bill" (the S6 total) | The path's "Next:" step (for Demo A: "Fix power factor") | Order below the hero: **progress path** with one "Next:" line, **headroom meter**, INS-2 insight sentence, year strip, month list as a ledger table. The path's next step and the primary button are the same thing, so the owner never sees two different "next" suggestions. Empty state per Doc 06: sample foundry's results + "Forward your latest electricity bill to see yours in 2 minutes" |
+| `/carbon` | D6a | Monthly footprint (t CO₂ grid + t CO₂e fuels, intensity per tonne), 12-month trend, split by source in words, "How this number is calculated" method lines with the factor source chip | "Make a carbon statement" | "What cuts your carbon" (actions with t a year) and "Fixes that save money but not carbon" (bill charge fixes). Demo B: CO₂ avoided so far, stamped only when Verified by your bills. The statement PDF is never called a certificate |
 | `/bills/new` | Built | Big camera tile "Take photo of bill", smaller "Choose file", hint "Or forward it on WhatsApp (coming soon)" | "Take photo" | While reading: show the uploaded photo with a scanning line moving down it and the words "Reading your bill…" (real progress, not a fake spinner). Error: "Photo is blurry. Retake in good light." |
 | `/bills/:id/confirm` | Built | Bill image with each extracted value highlighted where it sits on the bill; fields list beside/below | "Confirm all" | Only low-confidence fields get the copper "Please check" border; the rest show a small green tick (Doc 06: pre-accepted unless tapped). Jargon chips on kVAh, PF, MD |
 | `/results/:id` | Built | Rupee hero for the month, then units, then t CO₂ + intensity per tonne | "See bill health" | First-time only: "First footprint" milestone stamp (Doc 04). "Why this number?" becomes a bottom sheet with the factor, version, source and status stamp |

@@ -101,6 +101,9 @@ export default function Health() {
           <h1 className="font-heading text-title font-semibold">
             {t('health.title', { month: monthLabel(d.month, lang) })}
           </h1>
+          <p className="text-body" data-testid="health-carbon-line">
+            {t('health.carbonLine')}
+          </p>
           <Card>
             <RupeeHero
               value={Math.round(d.atStake.inrPerMonth)}
@@ -177,6 +180,9 @@ function FindingCard({
             />
           </label>
         )}
+        <p className="text-small text-ink-muted" data-testid="bill-charge-note">
+          {t('health.billChargeNote')}
+        </p>
         {jargon && <ExplainerLine f={f} term={jargon} />}
         <Button variant="secondary" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           <Info size={20} aria-hidden="true" />

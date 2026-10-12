@@ -19,8 +19,9 @@ function countUpDue(key: string | undefined): boolean {
 }
 
 /**
- * Rupees first, units second, CO2 third (Doc 06 principle 1). The figure counts up once per
- * session when `countUpKey` is set; screen readers always get the final value.
+ * Rupees with their CO2 partner at equal weight (decision 12 Oct 2026); kWh is the supporting
+ * line. The figure counts up once per session when `countUpKey` is set; screen readers always get
+ * the final value.
  */
 export function RupeeHero({
   value,
@@ -82,7 +83,7 @@ export function RupeeHero({
         </p>
       )}
       {unitsText && <div className="num text-body">{unitsText}</div>}
-      {co2Text && <div className="num text-small text-ink-muted">{co2Text}</div>}
+      {co2Text && <div className="num text-body font-semibold text-green-700">{co2Text}</div>}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import {
   CheckFileButton,
+  noteKey,
   SealNote,
   VerifyCard,
   VerifyHeadline,
@@ -44,9 +45,7 @@ export default function Verify() {
           <VerifyHeadline result={check.result} />
           <VerifyCard v={q.data} />
           <SealNote expected={q.data.sha256} />
-          <p className="text-small text-ink-muted">
-            {t(q.data.type === 'cbam_sheet' ? 'cbam.statusNote' : 'detail.lenderNote')}
-          </p>
+          <p className="text-small text-ink-muted">{t(noteKey(q.data.type))}</p>
         </>
       )}
     </Page>

@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { billParts, loadDomesticTariff } from '../services/domesticTariff.js';
+import { computeCarbon } from '../services/carbon.js';
 import { computeProgress } from '../services/progress.js';
 import { computeSavings } from '../services/savings.js';
 import { computeSchemes } from '../services/schemes.js';
@@ -24,6 +25,12 @@ sitesRouter.get('/sites/:siteId/progress', requireAuth, async (req, res) => {
 sitesRouter.get('/sites/:siteId/savings', requireAuth, async (req, res) => {
   const site = await loadSite(req.auth.orgId, String(req.params.siteId));
   res.json(await computeSavings(site));
+});
+
+// Carbon footprint, trend, split by source, method lines and what cuts it (D6a).
+sitesRouter.get('/sites/:siteId/carbon', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeCarbon(site));
 });
 
 // Scheme matcher (FIN-1), ZED readiness card and the money found counter (plan 6.2).

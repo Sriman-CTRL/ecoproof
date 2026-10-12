@@ -17,7 +17,9 @@ import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { DEMO_ORG_IDS } from '../demo/ids.js';
 import { AppError } from '../errors.js';
+import type { CarbonStatementResults } from './carbonStatement.js';
 import type { CbamResults } from './cbamSheet.js';
+import { dateText, dec, fill, footerHtml, inr, int, monthName, table, esc } from './html.js';
 import { pdfRenderer } from './pdfRenderer.js';
 import { listActions, type ActionItem } from '../services/actions.js';
 import { computeSchemes } from '../services/schemes.js';
@@ -459,50 +461,7 @@ export async function createLoanPack(
 
 // ---------------------------------------------------------------- rendering
 
-const groupInt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
-const group2 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
-/** Rupees with Indian grouping, e.g. 100000 -> "Rs 1,00,000". */
-export const inr = (n: number) => `Rs ${groupInt.format(Math.round(n))}`;
-const int = (n: number | null) => (n == null ? '-' : groupInt.format(n));
-const dec = (n: number | null) => (n == null ? '-' : group2.format(n));
-
-const esc = (s: string) =>
-  s.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
-  );
-
 const template = readFileSync(new URL('./templates/loan-pack.html', import.meta.url), 'utf8');
-
-function fill(tpl: string, vars: Record<string, string>): string {
-  return tpl.replace(/\{\{\{(\w+)\}\}\}|\{\{(\w+)\}\}/g, (_m, raw?: string, text?: string) => {
-    const key = (raw ?? text)!;
-    const v = vars[key];
-    if (v == null) throw new Error(`loan-pack template: missing ${key}`);
-    return raw ? v : esc(v);
-  });
-}
-
-const monthName = (isoDate: string) =>
-  new Date(`${isoDate}T00:00:00Z`).toLocaleDateString('en-IN', {
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-const dateText = (isoTs: string) =>
-  new Date(isoTs).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Asia/Kolkata',
-  });
-
-function table(head: string[], rows: string[][], numeric: number[] = []): string {
-  const cls = (i: number) => (numeric.includes(i) ? ' class="num"' : '');
-  return `<table><thead><tr>${head.map((h, i) => `<th${cls(i)}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows
-    .map((r) => `<tr>${r.map((c, i) => `<td${cls(i)}>${esc(c)}</td>`).join('')}</tr>`)
-    .join('')}</tbody></table>`;
-}
 
 export async function renderHtml(r: LoanPackResults, snapshotId: string): Promise<string> {
   const qrDataUrl = await QRCode.toDataURL(r.verifyUrl, { margin: 1, width: 300 });
@@ -631,15 +590,11 @@ export async function renderHtml(r: LoanPackResults, snapshotId: string): Promis
     formulaVersion: r.formulaVersion,
     tariffRules: r.tariffRules.join('; ') || 'none',
   };
-  return fill(template, vars);
+  return fill('loan-pack', template, vars);
 }
 
-/** Playwright footer, repeated on every page. Inline styles only (Chromium footer rules). */
 export function footerTemplate(reportId: string, verifyUrl: string): string {
-  return `<div style="font-family: Arial, sans-serif; font-size: 7.5pt; color: #374151; width: 100%; padding: 0 14mm; display: flex; justify-content: space-between; gap: 4mm;">
-  <span><b>${esc(LENDER_LINE)}</b><br />Report ID ${esc(reportId)} · Verify: ${esc(verifyUrl)}</span>
-  <span style="white-space: nowrap;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-</div>`;
+  return footerHtml(LENDER_LINE, reportId, verifyUrl);
 }
 
 /** The only fields the public verify page and share links may show (Doc 05). */
@@ -667,6 +622,28 @@ export function verifyView(report: Report & { snapshot: ReportSnapshot }) {
           inScopeNow: p.inScopeNow,
           seeDirect: Math.round(p.seeDirect * 1000) / 1000,
         })),
+      },
+    };
+  }
+  if (report.type === 'carbon_statement') {
+    const c = (report.snapshot.resultsJson as unknown as CarbonStatementResults).carbon;
+    const l = c.latestMonth;
+    const saved = c.savedSoFar;
+    return {
+      ...base,
+      businessName: (report.snapshot.resultsJson as unknown as CarbonStatementResults).business
+        .name,
+      headline: {
+        kind: 'carbon_statement' as const,
+        period: { from: c.months[0]!.month, to: l.month },
+        month: l.month,
+        totalT: l.totalT,
+        scope2T: l.scope2T,
+        scope1T: l.scope1T,
+        intensity: l.intensity,
+        label: c.label,
+        avoidedT: saved ? (saved.verifiedTco2 > 0 ? saved.verifiedTco2 : saved.tco2) : null,
+        avoidedVerified: !!saved && saved.verifiedTco2 > 0,
       },
     };
   }

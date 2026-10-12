@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Carbon footprint statement {{reportId}}</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Sans', 'DejaVu Sans', Arial, sans-serif;
+        color: #111827;
+        font-size: 11pt;
+        line-height: 1.45;
+        margin: 0;
+      }
+      h1 {
+        font-size: 20pt;
+        margin: 0 0 4mm;
+      }
+      h2 {
+        font-size: 14pt;
+        margin: 0 0 3mm;
+        border-bottom: 1px solid #d1d5db;
+        padding-bottom: 1.5mm;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 2mm;
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        page-break-before: always;
+      }
+      section.cover {
+        page-break-before: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 1.6mm 2mm;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f3f4f6;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      table + p {
+        margin-top: 2.5mm;
+      }
+      .muted {
+        color: #4b5563;
+        font-size: 9.5pt;
+      }
+      .badge {
+        display: inline-block;
+        background: #fef3c7;
+        color: #78350f;
+        border: 1px solid #f59e0b;
+        border-radius: 4px;
+        padding: 1mm 3mm;
+        font-weight: 600;
+        font-size: 10pt;
+      }
+      .box {
+        border: 2px solid #047857;
+        border-radius: 6px;
+        padding: 5mm;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 62mm 1fr;
+        gap: 2mm 4mm;
+      }
+      .kv dt {
+        color: #4b5563;
+      }
+      .kv dd {
+        margin: 0;
+        font-weight: 600;
+      }
+      .big {
+        font-size: 16pt;
+        font-weight: 700;
+      }
+      .qr {
+        display: flex;
+        gap: 5mm;
+        align-items: center;
+        margin-top: 8mm;
+      }
+      .qr img {
+        width: 34mm;
+        height: 34mm;
+      }
+      .warn {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        padding: 2mm 3mm;
+        border-radius: 4px;
+      }
+      .label {
+        font-weight: 600;
+      }
+      .stamp {
+        display: inline-block;
+        border: 3px double #047857;
+        color: #047857;
+        padding: 1.5mm 4mm;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        transform: rotate(-2deg);
+        margin-bottom: 2mm;
+      }
+      .method {
+        font-family: 'DejaVu Sans Mono', monospace;
+        font-size: 9.5pt;
+        background: #f9fafb;
+        border: 1px solid #d1d5db;
+        padding: 3mm;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <p class="muted">EcoProof · energy and carbon pre-assessment</p>
+      <h1>Carbon footprint statement</h1>
+      {{{sampleBadge}}}
+      <dl class="kv" style="margin-top: 6mm">
+        <dt>Business</dt>
+        <dd>{{businessName}}</dd>
+        <dt>Site address</dt>
+        <dd>{{siteAddress}}</dd>
+        <dt>Period</dt>
+        <dd>{{period}}</dd>
+        <dt>Report ID</dt>
+        <dd>{{reportId}}</dd>
+        <dt>Version</dt>
+        <dd>{{version}}</dd>
+        <dt>Issue date</dt>
+        <dd>{{issuedDate}}</dd>
+        <dt>Snapshot ID</dt>
+        <dd>{{snapshotId}}</dd>
+      </dl>
+
+      <h2 style="margin-top: 8mm">Headline</h2>
+      <div class="box">
+        <dl class="kv">
+          <dt>Footprint, {{latestMonth}}</dt>
+          <dd class="big">{{latestTotal}}</dd>
+          <dt>Of which grid electricity</dt>
+          <dd>{{latestScope2}}</dd>
+          <dt>Of which fuels</dt>
+          <dd>{{latestScope1}}</dd>
+          <dt>Intensity</dt>
+          <dd>{{latestIntensity}}</dd>
+          <dt>Total over the period</dt>
+          <dd>{{periodTotal}}</dd>
+        </dl>
+      </div>
+      <p class="muted" style="margin-top: 3mm">
+        Grid electricity uses the CEA grid factor (t CO2, grid); fuels use t CO2e. Totals are shown
+        as t CO2 (grid) + t CO2e (fuels). Scope 2 is location-based.
+      </p>
+      {{{avoidedBlock}}}
+      <div class="qr">
+        <img src="{{{qrDataUrl}}}" alt="QR code to the verification page" />
+        <p class="muted">
+          Scan to check this document: {{verifyUrl}}<br />The page shows the report ID, issue date,
+          business name and headline figures, and checks the file's SHA-256 seal.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Monthly footprint</h2>
+      <p class="muted">
+        From the owner's confirmed bills and fuel entries. Scope 1 = fuels burned on site (t CO2e);
+        scope 2 = grid electricity (t CO2).
+      </p>
+      {{{monthsTable}}}
+
+      <h2 style="margin-top: 8mm">How the latest month is calculated</h2>
+      <div class="method">{{{methodLines}}}</div>
+
+      <h3>Factors used</h3>
+      {{{factorsTable}}}
+      <p class="muted">Formula version {{formulaVersion}}. Snapshot {{snapshotId}}.</p>
+      <p class="label" style="margin-top: 4mm">
+        Energy and carbon pre-assessment from the owner's confirmed bills. Not an energy audit.
+      </p>
+    </section>
+  </body>
+</html>

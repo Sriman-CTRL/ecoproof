@@ -12,6 +12,7 @@ import { getSession, isHousehold } from './lib/session';
 const ActionDetail = lazy(() => import('./pages/ActionDetail'));
 const Actions = lazy(() => import('./pages/Actions'));
 const Bills = lazy(() => import('./pages/Bills'));
+const Carbon = lazy(() => import('./pages/Carbon'));
 const CbamNew = lazy(() => import('./pages/CbamNew'));
 const Confirm = lazy(() => import('./pages/Confirm'));
 const Consent = lazy(() => import('./pages/Consent'));
@@ -98,6 +99,7 @@ export default function App() {
               <Route path="/home" element={<HomeRoute />} />
               <Route path="/household/solar" element={<HouseholdSolar />} />
               <Route path="/household/after" element={<HouseholdAfter />} />
+              <Route path="/carbon" element={<Carbon />} />
               <Route path="/bills" element={<Bills />} />
               <Route path="/bills/new" element={<NewBill />} />
               <Route path="/bills/:documentId/confirm" element={<Confirm />} />

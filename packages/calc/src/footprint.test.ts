@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { footprint } from './footprint';
+import { co2Tonnes, footprint } from './footprint';
 import { UnverifiedFactorError } from './errors';
 import { FORMULA_VERSION, type Factor } from './types';
 
@@ -109,5 +109,25 @@ describe('footprint', () => {
     expect(() =>
       footprint({ gridKwh: -1, fuels: [], outputTonnes: 1, gridFactor: grid }),
     ).toThrow();
+  });
+});
+
+describe('co2Tonnes', () => {
+  it('grid: 92,000 kWh x 0.727 t/MWh / 1000 = 66.884 t', () => {
+    const r = co2Tonnes(92_000, grid);
+    expect(r.tonnes).toBeCloseTo(66.884, 10);
+    expect(r.factorIds).toEqual(['f-grid']);
+    expect(r.formulaVersion).toBe(FORMULA_VERSION);
+    expect(r.isEstimate).toBe(false);
+  });
+
+  it('fuel: 1,200 L x 2.675 kg/L / 1000 = 3.21 t', () => {
+    expect(co2Tonnes(1_200, diesel).tonnes).toBeCloseTo(3.21, 10);
+  });
+
+  it('refuses a "verify" factor unless allowed, and rejects negative quantities', () => {
+    expect(() => co2Tonnes(1, lpgVerify)).toThrow(UnverifiedFactorError);
+    expect(co2Tonnes(1, lpgVerify, { allowUnverified: true }).isEstimate).toBe(true);
+    expect(() => co2Tonnes(-1, grid)).toThrow();
   });
 });
