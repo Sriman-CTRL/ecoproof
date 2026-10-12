@@ -2,7 +2,9 @@ export interface Session {
   token: string;
   siteId: string;
   orgName: string;
-  demo: 'A' | 'B';
+  demo: 'A' | 'B' | 'H';
+  /** Households get their own home, tabs and solar screens (HH-1). */
+  orgType?: 'msme' | 'household';
 }
 
 const KEY = 'ecoproof.session';
@@ -42,4 +44,9 @@ export function getSession(): Session | null {
 export function setSession(s: Session | null): void {
   memory = s;
   writeStore(KEY, s ? JSON.stringify(s) : null);
+}
+
+/** HH-1: household mode (no Udyam, production or business screens). */
+export function isHousehold(s: Session | null = getSession()): boolean {
+  return s?.orgType === 'household' || s?.demo === 'H';
 }

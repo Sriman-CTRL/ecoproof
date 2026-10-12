@@ -16,26 +16,36 @@ import {
   DEMO_REPORT_ID,
   ORG_A,
   ORG_B,
+  ORG_H,
   SITE_A,
   SITE_B,
+  SITE_H,
   USER_A,
   USER_B,
+  USER_H,
 } from '../../src/demo/ids.js';
 import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
 import { createLoanPack } from '../../src/reports/loanPack.js';
 import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
 // ---- fixed demo identifiers (the only rows --reset may delete are those with these org ids)
-export { ORG_A, ORG_B, DEMO_ORG_IDS };
+export { ORG_A, ORG_B, ORG_H, DEMO_ORG_IDS };
 
 const prisma = new PrismaClient();
 
 const A = JSON.parse(
   readFileSync(new URL('./assumptions.json', import.meta.url), 'utf8'),
-) as Record<string, number | string>;
+) as Record<string, number | string | null>;
 const num = (k: string): number => {
   const v = A[k];
   if (typeof v !== 'number') throw new Error(`assumptions.json: ${k} must be a number`);
+  return v;
+};
+/** A key that may stay null until research fills it (e.g. the household rate before R9). */
+const numOrNull = (k: string): number | null => {
+  const v = A[k];
+  if (v !== null && typeof v !== 'number')
+    throw new Error(`assumptions.json: ${k} must be a number or null`);
   return v;
 };
 
@@ -374,7 +384,125 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     });
   }
 
+  await seedHousehold();
   if (opts.demoReport ?? true) await seedDemoReport();
+}
+
+// ---- Demo H: a sample home (HH-1). SYNTHETIC bills, none after Sep 2026 (demo day 13 Oct 2026).
+const H_BEFORE_KWH = [420, 450, 400, 330, 300, 290, 280, 250, 230, 240, 290, 360]; // Apr 2025 - Mar 2026
+const H_IMPORT_KWH = [210, 230, 220, 190, 170, 160]; // Apr - Sep 2026, after 3 kW solar
+const H_EXPORT_KWH = [190, 190, 140, 140, 150, 170];
+const hStart = (i: number) => new Date(Date.UTC(2025, 3 + i, 1)); // i=0 -> Apr 2025
+const hEnd = (i: number) => new Date(Date.UTC(2025, 4 + i, 0));
+
+async function seedHousehold() {
+  const k = (s: string) => det(`H:${s}`);
+  const orgId = ORG_H;
+  const siteId = SITE_H;
+  const userId = USER_H;
+  // No Udyam, sector or business profile for a household (HH-1).
+  const org = {
+    type: 'household' as const,
+    name: 'Sample home, Hyderabad (synthetic)',
+    state: 'Telangana',
+  };
+  await prisma.organisation.upsert({
+    where: { id: orgId },
+    update: org,
+    create: { id: orgId, ...org },
+  });
+  const siteData = {
+    orgId,
+    address: 'Hyderabad (SYNTHETIC sample home)',
+    discom: 'TGSPDCL',
+    consumerNo: 'SAMPLE-LT-0001',
+    tariffCategory: 'LT-I',
+    sanctionedLoadKw: num('householdSanctionedLoadKw'),
+    roofAreaM2: num('householdRoofAreaM2'),
+  };
+  await prisma.site.upsert({
+    where: { id: siteId },
+    update: siteData,
+    create: { id: siteId, ...siteData },
+  });
+  await prisma.user.upsert({
+    where: { id: userId },
+    update: { phone: '+91-SAMPLE-0003', language: 'en' },
+    create: { id: userId, phone: '+91-SAMPLE-0003', language: 'en' },
+  });
+  await prisma.membership.upsert({
+    where: { userId_orgId: { userId, orgId } },
+    update: { role: 'owner' },
+    create: { id: k('membership'), userId, orgId, role: 'owner' },
+  });
+  await prisma.consent.upsert({
+    where: { id: k('consent') },
+    update: {},
+    create: {
+      id: k('consent'),
+      orgId,
+      userId,
+      noticeVersion: 'v0-demo',
+      purpose: 'processing',
+      grantedAt: new Date('2025-04-01T00:00:00Z'),
+    },
+  });
+
+  // Null until R9: bills then carry kWh only and every rupee figure reads "not yet".
+  const rate = numOrNull('householdEnergyRatePerKwh');
+  const kwp = num('householdSolarInstalledKwp');
+  const rows = [
+    ...H_BEFORE_KWH.map((kwh, i) => ({ i, importKwh: kwh, exportKwh: null as number | null })),
+    ...H_IMPORT_KWH.map((kwh, j) => ({ i: 12 + j, importKwh: kwh, exportKwh: H_EXPORT_KWH[j]! })),
+  ];
+  // Rows are independent: upsert them in parallel (the remote DB makes a query per row slow).
+  const seedRow = async (m: (typeof rows)[number]) => {
+    // TGERC Reg 1/2025 cl. 8.1.3: import and export net within the month; the surplus is paid
+    // at a PPA rate we do not have yet, so it is not counted.
+    const billedKwh = Math.max(m.importKwh - (m.exportKwh ?? 0), 0);
+    const emId = k(`em:${m.i}`);
+    const emData = {
+      orgId,
+      siteId,
+      periodEnd: hEnd(m.i),
+      kwh: m.importKwh,
+      exportKwh: m.exportKwh,
+      solarInstalledKwp: m.exportKwh == null ? null : kwp,
+      energyCharges: rate == null ? null : r2(billedKwh * rate),
+      otherChargesJson: { _label: 'SYNTHETIC' },
+      qualityTag: 'measured' as const,
+    };
+    await prisma.energyMonth.upsert({
+      where: { id: emId },
+      update: emData,
+      create: { id: emId, periodStart: hStart(m.i), ...emData },
+    });
+    // Doc 03 Scope 2: grid kWh = imported kWh; exported units are not subtracted.
+    const fp = footprint({
+      gridKwh: m.importKwh,
+      fuels: [],
+      outputTonnes: null,
+      gridFactor: await factorAt('grid_electricity_india', hEnd(m.i)),
+    });
+    const resultId = k(`result:${m.i}`);
+    const result = {
+      orgId,
+      siteId,
+      scope1: null,
+      scope2: fp.scope2Tonnes,
+      scope3Metals: null,
+      intensity: null,
+      factorIds: fp.factorIds,
+      formulaVersion: fp.formulaVersion,
+      inputIds: [emId],
+    };
+    await prisma.result.upsert({
+      where: { id: resultId },
+      update: result,
+      create: { id: resultId, month: hStart(m.i), ...result },
+    });
+  };
+  await Promise.all(rows.map(seedRow));
 }
 
 /**
@@ -476,6 +604,7 @@ async function printCounts() {
   for (const [label, orgId] of [
     ['Demo A', ORG_A],
     ['Demo B', ORG_B],
+    ['Demo H', ORG_H],
   ] as const) {
     const parts: string[] = [];
     for (const [name, t] of tables) {

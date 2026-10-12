@@ -29,9 +29,17 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 ## Solar
 
-- [ ] Solar defaults: area per kWp and yield.
-- [ ] Telangana net-metering cap.
-- [ ] NREL API key (`NREL_API_KEY`).
+- [x] Solar defaults (R5): yield 1,462.9 kWh/kWp/yr (PVWatts v8, developer.nlr.gov, 12 Oct 2026); area 10 m2/kWp (MNRE FAQ), with SECI 12 m2/kWp shown as the cautious case. Held in `apps/api/src/services/solar.ts` `SOLAR_DEFAULTS`, not yet in the `factors` table.
+- [x] Telangana net-metering cap (R5): domestic 100% of sanctioned load, max 500 kWp (TGERC Reg 1/2025 cl. 4.9, 4.2). The industrial 80% cap is not yet used (no factory solar screen).
+- [ ] NREL API key (`NREL_API_KEY`): the yield is a one-off query for Hyderabad; no per-site PVWatts call yet. The API host is now developer.nlr.gov.
+- [ ] TGSPDCL LT-I domestic slabs (R9): `householdEnergyRatePerKwh` in `apps/api/prisma/demo/assumptions.json` is null, so Demo H bills carry kWh only and the solar plan shows no Rs saving or payback. Set that one key and run `db:demo:reset` to turn rupees on. The plan uses the bill's average rate, labelled "slab savings may differ".
+- [ ] Household fixed charges: no sourced LT-I fixed charge; Demo H stores none, and the bill total is energy charges only.
+- [ ] Export surplus credit: the TGERC lowest solar PPA rate (preceding FY) is not known, so units exported beyond import in a month are not valued.
+- [ ] Household verified savings: the S8a rule needs a regression baseline on a driver; a home has none (no production, no weather data), so `/solar-results` always says "Too early to confirm". Savings are a same-month-last-year comparison of billed kWh.
+- [ ] `solarPlanSize` rounds down to 0.5 kW steps (a practical step, not from a source) and returns 0 kW when the limit is under the 1 kWp TGERC minimum.
+- [ ] PM Surya Ghar CFA for a part kW: "1 kWp or part thereof" is applied pro rata (2.5 kW = Rs 69,000). Confirm with the scheme guidelines or the portal calculator.
+- [ ] The TGERC quoted line in the solar sources sheet contains "sanctioned load" (a verbatim quote; the banned-word scan covers locale files only). Decide whether quotes are exempt.
+- [ ] Household bill upload: the bill reader handles business (HT / LT-III) bills only; households see a list view.
 
 ## Calculation (packages/calc)
 
@@ -41,7 +49,7 @@ Values that are not in the source docs are left null in the seed data and tracke
 
 - [ ] Verified-savings significance: `savingsStatus` uses the standard error of cumulative savings = s*sqrt(m) (s = regression standard error, m = reporting months). Doc 03 says 'twice the model's standard error' without defining it.
 - [ ] NRA sign convention: `monthlySavings` treats `nraKwh` as owner-declared extra energy from a non-routine change (positive = new machine or shift) added to the adjusted baseline. Doc 03 writes '± NRA' without fixing the sign.
-- [ ] Solar `areaPerKwpM2` and `yieldKwhPerKwpYear` are still unsourced; `solarSize` throws when either is missing and never defaults them.
+- [x] Solar `areaPerKwpM2` and `yieldKwhPerKwpYear` now sourced (R5) and passed in by the API; `solarSize` still throws when either is missing and never defaults them.
 - [ ] Bill period length: `validateBill` treats periodStart and periodEnd as inclusive (1-30 Apr = 720 h) for the sanctioned-load check and overlap test. Confirm against TGSPDCL bill dates.
 
 ## Reporting
@@ -64,7 +72,7 @@ Values that are not in the source docs are left null in the seed data and tracke
 - [ ] Telangana MSME Policy 2024 incentives: GHMC area and four named Hyderabad estates are excluded. No site-location field to check this; new or expanding units get "Check with the scheme office".
 - [ ] Bank ZED concessions are lender-published with no date; the card says "re-check with the bank before relying on it".
 - [ ] Scheme names, reasons and benefit text come from `schemes.json` in English only; on the Telugu screen only the status labels are translated.
-- [ ] PM Surya Ghar (household money found, R5) not added until household mode is built.
+- [x] PM Surya Ghar (R5): household solar plan shows the CFA (residential only) with "Likely eligible; confirm with the scheme office". Not yet in the `schemes` table or the money-found counter.
 
 ## CBAM supplier sheet
 
@@ -96,10 +104,12 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 
 - [ ] Source sheet (`SourceChip`) shows the whole bill image, not a crop around the value: extraction returns no field coordinates. Add coordinates to the extraction adapter to enable cropping.
 - [x] Action ranking: decided: Doc 02/03 order (zero-cost first, then payback, CO2 as tie-breaker, then higher annual Rs). The API's order is the only order; Home, bill health and Plan all open its #1.
+- [x] Ranking follow-up (S9): actions with no quantified saving now rank after all valued ones (zero-cost before paid), so the #1 always shows rupees. Demo A's #1 is reduce contracted demand.
 - [ ] Telugu strings added in D2 (nav, bills ledger, verify page, health) are machine-drafted: need native speaker review.
 - [ ] Landing page (D3): Telugu strings under `landing.*` are machine-drafted, and the Hindi headline `landing.data.title` in `hi.json` is hand-written for that one section only: both need native speaker review.
 - [x] Landing page: the "Rs 2 per unit moved" figure (peak +1.50, day -0.50 per kVAh) is confirmed by the TGERC FY 2026-27 order (R7); landing figures now come from `apps/web/src/lib/sampleBill.ts`.
 - [ ] Landing first load is about 250 KB transferred on mobile (target 200 KB): the shared app bundle (React, router, query, i18next, all three locale files) is 133 KB gzip, Latin fonts 79 KB, hero screenshot 28 KB. Closing the gap needs lazy locale files and a lighter router or font plan.
+- [ ] Telugu strings under `household.*`, `start.demoH*` and `nav.solar` (S9) are machine-drafted: need native speaker review.
 - [ ] Telugu strings added in S8a (`savings.*`, `reports.*`, `nav.reports`, `home.heroSaved`) are machine-drafted: need native speaker review.
 - [ ] Savings chart bars start at zero, so a 5-6% saving is a small gap between bars and line; the rupee and kWh figures carry the message. Revisit if owners find it hard to read.
 - [x] Home for Demo B now shows "Rs saved this month / total so far" from `GET /sites/:siteId/savings` (S8a).

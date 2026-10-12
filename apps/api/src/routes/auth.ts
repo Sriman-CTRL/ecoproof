@@ -1,3 +1,4 @@
+import type { Organisation } from '@prisma/client';
 import { Router } from 'express';
 import { DemoLoginBody } from '@ecoproof/shared';
 import { prisma } from '../db.js';
@@ -6,6 +7,12 @@ import { AppError } from '../errors.js';
 import { signToken } from '../middleware/auth.js';
 
 export const authRouter = Router();
+
+/** HH-1: a household sees no Udyam, sector or business-profile fields. */
+function householdView(org: Organisation) {
+  const { id, type, name, state, createdAt } = org;
+  return { id, type, name, state, createdAt };
+}
 
 authRouter.post('/auth/demo-login', async (req, res) => {
   const { demo } = DemoLoginBody.parse(req.body);
@@ -19,5 +26,5 @@ authRouter.post('/auth/demo-login', async (req, res) => {
     throw new AppError(503, 'DEMO_NOT_SEEDED', 'Run db:seed:demo first');
   }
   const token = signToken({ userId: user.id, orgId: org.id, role: 'owner' });
-  res.json({ token, org, site, user });
+  res.json({ token, org: org.type === 'household' ? householdView(org) : org, site, user });
 });

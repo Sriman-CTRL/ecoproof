@@ -10,7 +10,7 @@ import { YearStrip } from '../components/kit/YearStrip';
 import { MonthLedger } from '../components/MonthLedger';
 import { ErrorBox, Page, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
-import { getSession } from '../lib/session';
+import { getSession, isHousehold } from '../lib/session';
 
 /** Tab target: every confirmed bill as a ledger, plus the year strip. */
 export default function Bills() {
@@ -21,13 +21,17 @@ export default function Bills() {
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
   const list = months.data ?? [];
+  // Households: list view only for now; the bill reader handles HT/LT-III business bills.
+  const household = isHousehold();
   return (
     <Page
       tab="bills"
       action={
-        <Link to="/bills/new" className={BUTTON_CLASS.primary}>
-          {t('home.addBill')}
-        </Link>
+        household ? undefined : (
+          <Link to="/bills/new" className={BUTTON_CLASS.primary}>
+            {t('home.addBill')}
+          </Link>
+        )
       }
     >
       <h1 className="font-heading text-title font-semibold">{t('bills.title')}</h1>
@@ -44,10 +48,15 @@ export default function Bills() {
       {list.length > 0 && (
         <>
           <Card>
-            <YearStrip months={yearMonths(list, i18n.resolvedLanguage ?? 'en')} />
+            <YearStrip
+              months={yearMonths(list, i18n.resolvedLanguage ?? 'en')}
+              showBaseline={!household}
+            />
           </Card>
-          <MonthLedger rows={list} />
-          <p className="text-small text-ink-muted">{t('bills.co2Note')}</p>
+          <MonthLedger rows={list} linkResults={!household} />
+          <p className="text-small text-ink-muted">
+            {t(household ? 'household.billsNote' : 'bills.co2Note')}
+          </p>
         </>
       )}
     </Page>

@@ -1,5 +1,5 @@
 /**
- * Self-check: walks Demo A on a 390x844 phone in English, then re-visits four screens at 360x800
+ * Self-check: walks Demo A, B and H on a 390x844 phone in English, then re-visits four screens at 360x800
  * in Telugu, and saves a PNG of each screen. Also reports horizontal overflow, tap targets under
  * 48px and anything hidden behind the tab bar.
  * Needs the API (DOCUMENT_READER=fake) and the web dev server running. Reset the demo afterwards.
@@ -124,6 +124,9 @@ try {
   await page.goto(`${WEB}/start`);
   await page.getByText('Sri Lakshmi Castings: before').waitFor();
   await page.getByText(/Sept? 2026 bill: a month at stake/).waitFor();
+  // S9: the third card is the sample home (units, no rupees until the R9 tariff).
+  await page.getByText('A home in Hyderabad (sample)').waitFor();
+  await page.getByText(/Sept? 2026 bill: 160 units/).waitFor();
   await shot(page, 'start');
 
   await page.getByText('Sri Lakshmi Castings: before').click();
@@ -352,6 +355,37 @@ try {
   await page.waitForURL(/\/reports\/[0-9a-f-]{36}$/);
   await page.getByText('Document seal').waitFor();
   await shot(page, 'report-b');
+
+  // ---------- Demo H (household): home -> solar plan (+ sources) -> bills after solar ----------
+  await page.goto(`${WEB}/start`);
+  await page.getByText('A home in Hyderabad (sample)').click();
+  await page.waitForURL(/\/(consent|home)$/);
+  if (page.url().endsWith('/consent')) {
+    await page.getByRole('button', { name: 'I agree' }).click();
+    await page.waitForURL(/\/home$/);
+  }
+  await page.getByText('Your home').waitFor();
+  await page.getByText('Rupees appear once the home tariff is added.').first().waitFor();
+  await page.getByText(/2\.5 kW fits your home/).waitFor();
+  await shot(page, 'home-h');
+  await page.getByRole('link', { name: 'See your solar plan' }).click();
+  await page.waitForURL(/\/household\/solar$/);
+  await page.getByText('Limited by your use', { exact: false }).waitFor();
+  await page.getByText('₹69,000').waitFor();
+  await shot(page, 'household-solar');
+  await page.getByRole('button', { name: 'Where these numbers come from' }).click();
+  await page.getByText('NREL PVWatts v8', { exact: false }).waitFor();
+  await shot(page, 'household-solar-sources', true);
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.goto(`${WEB}/household/after`);
+  await page.getByText("Installed: 3 kW (owner's choice)").waitFor();
+  await page.getByText('Too early to confirm').waitFor();
+  await shot(page, 'household-after');
+  await page.getByRole('navigation').getByRole('link', { name: 'Bills' }).click();
+  await page.waitForURL(/\/bills$/);
+  await page.getByText('Your bills').waitFor();
+  await page.getByRole('table', { name: 'Your confirmed bills, newest first' }).waitFor();
+  await shot(page, 'household-bills');
   await page.close();
 
   // ---------- Telugu, 360x800 ----------
@@ -395,6 +429,21 @@ try {
   await tb.getByTestId('method-note').waitFor();
   await shot(tb, 'te-savings');
   await tb.close();
+
+  // Demo H home in Telugu at 360x800.
+  const th = await browser.newPage({ viewport: { width: 360, height: 800 } });
+  await th.addInitScript(() => localStorage.setItem('ecoproof.lang', 'te'));
+  await th.goto(`${WEB}/start`);
+  await th.getByText('హైదరాబాద్‌లో ఒక ఇల్లు (నమూనా)').click();
+  await th.waitForURL(/\/(consent|home)$/);
+  if (th.url().endsWith('/consent')) {
+    await th.getByRole('button', { name: 'నేను అంగీకరిస్తున్నాను' }).click();
+    await th.waitForURL(/\/home$/);
+  }
+  await th.getByText('మీ ఇల్లు').waitFor();
+  await th.getByText('పైకప్పు సోలార్ ప్లాన్').waitFor();
+  await shot(th, 'te-home-h');
+  await th.close();
 } finally {
   await browser.close();
 }

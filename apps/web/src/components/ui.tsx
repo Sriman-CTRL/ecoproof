@@ -6,10 +6,11 @@ import { Files } from '@phosphor-icons/react/dist/csr/Files';
 import { House } from '@phosphor-icons/react/dist/csr/House';
 import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
 import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
+import { Sun } from '@phosphor-icons/react/dist/csr/Sun';
 import type { Icon } from '@phosphor-icons/react';
 import { LANGUAGES } from '../i18n';
 import { formatInr, inrWords } from '../lib/format';
-import { getSession, setSession } from '../lib/session';
+import { getSession, isHousehold, setSession } from '../lib/session';
 import { BUTTON_CLASS } from './kit/Button';
 import { ErrorNote } from './kit/ErrorNote';
 import { SourceChip } from './kit/SourceChip';
@@ -102,24 +103,33 @@ export function SwitchSample() {
   );
 }
 
-export type TabId = 'home' | 'bills' | 'plan' | 'reports';
+export type TabId = 'home' | 'bills' | 'plan' | 'reports' | 'solar';
 const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'home', to: '/home', icon: House, key: 'nav.home' },
   { id: 'bills', to: '/bills', icon: Receipt, key: 'nav.bills' },
   { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
   { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
 ];
+/** Households have no plan or reports (HH-1): Home, Bills, Solar. */
+const HOUSEHOLD_TABS: typeof TABS = [
+  TABS[0]!,
+  TABS[1]!,
+  { id: 'solar', to: '/household/solar', icon: Sun, key: 'nav.solar' },
+];
 
 /** 64px white bar, icon + word. Hidden on the capture flow and on public pages. */
 export function TabBar({ active, wide }: { active: TabId; wide: boolean }) {
   const { t } = useTranslation();
+  const tabs = isHousehold() ? HOUSEHOLD_TABS : TABS;
   return (
     <nav
       aria-label={t('nav.label')}
       className="sticky bottom-0 z-20 h-16 border-t bg-surface pb-[env(safe-area-inset-bottom)] box-content"
     >
-      <ul className={`${wide ? WIDE : FULL_WIDTH} grid h-16 grid-cols-4`}>
-        {TABS.map(({ id, to, icon: IconCmp, key }) => (
+      <ul
+        className={`${wide ? WIDE : FULL_WIDTH} grid h-16 ${tabs.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}
+      >
+        {tabs.map(({ id, to, icon: IconCmp, key }) => (
           <li key={id}>
             <Link
               to={to}

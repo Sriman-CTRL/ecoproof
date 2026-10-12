@@ -11,7 +11,14 @@ export interface YearMonth {
 }
 
 /** 12 tiles like the consumption-history graph printed on Indian bills; filled = confirmed bill. */
-export function YearStrip({ months }: { months: YearMonth[] }) {
+export function YearStrip({
+  months,
+  showBaseline = true,
+}: {
+  months: YearMonth[];
+  /** Households have no production baseline (HH-1): leave out the unlock line. */
+  showBaseline?: boolean;
+}) {
   const { t } = useTranslation();
   const n = months.filter((m) => m.confirmed).length;
   const more = BASELINE_MONTHS - n;
@@ -43,9 +50,11 @@ export function YearStrip({ months }: { months: YearMonth[] }) {
         ))}
       </ol>
       <p className="num text-body font-semibold">{t('kit.year.count', { n })}</p>
-      <p className="text-small text-ink-muted">
-        {more > 0 ? t('kit.year.toUnlock', { count: more }) : t('kit.year.ready')}
-      </p>
+      {showBaseline && (
+        <p className="text-small text-ink-muted">
+          {more > 0 ? t('kit.year.toUnlock', { count: more }) : t('kit.year.ready')}
+        </p>
+      )}
     </div>
   );
 }

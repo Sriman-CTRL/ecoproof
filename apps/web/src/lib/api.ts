@@ -64,8 +64,12 @@ export interface MonthRow {
   rupees: { energyCharges: number | null; demandCharges: number | null; total: number | null };
   kwh: number | null;
   co2: { scope2TCo2Grid: number | null; scope1TCo2eFuels: number | null; label: string } | null;
-  intensity: number | null;
+  /** MSMEs only: households have no production, so no per-tonne intensity. */
+  intensity?: number | null;
   resultId: string | null;
+  /** Households with rooftop solar: kWh sent to the grid that month (kwh = imported). */
+  exportKwh?: number | null;
+  solarInstalledKwp?: number | null;
 }
 
 export interface DocumentView {

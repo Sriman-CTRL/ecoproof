@@ -26,8 +26,8 @@
     "optional": "optional"
   },
   "start": {
-    "title": "Choose a sample business",
-    "intro": "Try EcoProof with a made-up foundry. No real bills are used.",
+    "title": "Choose a sample",
+    "intro": "Try EcoProof with a made-up foundry or home. No real bills are used.",
     "demoA": "Sri Lakshmi Castings: before",
     "demoADesc": "12 months of bills. Add the latest bill to see this month.",
     "demoB": "Same unit, 6 months later",
@@ -37,7 +37,10 @@
     "previewBill": "{{month}} bill: total",
     "previewMonths": "months of bills",
     "open": "Open this sample",
-    "previewFailed": "Preview not available"
+    "previewFailed": "Preview not available",
+    "demoH": "A home in Hyderabad (sample)",
+    "demoHDesc": "A rooftop solar plan with the PM Surya Ghar subsidy, then 6 months of bills after solar.",
+    "previewUnits": "{{month}} bill: {{kwh}} units"
   },
   "consent": {
     "title": "Before we start",
@@ -577,7 +580,8 @@
     "home": "Home",
     "bills": "Bills",
     "plan": "Plan",
-    "reports": "Reports"
+    "reports": "Reports",
+    "solar": "Solar"
   },
   "landing": {
     "nav": {
@@ -859,5 +863,79 @@
     "tonnesShort": "{{t}} t",
     "seeLine": "{{value}} t CO2e per t (direct only)",
     "statusNote": "Estimate, not verified. Verified data must be confirmed by an accredited verifier. Actual values replace EU default values only after that check."
+  },
+  "household": {
+    "homeTitle": "Your home",
+    "latestBill": "{{month}} bill",
+    "unitsLine": "{{kwh}} units (kWh) bought from the grid",
+    "co2Line": "{{value}} t CO2 (grid)",
+    "noRupees": "Rupees appear once the home tariff is added.",
+    "solarCardTitle": "Rooftop solar plan",
+    "solarCardBody": "{{kwp}} kW fits your home. PM Surya Ghar subsidy: {{cfa}}.",
+    "solarCardBelow": "Your roof or use is below the 1 kW minimum for rooftop solar.",
+    "seePlan": "See your solar plan",
+    "afterCardTitle": "Bills after solar",
+    "afterCardBody": "{{n}} bills since your panels went up. See units bought, units sent out and what changed.",
+    "seeAfter": "See bills after solar",
+    "loadFailed": "We could not load your home's numbers. Check your internet and try again.",
+    "billsNote": "CO2 is t CO2 (grid), from units bought from the grid only. Units your panels make count as zero.",
+    "solar": {
+      "title": "Your rooftop solar plan",
+      "sizeLabel": "Size that fits",
+      "size": "{{kwp}} kW",
+      "limited": {
+        "roof": "Limited by your roof: {{roof}} m² at {{area}} m² per kW.",
+        "use": "Limited by your use: {{kwh}} units a year ÷ {{yield}} units per kW a year.",
+        "cap": "Limited by the load limit on your bill: {{cap}} kW (TGERC allows solar up to 100% of it)."
+      },
+      "belowMinimum": "Your roof or use is below the 1 kW minimum for rooftop solar with net metering.",
+      "conservative": "With the cautious {{area}} m² per kW (SECI): {{kwp}} kW.",
+      "savingLabel": "Saved a month",
+      "savingNote": "Average rate from your bill; slab savings may differ.",
+      "costLabel": "Benchmark cost",
+      "costNote": "MNRE benchmark used to set the subsidy; real quotes vary.",
+      "cfaLabel": "PM Surya Ghar subsidy",
+      "cfaNote": "Likely eligible; confirm with the scheme office",
+      "netLabel": "Your share after the subsidy",
+      "paybackLabel": "Payback",
+      "paybackYears": "{{value}} years",
+      "pending": "Needs your bill amount",
+      "genLine": "About {{kwh}} units a year from the panels",
+      "co2Line": "{{value}} t CO2 (grid) a year avoided",
+      "conditionsTitle": "Before you apply",
+      "condition1": "DCR modules and a registered vendor are required",
+      "condition2": "Apply on pmsuryaghar.gov.in",
+      "condition3": "Scheme open till 31 March 2027",
+      "surplus": "Units you send out beyond what you use in a month are paid at a low rate, so a bigger system does not pay back faster.",
+      "openPortal": "Open PM Surya Ghar portal",
+      "applyLink": "Apply on pmsuryaghar.gov.in",
+      "sources": "Where these numbers come from",
+      "sourcesTitle": "Sources",
+      "loadFailed": "We could not load your solar plan. Check your internet and try again."
+    },
+    "after": {
+      "title": "Bills after solar",
+      "installed": "Installed: {{kwp}} kW (owner's choice)",
+      "since": "Since {{month}}",
+      "chartLabel": "Units bought from the grid and units sent to the grid, each month after solar",
+      "legendImport": "Bought from the grid (import)",
+      "legendExport": "Sent to the grid (export)",
+      "axisNote": "Units (kWh) per month, starting from zero.",
+      "savedLabel": "Saved against the same months last year",
+      "savedUnits": "{{kwh}} fewer units billed",
+      "co2": "{{value}} t CO2 (grid) from units bought",
+      "methodNote": "Compared with the same month last year on your own bills. Weather and changes at home are not adjusted.",
+      "surplusNote": "Units sent out beyond what you bought in a month are paid at the lowest solar PPA rate (TGERC); that credit is not counted here.",
+      "byMonth": "Month by month",
+      "col": {
+        "month": "Month",
+        "import": "Bought",
+        "export": "Sent out",
+        "billed": "Billed",
+        "saved": "Saved"
+      },
+      "empty": "No bills after solar yet.",
+      "loadFailed": "We could not load your bills after solar. Check your internet and try again."
+    }
   }
 }

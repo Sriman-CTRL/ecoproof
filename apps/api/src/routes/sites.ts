@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { computeProgress } from '../services/progress.js';
 import { computeSavings } from '../services/savings.js';
 import { computeSchemes } from '../services/schemes.js';
+import { computeSolarPlan, computeSolarResults } from '../services/solar.js';
 import { loadSite } from '../services/scope.js';
 
 export const sitesRouter = Router();
@@ -29,10 +30,23 @@ sitesRouter.get('/sites/:siteId/schemes', requireAuth, async (req, res) => {
   res.json(await computeSchemes(site));
 });
 
+// Household rooftop solar plan and PM Surya Ghar subsidy (HH-1); 404 for MSMEs.
+sitesRouter.get('/sites/:siteId/solar-plan', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeSolarPlan(site));
+});
+
+// Household net-metering bills after installation: import, export, saved vs last year (HH-1).
+sitesRouter.get('/sites/:siteId/solar-results', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeSolarResults(site));
+});
+
 sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
   const { orgId } = req.auth;
   const site = await loadSite(orgId, String(req.params.siteId));
-  const [months, results] = await Promise.all([
+  const [org, months, results] = await Promise.all([
+    prisma.organisation.findFirst({ where: { id: orgId }, select: { type: true } }),
     prisma.energyMonth.findMany({
       where: { orgId, siteId: site.id },
       orderBy: { periodStart: 'desc' },
@@ -40,6 +54,7 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
     prisma.result.findMany({ where: { orgId, siteId: site.id } }),
   ]);
   const byMonth = new Map(results.map((r) => [r.month.getTime(), r]));
+  const household = org?.type === 'household';
   res.json(
     months.map((m) => {
       const r = byMonth.get(m.periodStart.getTime());
@@ -54,10 +69,17 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
         },
         kwh: n(m.kwh),
         co2: r
-          ? { scope2TCo2Grid: n(r.scope2), scope1TCo2eFuels: n(r.scope1), label: CO2_LABEL }
+          ? {
+              scope2TCo2Grid: n(r.scope2),
+              scope1TCo2eFuels: n(r.scope1),
+              label: household ? 't CO2 (grid)' : CO2_LABEL,
+            }
           : null,
-        intensity: n(r?.intensity),
         resultId: r?.id ?? null,
+        // Households: no per-tonne intensity (no production); net-metering export instead.
+        ...(household
+          ? { exportKwh: n(m.exportKwh), solarInstalledKwp: n(m.solarInstalledKwp) }
+          : { intensity: n(r?.intensity) }),
       };
     }),
   );

@@ -7,7 +7,14 @@ import { SourceChip } from './kit/SourceChip';
 import { monthLabel } from './ui';
 
 /** Month, rupees, units, tonnes CO2 as a ledger table. Rupees come first (Doc 06). */
-export function MonthLedger({ rows }: { rows: MonthRow[] }) {
+export function MonthLedger({
+  rows,
+  linkResults = true,
+}: {
+  rows: MonthRow[];
+  /** Link each month to its result page (business bills only). */
+  linkResults?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
   return (
@@ -38,7 +45,7 @@ export function MonthLedger({ rows }: { rows: MonthRow[] }) {
             return (
               <tr key={m.month} className="border-b last:border-b-0">
                 <th scope="row" className="py-1 pr-2 text-left font-medium">
-                  {m.resultId ? (
+                  {m.resultId && linkResults ? (
                     <Link
                       to={`/results/${m.resultId}`}
                       className="inline-flex min-h-12 items-center text-green-700 underline underline-offset-4"

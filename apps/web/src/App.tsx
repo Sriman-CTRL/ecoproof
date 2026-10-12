@@ -6,7 +6,7 @@ import { Button } from './components/kit/Button';
 import { Skeleton } from './components/kit/Skeleton';
 import { ErrorBox, Page } from './components/ui';
 import { api } from './lib/api';
-import { getSession } from './lib/session';
+import { getSession, isHousehold } from './lib/session';
 
 // Every route is its own chunk, so the landing page and the owner app load only what they show.
 const ActionDetail = lazy(() => import('./pages/ActionDetail'));
@@ -17,6 +17,9 @@ const Confirm = lazy(() => import('./pages/Confirm'));
 const Consent = lazy(() => import('./pages/Consent'));
 const Health = lazy(() => import('./pages/Health'));
 const Home = lazy(() => import('./pages/Home'));
+const HouseholdAfter = lazy(() => import('./pages/HouseholdAfter'));
+const HouseholdHome = lazy(() => import('./pages/HouseholdHome'));
+const HouseholdSolar = lazy(() => import('./pages/HouseholdSolar'));
 const Landing = lazy(() => import('./pages/Landing'));
 const NewBill = lazy(() => import('./pages/NewBill'));
 const Progress = lazy(() => import('./pages/Progress'));
@@ -44,6 +47,11 @@ function RouteFallback() {
 /** Everything except /start and the public verify and share pages needs a demo login. */
 function RequireSession() {
   return getSession() ? <Outlet /> : <Navigate to="/start" replace />;
+}
+
+/** HH-1: a household gets its own home (bill, units, CO2, solar plan). */
+function HomeRoute() {
+  return isHousehold() ? <HouseholdHome /> : <Home />;
 }
 
 /** Nothing else is reachable without a "processing" consent (DPDP). */
@@ -87,7 +95,9 @@ export default function App() {
           <Route element={<RequireSession />}>
             <Route path="/consent" element={<Consent />} />
             <Route element={<RequireConsent />}>
-              <Route path="/home" element={<Home />} />
+              <Route path="/home" element={<HomeRoute />} />
+              <Route path="/household/solar" element={<HouseholdSolar />} />
+              <Route path="/household/after" element={<HouseholdAfter />} />
               <Route path="/bills" element={<Bills />} />
               <Route path="/bills/new" element={<NewBill />} />
               <Route path="/bills/:documentId/confirm" element={<Confirm />} />

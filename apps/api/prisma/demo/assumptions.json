@@ -13,5 +13,13 @@
   "peakSharePct": 25,
   "pfBefore": 0.92,
   "pfAfter": 0.99,
-  "efficiencyGainAfterPct": 6
+  "efficiencyGainAfterPct": 6,
+  "_household": "Demo H (household): every value below is SYNTHETIC, not a real home or bill",
+  "householdEnergyRatePerKwh": null,
+  "householdEnergyRateNote": "PLACEHOLDER until R9 (TGSPDCL LT-I): null, so Demo H bills carry kWh only. Set one average Rs/kWh here and run db:demo:reset to turn rupees on.",
+  "householdSanctionedLoadKw": 3,
+  "householdRoofAreaM2": 30,
+  "householdRoofAreaNote": "SYNTHETIC owner-entered usable roof area",
+  "householdSolarInstalledKwp": 3,
+  "householdSolarInstalledOn": "2026-04-01"
 }

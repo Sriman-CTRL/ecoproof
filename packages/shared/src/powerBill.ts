@@ -37,7 +37,7 @@ export const POWER_BILL_FIELD_NAMES = Object.keys(PowerBillFields.shape) as Arra
 export const FieldConfidence = z.record(z.string(), z.number().min(0).max(1));
 export type FieldConfidence = z.infer<typeof FieldConfidence>;
 
-export const DemoLoginBody = z.object({ demo: z.enum(['A', 'B']) });
+export const DemoLoginBody = z.object({ demo: z.enum(['A', 'B', 'H']) });
 export const ConsentBody = z.object({
   noticeVersion: z.string().min(1),
   purpose: z.string().min(1),

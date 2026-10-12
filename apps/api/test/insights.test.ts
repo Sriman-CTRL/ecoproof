@@ -54,10 +54,10 @@ afterAll(async () => {
 
 const EXPECTED_ORDER = [
   'reduce_contracted_demand',
-  'clean_charge_and_tapping',
-  'shift_peak_use_to_solar_hours',
   'fix_power_factor',
   'igbt_furnace',
+  'clean_charge_and_tapping',
+  'shift_peak_use_to_solar_hours',
   'compressor_vfd',
   'screw_compressor_ring_main',
 ];
@@ -121,15 +121,15 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
     expect(r.body.insightCard.baseline.method).toBeTruthy();
   });
 
-  it('ranks zero-cost actions first and returns the top 3 plus the total', async () => {
+  it('ranks a valued zero-cost fix first and returns the top 3 plus the total', async () => {
     const r = await request(app).get(`/sites/${siteA}/actions`).set(auth(tokenA));
     expect(r.status).toBe(200);
     expect(r.body.actions).toHaveLength(3);
     expect(r.body.total).toBeGreaterThanOrEqual(3);
+    expect(r.body.actions[0].code).toBe('reduce_contracted_demand');
     expect(r.body.actions[0].isZeroCost).toBe(true);
+    expect(r.body.actions[0].annualInrMid).toBeGreaterThan(0);
     const all = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
-    const flags = all.body.actions.map((a: { isZeroCost: boolean }) => a.isZeroCost);
-    expect(flags).toEqual([...flags].sort((a, b) => Number(b) - Number(a)));
     const pf = all.body.actions.find((a: { code: string }) => a.code === 'fix_power_factor');
     expect(pf.inrPerMonthLow).toBeCloseTo(61200, 0);
     expect(pf.co2TonnesPerYear).toBeNull();
@@ -171,14 +171,18 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
     expect(codes).not.toContain('efficiency_measure_pending_r2');
   });
 
-  it('orders actions by one rule: zero-cost first, then payback, then annual rupees', async () => {
+  it('orders actions: valued zero-cost by Rs, valued paid by payback, then unvalued', async () => {
     const r = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
     type A = { code: string; isZeroCost: boolean; annualInrMid: number | null };
     const list = r.body.actions as A[];
-    const zero = list.filter((a) => a.isZeroCost);
-    expect(list.slice(0, zero.length)).toEqual(zero);
-    const rupees = zero.map((a) => a.annualInrMid ?? -1);
+    const valued = list.filter((a) => a.annualInrMid != null);
+    expect(list.slice(0, valued.length)).toEqual(valued);
+    const zero = valued.filter((a) => a.isZeroCost);
+    expect(valued.slice(0, zero.length)).toEqual(zero);
+    const rupees = zero.map((a) => a.annualInrMid!);
     expect(rupees).toEqual([...rupees].sort((a, b) => b - a));
+    const unvalued = list.slice(valued.length).map((a) => a.isZeroCost);
+    expect(unvalued).toEqual([...unvalued].sort((a, b) => Number(b) - Number(a)));
     expect(list.map((a) => a.code)).toEqual(EXPECTED_ORDER);
   });
 
