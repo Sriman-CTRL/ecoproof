@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { cashTest, emi } from '@ecoproof/calc';
 import { CostText, ErrorBox, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
-import { postJson } from '../lib/api';
+import { postJson, type LoanPackCreated } from '../lib/api';
 import { formatDecimal, formatInr } from '../lib/format';
 import { getSession } from '../lib/session';
 import { actionTitle, useActions } from './Actions';
@@ -18,12 +18,15 @@ export default function ActionDetail() {
   const month = params.get('month');
   const siteId = getSession()?.siteId ?? '';
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const q = useActions(month, true);
   const a = q.data?.actions.find((x) => x.code === code);
 
   const [loan, setLoan] = useState('');
   const [rate, setRate] = useState('8');
   const [months, setMonths] = useState('60');
+  const [vendor, setVendor] = useState('');
+  const [quote, setQuote] = useState('');
   const plan = useMutation({
     mutationFn: () => postJson(`/sites/${siteId}/actions/${code}/plan`, { status: 'planned' }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['actions'] }),
@@ -41,23 +44,47 @@ export default function ActionDetail() {
       })()
     : null;
   const planned = plan.isSuccess || (a != null && a.status !== 'suggested');
+  const quoteInr = digits(quote);
+  const makePack = useMutation({
+    mutationFn: () =>
+      postJson<LoanPackCreated>(`/sites/${siteId}/reports/loan-pack`, {
+        actionCode: code,
+        ...(quoteInr > 0
+          ? { quote: { vendorName: vendor.trim() || '-', amountInr: quoteInr } }
+          : {}),
+        loan: { amountInr: principal, ratePct: annualRate, tenureMonths: tenure },
+        language: 'en',
+      }),
+    onSuccess: (r) => navigate(`/reports/${r.reportId}`),
+  });
 
   return (
     <Page
       action={
-        <button
-          type="button"
-          className={PRIMARY}
-          disabled={!a || plan.isPending || planned}
-          onClick={() => plan.mutate()}
-        >
-          {planned ? t('detail.planned') : t('detail.plan')}
-        </button>
+        planned ? (
+          <button
+            type="button"
+            className={PRIMARY}
+            disabled={!a || !calc || a.inrPerMonthLow == null || makePack.isPending}
+            onClick={() => makePack.mutate()}
+          >
+            {makePack.isPending ? t('detail.making') : t('detail.makePack')}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={PRIMARY}
+            disabled={!a || plan.isPending}
+            onClick={() => plan.mutate()}
+          >
+            {t('detail.plan')}
+          </button>
+        )
       }
     >
       {q.isLoading && <p>{t('common.loading')}</p>}
       {q.isError && <ErrorBox>{t('actions.loadFailed')}</ErrorBox>}
-      {plan.isError && <ErrorBox>{t('common.genericError')}</ErrorBox>}
+      {(plan.isError || makePack.isError) && <ErrorBox>{t('common.genericError')}</ErrorBox>}
       {q.isSuccess && !a && <ErrorBox>{t('detail.notFound')}</ErrorBox>}
       {a && (
         <>
@@ -149,6 +176,37 @@ export default function ActionDetail() {
             )}
             <p className="text-xs text-gray-500">{t('detail.lenderNote')}</p>
           </section>
+
+          {planned && (
+            <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
+              <h2 className="font-semibold">{t('detail.packTitle')}</h2>
+              <p className="rounded-lg bg-emerald-50 p-2 text-sm text-emerald-900">
+                ✓ {t('detail.planned')}
+              </p>
+              <label className="block text-sm">
+                <span className="font-medium">{t('detail.vendor')}</span>
+                <input
+                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  value={vendor}
+                  onChange={(e) => setVendor(e.target.value)}
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="font-medium">{t('detail.quote')}</span>
+                <input
+                  inputMode="numeric"
+                  className="mt-1 min-h-12 w-full rounded-lg border px-3 text-base"
+                  value={quote}
+                  onChange={(e) => {
+                    const n = digits(e.target.value);
+                    setQuote(n ? new Intl.NumberFormat('en-IN').format(n) : '');
+                  }}
+                />
+                <span className="text-xs text-gray-600">{t('detail.quoteHelp')}</span>
+              </label>
+              {!calc && <p className="text-sm text-gray-700">{t('detail.needLoan')}</p>}
+            </section>
+          )}
         </>
       )}
     </Page>

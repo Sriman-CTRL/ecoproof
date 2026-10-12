@@ -11,7 +11,6 @@ import {
 import type { EnergyMonth, Site, TariffRule } from '@prisma/client';
 import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
-import { CO2_LABEL } from '../routes/sites.js';
 
 export type FindingCode =
   'power_factor' | 'peak_use' | 'contracted_demand' | 'minimum_charges' | 'lt_surcharges';
@@ -57,7 +56,7 @@ export const ACTION_CODE: Record<FindingCode, string> = {
 };
 
 // Doc 03 "Baseline and verified savings": ASHRAE Guideline 14 acceptance limits.
-const BASELINE_RULES = { minMonthsForRegression: 9, maxCvRmsePct: 15, maxAbsNmbePct: 5 };
+export const BASELINE_RULES = { minMonthsForRegression: 9, maxCvRmsePct: 15, maxAbsNmbePct: 5 };
 
 const num = (d: { toString(): string } | null | undefined) => (d == null ? null : Number(d));
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -112,7 +111,16 @@ export interface Baseline {
 export interface InsightCard {
   sentence: string | null;
   comparedWith: 'same month last year' | null;
-  change: { inr: number | null; kwh: number | null; tCo2: number | null } | null;
+  change: {
+    inr: number | null;
+    kwh: number | null;
+    /** Grid + fuels total; kept for older clients. */
+    tCo2: number | null;
+    /** Scope 2 change, t CO2 (grid factor is CO2-only). */
+    tCo2Grid: number | null;
+    /** Scope 1 change, t CO2e (fuels). */
+    tCo2eFuels: number | null;
+  } | null;
   largestDriver: 'production' | 'power_factor' | 'peak_use' | 'diesel' | null;
   drivers: Array<{ code: string; inr: number | null; kwh: number | null; note: string }>;
   baseline: Baseline | null;
@@ -125,6 +133,8 @@ export interface Insights {
   passed: Finding[];
   /** Checks that could not run: no valid rule for the period, or bill fields missing. */
   skipped: Array<{ code: FindingCode; reason: string }>;
+  /** Sum of flagged findings in Rs/month; findings not yet valued (null) count as 0. */
+  atStake: { inrPerMonth: number; pendingCodes: FindingCode[] };
   insightCard: InsightCard;
 }
 
@@ -347,6 +357,10 @@ export async function computeInsights(
     findings,
     passed,
     skipped,
+    atStake: {
+      inrPerMonth: findings.reduce((t, f) => t + (f.inrPerMonth ?? 0), 0),
+      pendingCodes: findings.filter((f) => f.inrPerMonth == null).map((f) => f.code),
+    },
     insightCard: await buildCard(site, em, energyRate, rules.get('tod') ?? null),
   };
 }
@@ -422,9 +436,10 @@ async function buildCard(
       },
     }),
   ]);
-  const co2 = (month: Date) => {
-    const r = results.find((x) => x.month.getTime() === month.getTime());
-    return r ? Number(r.scope1 ?? 0) + Number(r.scope2 ?? 0) : null;
+  const resultFor = (month: Date) => results.find((x) => x.month.getTime() === month.getTime());
+  const co2 = (month: Date, scope: 'scope1' | 'scope2') => {
+    const r = resultFor(month);
+    return r ? Number(r[scope] ?? 0) : null;
   };
   const litres = (e: EnergyMonth) =>
     fuels
@@ -435,12 +450,19 @@ async function buildCard(
   const lyKvah = num(ly.kvah);
   const kvah = num(em.kvah);
   const changeInr = billTotal(em) - billTotal(ly);
-  const c1 = co2(em.periodStart);
-  const c0 = co2(ly.periodStart);
+  const delta = (scope: 'scope1' | 'scope2') => {
+    const now = co2(em.periodStart, scope);
+    const then = co2(ly.periodStart, scope);
+    return now != null && then != null ? now - then : null;
+  };
+  const tCo2Grid = delta('scope2');
+  const tCo2eFuels = delta('scope1');
   const change = {
     inr: changeInr,
     kwh: kwh - lyKwh,
-    tCo2: c1 != null && c0 != null ? c1 - c0 : null,
+    tCo2: tCo2Grid != null && tCo2eFuels != null ? tCo2Grid + tCo2eFuels : null,
+    tCo2Grid,
+    tCo2eFuels,
   };
 
   // Each driver as a Rs/month effect on the bill versus last year.
@@ -496,10 +518,13 @@ async function buildCard(
     `Your bill is Rs ${fmt(Math.abs(changeInr))} ${dir} than the same month last year`,
     `${fmt(Math.abs(change.kwh))} kWh ${change.kwh >= 0 ? 'more' : 'less'}`,
   ];
-  if (change.tCo2 != null) {
-    parts.push(
-      `${fmt(Math.abs(change.tCo2), 2)} ${CO2_LABEL} ${change.tCo2 >= 0 ? 'more' : 'less'}`,
-    );
+  const moreLess = (v: number) => (v >= 0 ? 'more' : 'less');
+  if (tCo2Grid != null) {
+    parts.push(`${fmt(Math.abs(tCo2Grid), 2)} t CO2 ${moreLess(tCo2Grid)} from grid electricity`);
+  }
+  // Fuel part only when fuel CO2e actually changed.
+  if (tCo2eFuels != null && Math.abs(tCo2eFuels) >= 0.005) {
+    parts.push(`${fmt(Math.abs(tCo2eFuels), 2)} t CO2e ${moreLess(tCo2eFuels)} from fuels`);
   }
   let sentence = `${parts[0]} (${parts.slice(1).join(', ')}).`;
   if (top) sentence += ` Largest driver: ${DRIVER_TEXT[top.code]} (${top.note}).`;

@@ -88,8 +88,10 @@ model Organisation {
   baselines             Baseline[]
   siteActions           SiteAction[]
   savingsLedger         SavingsLedger[]
+  reportSnapshots       ReportSnapshot[]
   reports               Report[]
   shares                Share[]
+  shareViews            ShareView[]
   auditLog              AuditLog[]
   nonRoutineAdjustments NonRoutineAdjustment[]
   siteEquipment         SiteEquipment[]
@@ -122,6 +124,7 @@ model Site {
   savingsLedger         SavingsLedger[]
   nonRoutineAdjustments NonRoutineAdjustment[]
   siteEquipment         SiteEquipment[]
+  reportSnapshots       ReportSnapshot[]
 
   @@index([orgId])
   @@map("sites")
@@ -359,37 +362,87 @@ model SavingsLedger {
   @@map("savings_ledger")
 }
 
-model Report {
-  id           String   @id @default(uuid()) @db.Uuid
-  orgId        String   @map("org_id") @db.Uuid
-  snapshotId   String   @map("snapshot_id") @db.Uuid
-  type         String
-  language     String
-  fileKey      String?  @map("file_key")
-  sha256       String?
-  snapshotJson Json     @map("snapshot_json")
-  createdAt    DateTime @default(now()) @map("created_at")
+/// Frozen, read-only input to a report (Doc 05 generation step 2). Never edited.
+model ReportSnapshot {
+  id               String   @id @default(uuid()) @db.Uuid
+  orgId            String   @map("org_id") @db.Uuid
+  siteId           String   @map("site_id") @db.Uuid
+  type             String
+  language         String
+  /// ADDITION: not in Doc 07, needed to number loan-pack versions per action (Doc 05 Regeneration)
+  actionCode       String?  @map("action_code")
+  inputsJson       Json     @map("inputs_json")
+  resultsJson      Json     @map("results_json")
+  factorIds        String[] @map("factor_ids") @db.Uuid
+  formulaVersion   String   @map("formula_version")
+  dataQualityScore Decimal? @map("data_quality_score") @db.Decimal(6, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  org    Organisation @relation(fields: [orgId], references: [id])
-  shares Share[]
+  org     Organisation @relation(fields: [orgId], references: [id])
+  site    Site         @relation(fields: [siteId], references: [id])
+  reports Report[]
+
+  @@index([orgId])
+  @@index([siteId, type, actionCode])
+  @@map("report_snapshots")
+}
+
+model Report {
+  id         String   @id @default(uuid()) @db.Uuid
+  orgId      String   @map("org_id") @db.Uuid
+  snapshotId String   @unique @map("snapshot_id") @db.Uuid
+  type       String
+  language   String
+  fileKey    String   @map("file_key")
+  sha256     String
+  /// ADDITION: not in Doc 07, needed by Doc 05 Regeneration (new snapshot = version n+1)
+  version    Int
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  org      Organisation   @relation(fields: [orgId], references: [id])
+  snapshot ReportSnapshot @relation(fields: [snapshotId], references: [id])
+  shares   Share[]
 
   @@index([orgId])
   @@map("reports")
 }
 
 model Share {
-  id        String   @id @default(uuid()) @db.Uuid
-  orgId     String   @map("org_id") @db.Uuid
-  reportId  String   @map("report_id") @db.Uuid
+  id        String    @id @default(uuid()) @db.Uuid
+  orgId     String    @map("org_id") @db.Uuid
+  reportId  String    @map("report_id") @db.Uuid
   recipient String
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
+  /// ADDITION: not in Doc 07; sha256 of the share token (the raw token is never stored)
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  /// ADDITION: not in Doc 07, needed to revoke a share link before it expires
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   org    Organisation @relation(fields: [orgId], references: [id])
   report Report       @relation(fields: [reportId], references: [id])
+  views  ShareView[]
 
   @@index([orgId])
+  @@index([reportId])
   @@map("shares")
+}
+
+/// Every view and download of a shared report (Doc 05 generation step 7).
+model ShareView {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgId     String   @map("org_id") @db.Uuid
+  shareId   String   @map("share_id") @db.Uuid
+  kind      String
+  at        DateTime @default(now())
+  userAgent String?  @map("user_agent")
+
+  org   Organisation @relation(fields: [orgId], references: [id])
+  share Share        @relation(fields: [shareId], references: [id])
+
+  @@index([orgId])
+  @@index([shareId])
+  @@map("share_views")
 }
 
 model AuditLog {

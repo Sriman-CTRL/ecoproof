@@ -33,8 +33,9 @@ export default function Results() {
     queryKey: ['months', siteId],
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
-  const insights = useInsights(explain.data?.month ?? null);
-  const atStake = (insights.data?.findings ?? []).reduce((t, f) => t + (f.inrPerMonth ?? 0), 0);
+  const insights = useInsights(explain.data?.month ?? null, null, { waitForMonth: true });
+  // Only this bill's month: never another month's cached answer.
+  const health = insights.data?.month === explain.data?.month ? insights.data : undefined;
   const row = months.data?.find((m) => m.resultId === resultId);
   const ex = explain.data;
   const kwh = ex?.inputs.find((i) => i.kind === 'kwh');
@@ -131,22 +132,25 @@ export default function Results() {
 
           <section className="space-y-1 rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="font-semibold">{t('results.healthTitle')}</h2>
-            {insights.data && (
+            {health && (
               <>
-                <p className="text-3xl font-bold">
+                <p className="text-3xl font-bold" data-testid="at-stake">
                   <SourceNumber source={t('results.healthSource')}>
-                    <Rupees value={atStake} />
+                    <Rupees value={health.atStake.inrPerMonth} />
                   </SourceNumber>{' '}
                   <span className="text-base font-normal text-gray-600">
                     {t('health.perMonth')}
                   </span>
                 </p>
+                {health.atStake.pendingCodes.includes('peak_use') && (
+                  <p className="text-gray-700">{t('results.peakPending')}</p>
+                )}
                 <p className="text-gray-700">
-                  {t('results.healthCount', { count: insights.data.findings.length })}
+                  {t('results.healthCount', { count: health.findings.length })}
                 </p>
               </>
             )}
-            {insights.isLoading && <p>{t('common.loading')}</p>}
+            {!health && !insights.isError && <p>{t('common.loading')}</p>}
           </section>
 
           <Link to="/home" className="flex min-h-12 items-center justify-center underline">

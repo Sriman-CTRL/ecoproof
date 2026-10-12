@@ -48,7 +48,7 @@ Open gaps live in `docs/OPEN_ITEMS.md`. Never invent a number, factor, tariff, r
 - Demo login instead of phone OTP.
 - English + Telugu strings only for demo screens (Hindi file is a placeholder).
 - Prisma bypasses Supabase RLS, so the API MUST filter by `org_id` on every query.
-- Deferred tables: purchases, buyer_requests, notifications, share_views, report_snapshots (reports holds snapshot_json).
+- Deferred tables: purchases, buyer_requests, notifications. Report snapshots live in `report_snapshots`; share views in `share_views`.
 
 ## Data rules
 

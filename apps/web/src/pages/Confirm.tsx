@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -65,6 +65,7 @@ export default function Confirm() {
 export function ConfirmForm({ documentId, doc }: { documentId: string; doc: DocumentView }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const fields = doc.fields ?? {};
   const [values, setValues] = useState<Values>(() =>
     Object.fromEntries(SCALAR_FIELDS.map((k) => [k, String(fields[k] ?? '')])),
@@ -106,6 +107,10 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
         ...(diesel.trim() ? { dieselLitres: diesel } : {}),
         acknowledged: [...acked],
       });
+      // A new month changes "latest": drop cached months, insights and actions.
+      await Promise.all(
+        ['months', 'insights', 'actions'].map((k) => qc.invalidateQueries({ queryKey: [k] })),
+      );
       navigate(`/results/${r.resultId}`, { replace: true });
     } catch (e) {
       setBusy(false);

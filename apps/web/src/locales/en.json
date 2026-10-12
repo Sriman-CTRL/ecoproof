@@ -60,7 +60,11 @@
     "loadFailed": "We could not load your months. Check your internet and try again.",
     "sourceBill": "Taken from your confirmed bill for {{month}}.",
     "nextAction": "Your next action",
-    "insight": "Your bill is {{inr}} {{direction}} than the same month last year ({{kwh}} units, {{co2}} {{co2Label}}). Largest driver: {{driver}}.",
+    "insight": "Your bill is {{inr}} {{direction}} than the same month last year ({{kwh}} units{{co2}}). Largest driver: {{driver}}.",
+    "co2Grid": "{{value}} t CO2 {{direction}} from grid electricity",
+    "co2Fuels": "{{value}} t CO2e {{direction}} from fuels",
+    "more": "more",
+    "less": "less",
     "higher": "higher",
     "lower": "lower",
     "driver": {
@@ -211,6 +215,7 @@
     "seeHealth": "See bill health",
     "healthTitle": "Bill health check",
     "healthSource": "Sum of the flagged checks on this bill; tap See bill health for each one.",
+    "peakPending": "+ peak saving once you enter units",
     "healthCount_one": "{{count}} finding on this bill",
     "healthCount_other": "{{count}} findings on this bill"
   },
@@ -314,6 +319,54 @@
     "savingLow": "Low-end monthly saving",
     "difference": "Monthly difference",
     "cashPositive": "Cash-positive from month 1",
-    "lenderNote": "Summary for the lender's own assessment"
+    "lenderNote": "Summary for the lender's own assessment",
+    "makePack": "Make loan-ready summary",
+    "making": "Making the summary...",
+    "packTitle": "Loan-ready summary",
+    "vendor": "Vendor name",
+    "quote": "Quote amount (Rs)",
+    "quoteHelp": "Optional. Without a quote the summary says \"cost pending: get a quote\".",
+    "needLoan": "Enter the loan amount above to make the summary."
+  },
+  "report": {
+    "title": "Loan-ready summary",
+    "notFound": "This summary was not found.",
+    "download": "Download PDF",
+    "sealTitle": "Document seal",
+    "sealHelp": "This code (SHA-256) changes if even one letter of the PDF changes.",
+    "tapCopy": "Tap to copy full",
+    "copied": "Copied",
+    "openVerify": "Open the verification page",
+    "shareTitle": "Share with lender",
+    "recipient": "Recipient name",
+    "expiryDays": "Link expires after (days)",
+    "makeLink": "Make share link",
+    "linkReady": "Share link ready:",
+    "copyLink": "Copy link",
+    "viewsDownloads": "Views: {{views}} · Downloads: {{downloads}}",
+    "expires": "expires {{date}}",
+    "revoke": "Revoke",
+    "status": {
+      "active": "active",
+      "expired": "expired",
+      "revoked": "revoked"
+    }
+  },
+  "verify": {
+    "title": "Verify a document",
+    "sharedTitle": "Shared loan-ready summary",
+    "business": "Business",
+    "reportId": "Report ID",
+    "issued": "Issued",
+    "version": "version {{n}}",
+    "saving": "Monthly saving",
+    "net": "Monthly net cash effect",
+    "checkTitle": "Check a PDF",
+    "checkHelp": "Choose the PDF you received. It is checked on this device and not uploaded.",
+    "match": "Matches: this is the original document",
+    "mismatch": "Does not match: this file was changed or is a different version",
+    "notFound": "No document with this report ID.",
+    "expired": "This link has expired. Ask the business to share a new one.",
+    "linkNotFound": "This link is not valid. Ask the business to share a new one."
   }
 }

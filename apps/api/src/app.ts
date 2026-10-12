@@ -7,6 +7,8 @@ import { authRouter } from './routes/auth.js';
 import { consentsRouter } from './routes/consents.js';
 import { documentsRouter } from './routes/documents.js';
 import { insightsRouter } from './routes/insights.js';
+import { publicRouter } from './routes/public.js';
+import { reportsRouter } from './routes/reports.js';
 import { resultsRouter } from './routes/results.js';
 import { sitesRouter } from './routes/sites.js';
 
@@ -23,7 +25,16 @@ export function createApp() {
     res.json({ status: 'ok', version: pkg.version });
   });
 
-  app.use(authRouter, consentsRouter, documentsRouter, sitesRouter, resultsRouter, insightsRouter);
+  app.use(
+    authRouter,
+    consentsRouter,
+    documentsRouter,
+    sitesRouter,
+    resultsRouter,
+    insightsRouter,
+    reportsRouter,
+    publicRouter,
+  );
   app.use(errorHandler);
   return app;
 }

@@ -11,10 +11,13 @@ import Consent from './pages/Consent';
 import Health from './pages/Health';
 import Home from './pages/Home';
 import NewBill from './pages/NewBill';
+import Report from './pages/Report';
 import Results from './pages/Results';
+import ShareView from './pages/ShareView';
 import Start from './pages/Start';
+import Verify from './pages/Verify';
 
-/** Everything except /start needs a demo login. */
+/** Everything except /start and the public verify and share pages needs a demo login. */
 function RequireSession() {
   return getSession() ? <Outlet /> : <Navigate to="/start" replace />;
 }
@@ -51,6 +54,9 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/start" element={<Start />} />
+        {/* Public: no login, no consent gate (a lender scanning the QR code). */}
+        <Route path="/verify/:reportId" element={<Verify />} />
+        <Route path="/s/:token" element={<ShareView />} />
         <Route element={<RequireSession />}>
           <Route path="/consent" element={<Consent />} />
           <Route element={<RequireConsent />}>
@@ -61,6 +67,7 @@ export default function App() {
             <Route path="/health" element={<Health />} />
             <Route path="/actions" element={<Actions />} />
             <Route path="/actions/:code" element={<ActionDetail />} />
+            <Route path="/reports/:id" element={<Report />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/home" replace />} />

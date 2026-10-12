@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Loan-ready summary {{reportId}}</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Sans', 'DejaVu Sans', Arial, sans-serif;
+        color: #111827;
+        font-size: 11pt;
+        line-height: 1.45;
+        margin: 0;
+      }
+      h1 {
+        font-size: 20pt;
+        margin: 0 0 4mm;
+      }
+      h2 {
+        font-size: 14pt;
+        margin: 0 0 3mm;
+        border-bottom: 1px solid #d1d5db;
+        padding-bottom: 1.5mm;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 5mm 0 2mm;
+      }
+      p {
+        margin: 0 0 2.5mm;
+      }
+      section {
+        page-break-before: always;
+      }
+      section.cover {
+        page-break-before: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9.5pt;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 1.6mm 2mm;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f3f4f6;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      table + p {
+        margin-top: 2.5mm;
+      }
+      .muted {
+        color: #4b5563;
+        font-size: 9.5pt;
+      }
+      .badge {
+        display: inline-block;
+        background: #fef3c7;
+        color: #78350f;
+        border: 1px solid #f59e0b;
+        border-radius: 4px;
+        padding: 1mm 3mm;
+        font-weight: 600;
+        font-size: 10pt;
+      }
+      .box {
+        border: 2px solid #047857;
+        border-radius: 6px;
+        padding: 5mm;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 62mm 1fr;
+        gap: 2mm 4mm;
+      }
+      .kv dt {
+        color: #4b5563;
+      }
+      .kv dd {
+        margin: 0;
+        font-weight: 600;
+      }
+      .big {
+        font-size: 16pt;
+        font-weight: 700;
+      }
+      .qr {
+        display: flex;
+        gap: 5mm;
+        align-items: center;
+        margin-top: 8mm;
+      }
+      .qr img {
+        width: 34mm;
+        height: 34mm;
+      }
+      .warn {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        padding: 2mm 3mm;
+        border-radius: 4px;
+      }
+      .label {
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <p class="muted">EcoProof · energy and carbon pre-assessment</p>
+      <h1>Loan-ready summary for the lender's own assessment</h1>
+      {{{sampleBadge}}}
+      <dl class="kv" style="margin-top: 6mm">
+        <dt>Business</dt>
+        <dd>{{businessName}}</dd>
+        <dt>Udyam number</dt>
+        <dd>{{udyamNo}}</dd>
+        <dt>GSTIN</dt>
+        <dd>{{gstin}}</dd>
+        <dt>Years in operation</dt>
+        <dd>{{yearsInOperation}}</dd>
+        <dt>Site address</dt>
+        <dd>{{siteAddress}}</dd>
+        <dt>City</dt>
+        <dd>{{city}}</dd>
+        <dt>Report ID</dt>
+        <dd>{{reportId}}</dd>
+        <dt>Version</dt>
+        <dd>{{version}}</dd>
+        <dt>Issue date</dt>
+        <dd>{{issuedDate}}</dd>
+        <dt>Snapshot ID</dt>
+        <dd>{{snapshotId}}</dd>
+      </dl>
+      <div class="qr">
+        <img src="{{{qrDataUrl}}}" alt="QR code to the verification page" />
+        <p class="muted">
+          Scan to verify this document: {{verifyUrl}}<br />The page shows the report ID, issue date,
+          business name and headline figures, and checks the file's SHA-256 seal.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Headline</h2>
+      <div class="box">
+        <dl class="kv">
+          <dt>Proposed measure</dt>
+          <dd>{{measureTitle}}</dd>
+          <dt>Cost</dt>
+          <dd>{{costText}}</dd>
+          <dt>Monthly saving range</dt>
+          <dd>{{savingRange}}</dd>
+          <dt>EMI at the owner's terms</dt>
+          <dd>{{emiText}}</dd>
+          <dt>Loan terms (owner's input)</dt>
+          <dd>{{loanTerms}}</dd>
+          <dt>Monthly net cash effect</dt>
+          <dd class="big">{{netMonthlyText}}</dd>
+        </dl>
+      </div>
+      <p class="muted" style="margin-top: 3mm">
+        Net cash effect = low end of the monthly saving minus the EMI. {{cashTestLine}}
+      </p>
+      <p class="muted">Saving source: {{measureSource}}</p>
+    </section>
+
+    <section>
+      <h2>Energy baseline</h2>
+      <p class="muted">
+        Last {{monthCount}} confirmed months. Each row links to the bill document it was read from.
+        Rupees are energy plus demand charges.
+      </p>
+      {{{monthsTable}}}
+      <h3>Baseline fit statistics</h3>
+      {{{baselineBlock}}}
+    </section>
+
+    <section>
+      <h2>Bill health findings</h2>
+      <p class="muted">
+        Checks on the latest bill ({{billMonth}}) against the tariff rules shown. Rupees per month.
+      </p>
+      {{{findingsTable}}}
+
+      <h2 style="margin-top: 8mm">Measure detail</h2>
+      <dl class="kv">
+        <dt>Measure</dt>
+        <dd>{{measureTitle}}</dd>
+        <dt>Chosen quote</dt>
+        <dd>{{quoteText}}</dd>
+        <dt>Monthly saving range</dt>
+        <dd>{{savingRange}}</dd>
+        <dt>Saving source</dt>
+        <dd>{{measureSource}}</dd>
+        <dt>Simple payback</dt>
+        <dd>{{paybackText}}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Carbon impact</h2>
+      <dl class="kv">
+        <dt>CO2 avoided per year</dt>
+        <dd>{{co2Avoided}}</dd>
+        <dt>Intensity before (12-month)</dt>
+        <dd>{{intensityBefore}}</dd>
+        <dt>Intensity after the measure</dt>
+        <dd>{{intensityAfter}}</dd>
+      </dl>
+      <p class="muted">
+        Grid electricity uses the CEA grid factor (t CO2, grid); fuels use t CO2e. Totals are shown
+        as t CO2 (grid) + t CO2e (fuels).
+      </p>
+
+      <h2 style="margin-top: 8mm">Data quality</h2>
+      <p>
+        <span class="big">{{measuredSharePct}}</span> of emissions rest on measured inputs (bills).
+      </p>
+      {{{qualityWarning}}} {{{qualityTable}}}
+      <h3>Factors and rules used</h3>
+      {{{factorsTable}}}
+      <p class="muted">
+        Formula version {{formulaVersion}}. Snapshot {{snapshotId}}. Tariff rules: {{tariffRules}}.
+      </p>
+      <p class="label" style="margin-top: 4mm">
+        Summary for the lender's own assessment. It is an energy and carbon pre-assessment from the
+        owner's confirmed bills.
+      </p>
+      <div class="qr">
+        <img src="{{{qrDataUrl}}}" alt="QR code to the verification page" />
+        <p class="muted">
+          Verify: {{verifyUrl}}<br />SHA-256 of this file is recorded at issue; any change to the
+          file breaks the match.
+        </p>
+      </div>
+    </section>
+  </body>
+</html>

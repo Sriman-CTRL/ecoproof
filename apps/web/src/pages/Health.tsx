@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,7 +8,15 @@ import { api, type Finding, type Insights } from '../lib/api';
 import { formatDecimal } from '../lib/format';
 import { getSession } from '../lib/session';
 
-export function useInsights(month: string | null, shiftableKwh?: number | null) {
+/**
+ * month null = latest bill. Pass waitForMonth when the month is still loading, so a cached
+ * "latest" answer from another screen (often last month's) is never shown for this bill.
+ */
+export function useInsights(
+  month: string | null,
+  shiftableKwh?: number | null,
+  opts: { waitForMonth?: boolean } = {},
+) {
   const siteId = getSession()?.siteId ?? '';
   const qs = new URLSearchParams();
   if (month) qs.set('month', month.slice(0, 7));
@@ -16,7 +24,10 @@ export function useInsights(month: string | null, shiftableKwh?: number | null) 
   return useQuery({
     queryKey: ['insights', siteId, month, shiftableKwh ?? null],
     queryFn: () => api<Insights>(`/sites/${siteId}/insights?${qs}`),
-    placeholderData: keepPreviousData,
+    enabled: !opts.waitForMonth || month != null,
+    // Keep the old answer only while the shiftable units change for the same month.
+    placeholderData: (prev) =>
+      prev && (month == null || prev.month.startsWith(month.slice(0, 7))) ? prev : undefined,
   });
 }
 

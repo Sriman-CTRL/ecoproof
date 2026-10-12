@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
@@ -24,6 +25,24 @@ export function Co2Line({ m }: { m: MonthRow }) {
   );
 }
 
+/** "12.72 t CO2 more from grid electricity", plus the fuel part only when fuel CO2e changed. */
+export function co2Parts(
+  change: { tCo2Grid: number | null; tCo2eFuels: number | null },
+  t: TFunction,
+): string {
+  const parts: string[] = [];
+  const part = (key: string, v: number) =>
+    t(key, {
+      value: formatDecimal(Math.abs(v)),
+      direction: t(v >= 0 ? 'home.more' : 'home.less'),
+    });
+  if (change.tCo2Grid != null) parts.push(part('home.co2Grid', change.tCo2Grid));
+  if (change.tCo2eFuels != null && Math.abs(change.tCo2eFuels) >= 0.005) {
+    parts.push(part('home.co2Fuels', change.tCo2eFuels));
+  }
+  return parts.length ? `, ${parts.join(', ')}` : '';
+}
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -40,7 +59,7 @@ export default function Home() {
   const list = months.data ?? [];
   const top = list[0];
   const topMonth = top?.month ?? null;
-  const insights = useInsights(topMonth);
+  const insights = useInsights(topMonth, null, { waitForMonth: true });
   const actions = useActions(topMonth, false);
   const next = actions.data?.actions[0];
   const card = insights.data?.insightCard;
@@ -120,8 +139,7 @@ export default function Home() {
             direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
             inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
             kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
-            co2: card.change.tCo2 == null ? '-' : formatDecimal(Math.abs(card.change.tCo2)),
-            co2Label: top?.co2?.label ?? '',
+            co2: co2Parts(card.change, t),
             driver: t(`home.driver.${card.largestDriver}`),
           })}
         </p>

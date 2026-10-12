@@ -42,6 +42,22 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const postJson = <T>(path: string, data: unknown) =>
   api<T>(path, { method: 'POST', body: JSON.stringify(data) });
 
+/** Public routes (verify page, share links): never sends the session token. */
+export async function publicApi<T>(path: string): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`/api${path}`);
+  } catch {
+    throw new ApiError(0, 'NETWORK', 'Could not reach the server');
+  }
+  const body = (await res.json().catch(() => null)) as
+    (T & { code?: string; message?: string }) | null;
+  if (!res.ok) {
+    throw new ApiError(res.status, body?.code ?? 'ERROR', body?.message ?? res.statusText);
+  }
+  return body as T;
+}
+
 // ---- response shapes (route shapes in apps/api/src/routes) ----
 export interface MonthRow {
   month: string;
@@ -102,7 +118,13 @@ export interface Finding {
 export interface InsightCard {
   sentence: string | null;
   comparedWith: string | null;
-  change: { inr: number | null; kwh: number | null; tCo2: number | null } | null;
+  change: {
+    inr: number | null;
+    kwh: number | null;
+    tCo2: number | null;
+    tCo2Grid: number | null;
+    tCo2eFuels: number | null;
+  } | null;
   largestDriver: 'production' | 'power_factor' | 'peak_use' | 'diesel' | null;
   baseline: { method: string; diffPct: number } | null;
 }
@@ -112,6 +134,7 @@ export interface Insights {
   findings: Finding[];
   passed: Finding[];
   skipped: Array<{ code: string; reason: string }>;
+  atStake: { inrPerMonth: number; pendingCodes: string[] };
   insightCard: InsightCard;
 }
 
@@ -137,4 +160,46 @@ export interface ActionsResponse {
   month: string;
   total: number;
   actions: ActionItem[];
+}
+
+export interface LoanPackCreated {
+  reportId: string;
+  version: number;
+  sha256: string;
+  downloadUrl: string;
+}
+
+/** The only fields the public verify page shows (apps/api/src/reports/loanPack.ts verifyView). */
+export interface VerifyView {
+  reportId: string;
+  issuedAt: string;
+  version: number;
+  businessName: string;
+  headline: {
+    measure: string;
+    monthlySavingLow: number;
+    monthlySavingHigh: number;
+    emi: number;
+    netMonthly: number;
+  };
+  sha256: string;
+}
+
+export interface ShareRow {
+  id: string;
+  recipientName: string;
+  createdAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
+  status: 'active' | 'expired' | 'revoked';
+  views: number;
+  downloads: number;
+  log: Array<{ kind: 'view' | 'download'; at: string }>;
+}
+
+export interface ReportView extends VerifyView {
+  snapshotId: string;
+  actionCode: string | null;
+  downloadUrl: string;
+  shares: ShareRow[];
 }

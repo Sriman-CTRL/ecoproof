@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').cpSync('src/reports/templates','dist/reports/templates',{recursive:true})\"",
     "start": "node dist/server.js",
     "typecheck": "prisma generate && tsc -p tsconfig.json",
     "test": "vitest run",
@@ -29,6 +29,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.4.0",
+    "playwright": "^1.64.0",
+    "qrcode": "^1.5.4",
     "zod": "^4.1.0"
   },
   "devDependencies": {
@@ -37,8 +39,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.3.0",
     "@types/node": "^24.0.0",
+    "@types/qrcode": "^1.5.6",
     "@types/supertest": "^7.2.1",
-    "playwright": "^1.64.0",
     "prisma": "^6.19.0",
     "supertest": "^7.3.1",
     "tsx": "^4.20.0",

@@ -86,6 +86,23 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
     expect(none.body.findings.find((f: F) => f.code === 'peak_use').inrPerMonth).toBeNull();
   });
 
+  it('totals the card as the sum of flagged findings (peak pending counts 0)', async () => {
+    const r = await request(app).get(`/sites/${siteA}/insights?month=2026-10`).set(auth(tokenA));
+    expect(r.body.atStake.inrPerMonth).toBeCloseTo(100000, 6);
+    expect(r.body.atStake.pendingCodes).toEqual(['peak_use']);
+    const sum = r.body.findings.reduce((t: number, f: F) => t + (f.inrPerMonth ?? 0), 0);
+    expect(r.body.atStake.inrPerMonth).toBeCloseTo(sum, 6);
+  });
+
+  it('labels CO2 by source in the sentence, not with a pasted total label', async () => {
+    const r = await request(app).get(`/sites/${siteA}/insights`).set(auth(tokenA));
+    const { sentence, change } = r.body.insightCard;
+    expect(sentence).not.toContain('t CO2 (grid) + t CO2e');
+    expect(sentence).toMatch(/[\d.]+ t CO2 (more|less) from grid electricity/);
+    expect(change.tCo2Grid).toBeTypeOf('number');
+    if (Math.abs(change.tCo2eFuels) < 0.005) expect(sentence).not.toContain('from fuels');
+  });
+
   it('writes an insight sentence against the same month last year', async () => {
     const r = await request(app).get(`/sites/${siteA}/insights`).set(auth(tokenA));
     expect(r.body.insightCard.comparedWith).toBe('same month last year');

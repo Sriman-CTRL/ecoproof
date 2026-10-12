@@ -11,6 +11,10 @@ const Env = z.object({
   JWT_SECRET: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(4000),
   WEB_ORIGIN: z.string().min(1).default('http://localhost:5173'),
+  /** Base URL printed in report QR codes and share links. */
+  PUBLIC_WEB_URL: z.string().min(1).default('http://localhost:5173'),
+  /** Requests per minute per IP on the public verify/share routes. */
+  PUBLIC_RATE_LIMIT_PER_MIN: z.coerce.number().int().positive().default(60),
 });
 
 function load() {

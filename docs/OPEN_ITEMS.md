@@ -38,6 +38,11 @@ Values that are not in the source docs are left null in the seed data and tracke
 ## Reporting
 
 - [ ] BRSR Core field names.
+- [ ] Loan-ready summary PDF is English only: Telugu and Hindi PDF templates (Doc 05 step 4) still to write and review.
+- [ ] Loan-ready summary cover: "years in operation" and "city" are not stored on `organisations`/`sites`; printed as "not given".
+- [ ] Loan-ready summary: "vendor quotes compared" (Doc 05) needs quote documents; the prototype takes one owner-entered quote.
+- [ ] Loan-ready summary: Doc 05 asks for "intensity before and after"; "after" is only printed for bill fixes ("unchanged"). kWh-saving measures need sourced kWh savings first.
+- [ ] Scheme `last_checked_at` is null, so the report prints tariff rule lines only (Doc 05 asks for the date rules were last checked).
 
 ## Schemes
 
