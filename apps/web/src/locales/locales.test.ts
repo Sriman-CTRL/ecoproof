@@ -23,10 +23,21 @@ describe('wording rules', () => {
     expect(findBanned('unverified')).toEqual([]);
   });
 
+  it('skips a stored source quote shown inside quote marks, but not our own words', () => {
+    const q = 'based on the sanctioned load of the consumer';
+    expect(findBanned(`Source: “${q}”`, [q])).toEqual([]);
+    expect(findBanned(`Source: ${q}`, [q])).toEqual(['sanctioned']);
+    expect(findBanned(`Your plan is approved. “${q}”`, [q])).toEqual(['approved']);
+  });
+
   for (const [name, json] of [
     ['en', en],
     ['te', te],
   ] as const) {
+    it(`${name}.json never mentions Gruha Jyothi, free units or 300 units`, () => {
+      expect(JSON.stringify(json)).not.toMatch(/gruha|free units|300 units/i);
+    });
+
     it(`${name}.json has no banned words`, () => {
       const hits = strings(json).flatMap(([key, value]) =>
         findBanned(value).map((w) => `${key}: ${w}`),

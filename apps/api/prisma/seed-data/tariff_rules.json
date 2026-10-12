@@ -316,5 +316,178 @@
     "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
     "page": "266",
     "quoted_line": "LT - III: Industry 51 - 125 HP 1,200"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-I",
+    "rule_type": "domestic_slab_groups",
+    "params": {
+      "groups": [
+        {
+          "id": "LT-I(A)",
+          "up_to_units": 100
+        },
+        {
+          "id": "LT-I(B)(i)",
+          "up_to_units": 200
+        },
+        {
+          "id": "LT-I(B)(ii)",
+          "up_to_units": null
+        }
+      ],
+      "decided_on": "that month's units"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "TGSPDCL LT-I Domestic FY 2026-27",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "247 (§4.2.3)",
+    "quoted_line": "The sub-category LT-I(A) shall be applicable to the consumers having consumption not exceeding 100 units per month. | LT-I(B)(i) shall be applicable to the consumer with consumption above 100 units but not exceeding 200 units per month. | LT-I(B)(ii) shall be applicable to the consumer having consumption of above 200 units per month"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-I",
+    "rule_type": "domestic_energy_charge",
+    "params": {
+      "unit": "Rs/kWh",
+      "bands_by_group": {
+        "LT-I(A)": [
+          {
+            "up_to_units": 50,
+            "rate_inr_per_kwh": 1.95
+          },
+          {
+            "up_to_units": 100,
+            "rate_inr_per_kwh": 3.1
+          }
+        ],
+        "LT-I(B)(i)": [
+          {
+            "up_to_units": 100,
+            "rate_inr_per_kwh": 3.4
+          },
+          {
+            "up_to_units": 200,
+            "rate_inr_per_kwh": 4.8
+          }
+        ],
+        "LT-I(B)(ii)": [
+          {
+            "up_to_units": 200,
+            "rate_inr_per_kwh": 5.1
+          },
+          {
+            "up_to_units": 300,
+            "rate_inr_per_kwh": 7.7
+          },
+          {
+            "up_to_units": 400,
+            "rate_inr_per_kwh": 9.0
+          },
+          {
+            "up_to_units": 800,
+            "rate_inr_per_kwh": 9.5
+          },
+          {
+            "up_to_units": null,
+            "rate_inr_per_kwh": 10.0
+          }
+        ]
+      }
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "TGSPDCL LT-I Domestic FY 2026-27. Slabs applied telescopically: inferred from the table layout, not stated in the order (OPEN_ITEMS)",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "247 (§4.2.4)",
+    "quoted_line": "0-50 kW 10 1.95 | 51-100 kW 10 3.10 | 0-100 kW 10 3.40 | 101-200 kW 10 4.80 | 0-200 kW 10 5.10 | 201-300 kW 10 7.70 | 301-400 kW 10 9.00 | 401-800 kW 10 9.50 | Above 800 units kW 50 10.00"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-I",
+    "rule_type": "domestic_fixed_charge",
+    "params": {
+      "rate_inr_per_kw_month": 10,
+      "above_units": 800,
+      "rate_above_inr_per_kw_month": 50,
+      "on": "sanctioned load (kW basis NOT FOUND in the order)"
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "TGSPDCL LT-I Domestic FY 2026-27. The order does not say which kW the fixed charge applies to; sanctioned load is used (OPEN_ITEMS)",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "247 (§4.2.4)",
+    "quoted_line": "0-50 kW 10 1.95 | Above 800 units kW 50 10.00"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-I",
+    "rule_type": "domestic_customer_charge",
+    "params": {
+      "keyed_by": "total monthly units",
+      "bands": [
+        {
+          "up_to_units": 50,
+          "inr_per_month": 40
+        },
+        {
+          "up_to_units": 100,
+          "inr_per_month": 70
+        },
+        {
+          "up_to_units": 200,
+          "inr_per_month": 90
+        },
+        {
+          "up_to_units": 300,
+          "inr_per_month": 100
+        },
+        {
+          "up_to_units": 400,
+          "inr_per_month": 120
+        },
+        {
+          "up_to_units": 800,
+          "inr_per_month": 140
+        },
+        {
+          "up_to_units": null,
+          "inr_per_month": 160
+        }
+      ]
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "TGSPDCL LT-I Domestic FY 2026-27",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "266",
+    "quoted_line": "LT-I: Domestic (Units/month) 0-50 40 | 51-100 70 | 101-200 90 | 201-300 100 | 301-400 120 | 401-800 140 | Above 800 units 160"
+  },
+  {
+    "discom": "TGSPDCL",
+    "category": "LT-I",
+    "rule_type": "domestic_net_metering",
+    "params": {
+      "billed_units": "import - export for the month",
+      "slab_group_on": "import - export for the month",
+      "excess_export_rate": null
+    },
+    "source": "TGERC Retail Supply Tariff Order FY 2026-27 (O.P. Nos. 79 & 80 of 2025, dated 30.03.2026)",
+    "valid_from": "2026-04-01",
+    "basis_note": "TGSPDCL LT-I Domestic FY 2026-27. Excess export settlement rate NOT FOUND in the order; not counted",
+    "status": null,
+    "version": "TGERC-RST-FY2026-27",
+    "source_url": "https://tgerc.telangana.gov.in/file_upload/uploads/Tariff%20Orders/Current%20Year%20Orders/2026/RST%20Order%20FY%202026-27.pdf",
+    "page": "230 (§3.30.4)",
+    "quoted_line": "the Commission directs TGDISCOMs to revert to the earlier practice of determining tariff slabs based on net consumption (import minus export) for net metered solar rooftop consumers."
   }
 ]

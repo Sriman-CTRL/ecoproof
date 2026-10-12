@@ -74,6 +74,7 @@ export default function HouseholdAfter() {
               </>
             )}
             <p className="text-small text-ink-muted">{t('household.after.methodNote')}</p>
+            <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
           </Card>
 
           <Card className="px-2">
@@ -122,6 +123,7 @@ export default function HouseholdAfter() {
             </table>
           </Card>
           <p className="text-small text-ink-muted">{t('household.after.surplusNote')}</p>
+          <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
         </>
       )}
     </Page>

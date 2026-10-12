@@ -32,13 +32,17 @@ Values that are not in the source docs are left null in the seed data and tracke
 - [x] Solar defaults (R5): yield 1,462.9 kWh/kWp/yr (PVWatts v8, developer.nlr.gov, 12 Oct 2026); area 10 m2/kWp (MNRE FAQ), with SECI 12 m2/kWp shown as the cautious case. Held in `apps/api/src/services/solar.ts` `SOLAR_DEFAULTS`, not yet in the `factors` table.
 - [x] Telangana net-metering cap (R5): domestic 100% of sanctioned load, max 500 kWp (TGERC Reg 1/2025 cl. 4.9, 4.2). The industrial 80% cap is not yet used (no factory solar screen).
 - [ ] NREL API key (`NREL_API_KEY`): the yield is a one-off query for Hyderabad; no per-site PVWatts call yet. The API host is now developer.nlr.gov.
-- [ ] TGSPDCL LT-I domestic slabs (R9): `householdEnergyRatePerKwh` in `apps/api/prisma/demo/assumptions.json` is null, so Demo H bills carry kWh only and the solar plan shows no Rs saving or payback. Set that one key and run `db:demo:reset` to turn rupees on. The plan uses the bill's average rate, labelled "slab savings may differ".
-- [ ] Household fixed charges: no sourced LT-I fixed charge; Demo H stores none, and the bill total is energy charges only.
-- [ ] Export surplus credit: the TGERC lowest solar PPA rate (preceding FY) is not known, so units exported beyond import in a month are not valued.
+- [x] TGSPDCL LT-I domestic slabs (R9): `tariff_rules` rows (category `LT-I`, version `TGERC-RST-FY2026-27`) with page and quoted line; `domesticBill` in `packages/calc` prices Demo H at FY 2026-27 rates. The `householdEnergyRatePerKwh` placeholder is gone.
+- [ ] Excess export settlement rate NOT FOUND (R9): the order says excess units are "settled at the applicable rate" without giving it; units exported beyond import in a month are not valued.
 - [ ] Household verified savings: the S8a rule needs a regression baseline on a driver; a home has none (no production, no weather data), so `/solar-results` always says "Too early to confirm". Savings are a same-month-last-year comparison of billed kWh.
+- [ ] Domestic slabs are applied telescopically (each rate only to the units inside its band): inferred from the order's table layout, not stated (R9, p. 247).
+- [ ] Domestic fixed charge: the order's LT-I section does not say which kW the Rs 10/kW/month (Rs 50 above 800 units) applies to, NOT FOUND (R9). Sanctioned load is used.
+- [ ] Gruha Jyothi is not in the tariff order (R9). It needs a Government of Telangana source. A home eligible under that scheme at or under 200 units may pay zero, so EcoProof's household saving could be overstated for such homes. The app does not mention it.
+- [ ] FSA / FCA rate and electricity duty rate for LT-I domestic NOT FOUND (R9): both are extra to the tariff; every household rupee figure says "Excludes fuel surcharge (FSA) and electricity duty".
+- [ ] Solar plan saving spreads the year's generation evenly over 12 months (annual generation / 12 a month). Real output is higher in summer and lower in the monsoon, which changes which slab each month falls in.
 - [ ] `solarPlanSize` rounds down to 0.5 kW steps (a practical step, not from a source) and returns 0 kW when the limit is under the 1 kWp TGERC minimum.
 - [ ] PM Surya Ghar CFA for a part kW: "1 kWp or part thereof" is applied pro rata (2.5 kW = Rs 69,000). Confirm with the scheme guidelines or the portal calculator.
-- [ ] The TGERC quoted line in the solar sources sheet contains "sanctioned load" (a verbatim quote; the banned-word scan covers locale files only). Decide whether quotes are exempt.
+- [x] Verbatim quotes are exempt from the banned-word scan when shown inside quote marks with their source (`findBanned(text, quotedLines)`).
 - [ ] Household bill upload: the bill reader handles business (HT / LT-III) bills only; households see a list view.
 
 ## Calculation (packages/calc)

@@ -31,6 +31,18 @@ export default function HouseholdHome() {
   const month = top ? monthLabel(top.month, lang) : '';
   const source = t('home.sourceBill', { month });
   const afterCount = list.filter((m) => m.solarInstalledKwp != null).length;
+  // After solar the headline is what the DISCOM bills (net units); Scope 2 stays on bought units.
+  const hasExport = top?.exportKwh != null;
+  const headlineKwh = hasExport ? (top?.billedKwh ?? 0) : (top?.kwh ?? 0);
+  const unitsLine = t(hasExport ? 'household.billedUnitsLine' : 'household.unitsLine', {
+    kwh: formatNumber(headlineKwh),
+  });
+  const boughtSent = hasExport
+    ? t('household.boughtSent', {
+        bought: formatNumber(top?.kwh ?? 0),
+        sent: formatNumber(top?.exportKwh ?? 0),
+      })
+    : null;
   const p = plan.data;
 
   return (
@@ -57,7 +69,7 @@ export default function HouseholdHome() {
               value={Math.round(top.rupees.total)}
               countUpKey={`hh-bill-${top.month}`}
               source={{ lineName: source, month, quality: 'fromBill' }}
-              unitsText={t('household.unitsLine', { kwh: formatNumber(top.kwh ?? 0) })}
+              unitsText={unitsLine}
               co2Text={
                 top.co2?.scope2TCo2Grid != null
                   ? t('household.co2Line', { value: formatDecimal(top.co2.scope2TCo2Grid) })
@@ -68,7 +80,7 @@ export default function HouseholdHome() {
             <>
               <p className="num font-heading text-title font-semibold">
                 <SourceChip lineName={source} month={month} quality="fromBill">
-                  {t('household.unitsLine', { kwh: formatNumber(top.kwh ?? 0) })}
+                  {unitsLine}
                 </SourceChip>
               </p>
               {top.co2?.scope2TCo2Grid != null && (
@@ -78,6 +90,10 @@ export default function HouseholdHome() {
               )}
               <p className="text-small text-copper-800">{t('household.noRupees')}</p>
             </>
+          )}
+          {boughtSent && <p className="text-small text-ink-muted">{boughtSent}</p>}
+          {top.rupees.total != null && (
+            <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>
           )}
           <YearStrip months={yearMonths(list, lang)} showBaseline={false} />
         </Card>

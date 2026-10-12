@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { billParts } from '../services/domesticTariff.js';
 import { computeProgress } from '../services/progress.js';
 import { computeSavings } from '../services/savings.js';
 import { computeSchemes } from '../services/schemes.js';
@@ -60,12 +61,15 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
       const r = byMonth.get(m.periodStart.getTime());
       const energy = n(m.energyCharges);
       const demand = n(m.demandCharges);
+      // Households: the whole LT-I bill (energy + fixed + customer charge), before FSA and duty.
+      const hhTotal = household ? (billParts(m.otherChargesJson)?.totalInr ?? null) : null;
       return {
         month: m.periodStart.toISOString().slice(0, 10),
         rupees: {
           energyCharges: energy,
           demandCharges: demand,
-          total: energy == null && demand == null ? null : (energy ?? 0) + (demand ?? 0),
+          total:
+            hhTotal ?? (energy == null && demand == null ? null : (energy ?? 0) + (demand ?? 0)),
         },
         kwh: n(m.kwh),
         co2: r
@@ -78,7 +82,12 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
         resultId: r?.id ?? null,
         // Households: no per-tonne intensity (no production); net-metering export instead.
         ...(household
-          ? { exportKwh: n(m.exportKwh), solarInstalledKwp: n(m.solarInstalledKwp) }
+          ? {
+              exportKwh: n(m.exportKwh),
+              // Units the DISCOM bills: import minus export, never below zero (TGERC para 3.30.4).
+              billedKwh: Math.max((n(m.kwh) ?? 0) - (n(m.exportKwh) ?? 0), 0),
+              solarInstalledKwp: n(m.solarInstalledKwp),
+            }
           : { intensity: n(r?.intensity) }),
       };
     }),

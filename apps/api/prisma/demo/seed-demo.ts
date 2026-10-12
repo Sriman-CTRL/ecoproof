@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { Prisma, PrismaClient, type Factor as FactorRow } from '@prisma/client';
 import {
+  domesticBill,
+  netBilledUnits,
   fitBaseline,
   footprint,
   monthlySavings,
@@ -25,6 +27,7 @@ import {
   USER_H,
 } from '../../src/demo/ids.js';
 import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
+import { DOMESTIC_PRICING_LABEL, loadDomesticTariff } from '../../src/services/domesticTariff.js';
 import { createLoanPack } from '../../src/reports/loanPack.js';
 import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
@@ -39,13 +42,6 @@ const A = JSON.parse(
 const num = (k: string): number => {
   const v = A[k];
   if (typeof v !== 'number') throw new Error(`assumptions.json: ${k} must be a number`);
-  return v;
-};
-/** A key that may stay null until research fills it (e.g. the household rate before R9). */
-const numOrNull = (k: string): number | null => {
-  const v = A[k];
-  if (v !== null && typeof v !== 'number')
-    throw new Error(`assumptions.json: ${k} must be a number or null`);
   return v;
 };
 
@@ -448,8 +444,11 @@ async function seedHousehold() {
     },
   });
 
-  // Null until R9: bills then carry kWh only and every rupee figure reads "not yet".
-  const rate = numOrNull('householdEnergyRatePerKwh');
+  // Every Demo H month, before and after solar, is priced with domesticBill at the FY 2026-27
+  // LT-I rates (TGERC RST Order, R9), so the before/after comparison is not distorted by a tariff
+  // change: "priced at FY 2026-27 LT-I rates (synthetic bills)". FSA and duty are not included.
+  const { tariff, ruleIds } = await loadDomesticTariff();
+  const sanctionedKw = num('householdSanctionedLoadKw');
   const kwp = num('householdSolarInstalledKwp');
   const rows = [
     ...H_BEFORE_KWH.map((kwh, i) => ({ i, importKwh: kwh, exportKwh: null as number | null })),
@@ -457,9 +456,10 @@ async function seedHousehold() {
   ];
   // Rows are independent: upsert them in parallel (the remote DB makes a query per row slow).
   const seedRow = async (m: (typeof rows)[number]) => {
-    // TGERC Reg 1/2025 cl. 8.1.3: import and export net within the month; the surplus is paid
-    // at a PPA rate we do not have yet, so it is not counted.
-    const billedKwh = Math.max(m.importKwh - (m.exportKwh ?? 0), 0);
+    // TGERC order para 3.30.4: billed units and slab group use import minus export for the
+    // month; excess export is settled at a rate we do not have, so it is not counted.
+    const billedKwh = netBilledUnits(m.importKwh, m.exportKwh);
+    const bill = domesticBill({ units: billedKwh, sanctionedLoadKw: sanctionedKw, tariff });
     const emId = k(`em:${m.i}`);
     const emData = {
       orgId,
@@ -468,8 +468,20 @@ async function seedHousehold() {
       kwh: m.importKwh,
       exportKwh: m.exportKwh,
       solarInstalledKwp: m.exportKwh == null ? null : kwp,
-      energyCharges: rate == null ? null : r2(billedKwh * rate),
-      otherChargesJson: { _label: 'SYNTHETIC' },
+      energyCharges: bill.energyInr,
+      otherChargesJson: {
+        _label: 'SYNTHETIC',
+        pricing: DOMESTIC_PRICING_LABEL,
+        billedKwh,
+        group: bill.group,
+        bill: {
+          energyInr: bill.energyInr,
+          fixedInr: bill.fixedInr,
+          customerInr: bill.customerInr,
+          totalInr: bill.totalInr,
+        },
+        tariffRuleIds: ruleIds,
+      },
       qualityTag: 'measured' as const,
     };
     await prisma.energyMonth.upsert({

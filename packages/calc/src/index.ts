@@ -11,3 +11,4 @@ export * from './solar';
 export * from './cbam';
 export * from './validation';
 export * from './dataQuality';
+export * from './domestic';

@@ -101,7 +101,7 @@ export default function HouseholdSolar() {
                     <Rupees value={Math.round(p.monthlySavingInr)} />
                   )
                 }
-                note={t('household.solar.savingNote')}
+                note={`${t('household.solar.savingNote')} ${t('household.fsaNote')}`}
               />
               <Row
                 label={t('household.solar.costLabel')}
@@ -119,7 +119,11 @@ export default function HouseholdSolar() {
                 value={
                   p.paybackYears == null
                     ? pending
-                    : t('household.solar.paybackYears', { value: formatDecimal(p.paybackYears) })
+                    : p.paybackYears < 1
+                      ? t('household.solar.paybackMonths', {
+                          value: formatDecimal(Math.round(p.paybackYears * 12 * 10) / 10),
+                        })
+                      : t('household.solar.paybackYears', { value: formatDecimal(p.paybackYears) })
                 }
               />
               <p className="pt-2 text-small">

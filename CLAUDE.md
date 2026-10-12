@@ -71,6 +71,8 @@ Banned words (whole word, any case; list in `packages/shared/src/wording.ts`, en
 
 Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not eligible" (Doc 02 FIN-1, always followed by the reason), "Verified data must be confirmed by an accredited verifier" (Doc 05 CBAM status line), "Not an energy audit", "ZED certification", "ZED certificate".
 
+Verbatim source quotes are exempt: a stored `quoted_line` shown inside quote marks with its source (e.g. the TGERC "sanctioned load" line) is skipped by the banned-word scan (`findBanned(text, quotedLines)`). EcoProof's own words still count.
+
 ## Data rules
 
 - Only sample, or consented and anonymised, bills on the Gemini free tier.

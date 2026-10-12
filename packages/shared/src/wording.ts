@@ -35,9 +35,21 @@ export const ALLOWED = [
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** Banned words found in `text` (whole words, any case), after removing the approved phrases. */
-export function findBanned(text: string): string[] {
+/**
+ * Banned words found in `text` (whole words, any case), after removing the approved phrases.
+ * `quotedLines` are stored source quotes (a tariff row's quoted_line): when one appears inside
+ * quote marks (“…” or "…") it is the source's wording, not EcoProof's, so it is skipped.
+ */
+export function findBanned(text: string, quotedLines: readonly string[] = []): string[] {
   let rest = text;
+  for (const q of quotedLines.filter(Boolean)) {
+    for (const [open, close] of [
+      ['“', '”'],
+      ['"', '"'],
+    ] as const) {
+      rest = rest.split(`${open}${q}${close}`).join(' ');
+    }
+  }
   for (const phrase of ALLOWED) rest = rest.replace(new RegExp(escape(phrase), 'gi'), ' ');
   return BANNED.filter((w) =>
     new RegExp(`(^|[^\\p{L}\\p{N}-])${escape(w)}($|[^\\p{L}\\p{N}-])`, 'iu').test(rest),

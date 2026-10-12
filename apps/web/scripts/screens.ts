@@ -365,13 +365,14 @@ try {
     await page.waitForURL(/\/home$/);
   }
   await page.getByText('Your home').waitFor();
-  await page.getByText('Rupees appear once the home tariff is added.').first().waitFor();
+  await page.getByText('Excludes fuel surcharge (FSA) and electricity duty').first().waitFor();
   await page.getByText(/2\.5 kW fits your home/).waitFor();
   await shot(page, 'home-h');
   await page.getByRole('link', { name: 'See your solar plan' }).click();
   await page.waitForURL(/\/household\/solar$/);
   await page.getByText('Limited by your use', { exact: false }).waitFor();
   await page.getByText('₹69,000').waitFor();
+  await page.getByText('Excludes fuel surcharge (FSA) and electricity duty').first().waitFor();
   await shot(page, 'household-solar');
   await page.getByRole('button', { name: 'Where these numbers come from' }).click();
   await page.getByText('NREL PVWatts v8', { exact: false }).waitFor();

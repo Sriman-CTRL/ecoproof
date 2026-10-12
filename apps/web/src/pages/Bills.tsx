@@ -57,6 +57,7 @@ export default function Bills() {
           <p className="text-small text-ink-muted">
             {t(household ? 'household.billsNote' : 'bills.co2Note')}
           </p>
+          {household && <p className="text-small text-ink-muted">{t('household.fsaNote')}</p>}
         </>
       )}
     </Page>

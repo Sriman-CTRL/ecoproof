@@ -69,6 +69,8 @@ export interface MonthRow {
   resultId: string | null;
   /** Households with rooftop solar: kWh sent to the grid that month (kwh = imported). */
   exportKwh?: number | null;
+  /** Households: units billed, import minus export (never below 0). */
+  billedKwh?: number | null;
   solarInstalledKwp?: number | null;
 }
 

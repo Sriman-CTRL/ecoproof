@@ -1,8 +1,15 @@
-import { pmSuryaGharCfa, rooftopBenchmarkCost, solarPlanSize } from '@ecoproof/calc';
+import {
+  domesticBill,
+  netBilledUnits,
+  pmSuryaGharCfa,
+  rooftopBenchmarkCost,
+  solarPlanSize,
+} from '@ecoproof/calc';
 import type { EnergyMonth, Site } from '@prisma/client';
 import { prisma } from '../db.js';
 import { notFound } from '../errors.js';
 import { factorFor } from '../jobs/calculate.js';
+import { billParts, FSA_DUTY_NOTE, loadDomesticTariff } from './domesticTariff.js';
 
 const n = (d: { toString(): string } | null | undefined) => (d == null ? null : Number(d));
 const r2 = (x: number) => Math.round(x * 100) / 100;
@@ -81,7 +88,8 @@ export const SOLAR_CONDITIONS = [
   'Scheme open till 31 March 2027',
 ];
 
-export const RATE_NOTE = 'Average rate from your bill; slab savings may differ.';
+export const RATE_NOTE =
+  'Uses TGSPDCL LT-I slabs (FY 2026-27); your slab drops when net units fall. Excess export credit not counted.';
 
 /** Solar screens exist only for households: PM Surya Ghar is residential only (R5 legal check 6). */
 async function requireHousehold(site: Site) {
@@ -93,11 +101,11 @@ async function requireHousehold(site: Site) {
 }
 
 /** Units the DISCOM bills after netting import and export within the month (TGERC cl. 8.1.3). */
-const billedKwh = (m: EnergyMonth) => Math.max((n(m.kwh) ?? 0) - (n(m.exportKwh) ?? 0), 0);
+const billedKwh = (m: EnergyMonth) => netBilledUnits(n(m.kwh) ?? 0, n(m.exportKwh));
 
 /**
  * Average Rs per kWh from the household's own bills: energy charges / billed units. Null when any
- * bill has no rupees (Demo H until the R9 domestic tariff is added).
+ * bill has no rupees.
  */
 function averageRate(months: EnergyMonth[]): number | null {
   if (!months.length || months.some((m) => m.energyCharges == null)) return null;
@@ -106,12 +114,7 @@ function averageRate(months: EnergyMonth[]): number | null {
   return kwh > 0 ? inr / kwh : null;
 }
 
-export interface SolarPlanOptions {
-  /** Test-only override of the bill rate (Rs/kWh); the seed never sets one before R9. */
-  rateInrPerKwh?: number | null;
-}
-
-export async function computeSolarPlan(site: Site, opts: SolarPlanOptions = {}) {
+export async function computeSolarPlan(site: Site) {
   await requireHousehold(site);
   const months = await prisma.energyMonth.findMany({
     where: { orgId: site.orgId, siteId: site.id, solarInstalledKwp: null },
@@ -146,11 +149,21 @@ export async function computeSolarPlan(site: Site, opts: SolarPlanOptions = {}) 
   const plan = size(d.areaPerKwp.value);
   const conservative = size(d.areaPerKwpConservative.value);
 
-  const rate = opts.rateInrPerKwh !== undefined ? opts.rateInrPerKwh : averageRate(months);
+  const rate = averageRate(months);
+  // Saving: for each before-solar month, the bill at its units less the bill at its units minus an
+  // even share of the year's generation (even monthly generation is a simplification, OPEN_ITEMS).
+  const { tariff, sources: tariffSources } = await loadDomesticTariff();
+  const genPerMonth = plan.annualGenKwh / 12;
+  const bill = (units: number) =>
+    domesticBill({ units, sanctionedLoadKw: sanctioned, tariff }).totalInr;
+  const savingSum = months.reduce(
+    (t, m) => t + bill(billedKwh(m)) - bill(Math.max(billedKwh(m) - genPerMonth, 0)),
+    0,
+  );
   const benchmarkCostInr = rooftopBenchmarkCost(plan.kwp);
   const cfaInr = pmSuryaGharCfa(plan.kwp);
   const netCostInr = benchmarkCostInr - cfaInr;
-  const monthlySavingInr = rate == null ? null : r2((plan.annualGenKwh / 12) * rate);
+  const monthlySavingInr = plan.kwp > 0 ? r2(savingSum / months.length) : null;
   const grid = await factorFor('grid_electricity_india', latest.periodEnd);
 
   return {
@@ -170,6 +183,7 @@ export async function computeSolarPlan(site: Site, opts: SolarPlanOptions = {}) 
     conservative: { areaPerKwp: d.areaPerKwpConservative.value, kwp: conservative.kwp },
     rateInrPerKwh: rate == null ? null : r2(rate),
     rateNote: RATE_NOTE,
+    fsaDutyNote: FSA_DUTY_NOTE,
     monthlySavingInr,
     benchmarkCostInr,
     benchmarkNote: 'MNRE benchmark used to set the subsidy; real quotes vary.',
@@ -208,6 +222,16 @@ export async function computeSolarPlan(site: Site, opts: SolarPlanOptions = {}) 
       { key: 'settlement', value: null, unit: null, ...d.settlement },
       { key: 'cfa', value: 78000, unit: 'Rs max', ...d.cfa },
       { key: 'benchmark', value: null, unit: null, ...d.benchmarkCost },
+      ...tariffSources.map((t) => ({
+        key: t.ruleType,
+        value: null,
+        unit: null,
+        source: t.source,
+        url: t.url,
+        page: t.page,
+        quotedLine: t.quotedLine,
+        date: 'valid 2026-04-01 to 2027-03-31',
+      })),
       {
         key: 'grid',
         value: Number(grid.value),
@@ -247,8 +271,9 @@ export async function computeSolarResults(site: Site) {
     const ly = byStart.get(iso(lastYearStart)) ?? null;
     const importKwh = n(m.kwh) ?? 0;
     const exportKwh = n(m.exportKwh) ?? 0;
-    const billInr = n(m.energyCharges);
-    const lastYearBillInr = ly ? n(ly.energyCharges) : null;
+    // Full monthly bill (energy + fixed + customer charge), before FSA and electricity duty.
+    const billInr = billParts(m.otherChargesJson)?.totalInr ?? null;
+    const lastYearBillInr = ly ? (billParts(ly.otherChargesJson)?.totalInr ?? null) : null;
     return {
       month: iso(m.periodStart),
       importKwh,
@@ -284,6 +309,7 @@ export async function computeSolarResults(site: Site) {
       gridTco2: sum((r) => r.gridTco2),
     },
     status,
+    fsaDutyNote: FSA_DUTY_NOTE,
     co2Label: 't CO2 (grid)',
     surplusNote:
       'Units exported beyond what you import in a month are paid at the lowest solar PPA rate (TGERC); that credit is not counted here.',
