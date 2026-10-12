@@ -18,6 +18,7 @@ const Health = lazy(() => import('./pages/Health'));
 const Home = lazy(() => import('./pages/Home'));
 const Landing = lazy(() => import('./pages/Landing'));
 const NewBill = lazy(() => import('./pages/NewBill'));
+const Progress = lazy(() => import('./pages/Progress'));
 const Report = lazy(() => import('./pages/Report'));
 const Results = lazy(() => import('./pages/Results'));
 const ShareView = lazy(() => import('./pages/ShareView'));
@@ -91,6 +92,7 @@ export default function App() {
               <Route path="/actions" element={<Actions />} />
               <Route path="/actions/:code" element={<ActionDetail />} />
               <Route path="/reports/:id" element={<Report />} />
+              <Route path="/progress" element={<Progress />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/home" replace />} />

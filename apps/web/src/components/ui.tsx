@@ -236,10 +236,15 @@ export function CostText({ low, high }: { low: number | null; high: number | nul
 }
 
 /** The last 12 calendar months up to the newest bill; a tile is filled when that month has a bill. */
-export function yearMonths(months: Array<{ month: string }>, lang: string): YearMonth[] {
-  if (months.length === 0) return [];
+export function yearMonths(
+  months: Array<{ month: string }>,
+  lang: string,
+  /** The monthly ritual's month (YYYY-MM): may be a bill read but not yet confirmed. */
+  ritual?: { month: string; done: boolean } | null,
+): YearMonth[] {
+  if (months.length === 0 && !ritual) return [];
   const have = new Set(months.map((m) => m.month.slice(0, 7)));
-  const newest = months.reduce((a, b) => (a.month > b.month ? a : b)).month;
+  const newest = [...months.map((m) => m.month.slice(0, 7)), ritual?.month ?? ''].sort().at(-1)!;
   const y = Number(newest.slice(0, 4));
   const m = Number(newest.slice(5, 7)) - 1;
   const locale = lang === 'te' ? 'te-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
@@ -249,6 +254,7 @@ export function yearMonths(months: Array<{ month: string }>, lang: string): Year
     return {
       label: new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(d),
       confirmed: have.has(key),
+      ...(ritual?.month === key ? { ritual: { done: ritual.done } } : {}),
     };
   });
 }

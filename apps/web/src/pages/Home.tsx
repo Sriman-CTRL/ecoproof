@@ -3,10 +3,13 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { Check } from '@phosphor-icons/react/dist/csr/Check';
 import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
 import { BUTTON_CLASS } from '../components/kit/Button';
-import { Card } from '../components/kit/Card';
+import { Card, CARD_CLASS } from '../components/kit/Card';
 import { EmptyState } from '../components/kit/EmptyState';
+import { HeadroomMeter } from '../components/kit/HeadroomMeter';
+import { ProgressPath } from '../components/kit/ProgressPath';
 import { RupeeHero } from '../components/kit/RupeeHero';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
@@ -14,9 +17,9 @@ import { YearStrip } from '../components/kit/YearStrip';
 import { MonthLedger } from '../components/MonthLedger';
 import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
-import { actionTitle, useActions } from './Actions';
 import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
+import { nextText, useProgress, type Progress } from '../lib/progress';
 import { getSession } from '../lib/session';
 
 interface LatestDoc {
@@ -59,9 +62,9 @@ export default function Home() {
   const top = list[0];
   const topMonth = top?.month ?? null;
   const insights = useInsights(topMonth, null, { waitForMonth: true });
-  const actions = useActions(topMonth, true, topMonth != null);
-  // The API's order is the only order (Doc 02 ACT-1): its #1 is the top action.
-  const next = actions.data?.actions[0];
+  // One "next" for the whole screen: the path's next step is also the primary button (plan 4).
+  const progress = useProgress();
+  const p = progress.data;
   const card = insights.data?.insightCard;
   const lang = i18n.resolvedLanguage ?? 'en';
   const resume = latestDoc.data;
@@ -87,22 +90,28 @@ export default function Home() {
       })
     : undefined;
 
-  const nextLink = next ? `/actions/${next.code}?month=${topMonth?.slice(0, 7)}` : null;
+  const ritual = p?.ritual;
+  const ritualDone =
+    !!ritual &&
+    ritual.billReceived &&
+    ritual.valuesConfirmed &&
+    ritual.billChecked &&
+    ritual.actionChosen;
 
   return (
     <Page
       tab="home"
       action={
-        nextLink && next ? (
-          <Link to={nextLink} className={BUTTON_CLASS.primary}>
-            {actionTitle(next, t)}
+        p ? (
+          <Link to={p.next.href} className={BUTTON_CLASS.primary} data-testid="primary-next">
+            {nextText(p.next, t)}
             <ArrowRight size={20} aria-hidden="true" />
           </Link>
-        ) : (
+        ) : progress.isError ? (
           <Link to="/bills/new" className={BUTTON_CLASS.primary}>
             {t('home.addBill')}
           </Link>
-        )
+        ) : undefined
       }
     >
       {months.isError && <ErrorBox>{t('home.loadFailed')}</ErrorBox>}
@@ -149,6 +158,27 @@ export default function Home() {
         </Card>
       )}
 
+      {progress.isLoading && <Skeleton />}
+      {p && (
+        <Link to="/progress" className={`${CARD_CLASS} block`} data-testid="progress-path">
+          <h2 className="sr-only">{t('progress.title')}</h2>
+          <ProgressPath currentStage={p.stage} nextStep={nextText(p.next, t)} />
+          <span className="mt-2 flex items-center gap-1 text-small font-semibold text-green-700">
+            {t('progress.open')}
+            <ArrowRight size={16} aria-hidden="true" />
+          </span>
+        </Link>
+      )}
+      {p && p.headroom.foundInrPerMonth > 0 && (
+        <Card>
+          <h2 className="sr-only">{t('home.headroomTitle')}</h2>
+          <HeadroomMeter
+            found={p.headroom.foundInrPerMonth}
+            started={p.headroom.startedInrPerMonth}
+          />
+        </Card>
+      )}
+
       {months.isLoading || (top && insights.isLoading) ? (
         <Skeleton />
       ) : (
@@ -169,13 +199,19 @@ export default function Home() {
         )
       )}
 
+      {ritual?.month && <RitualCard ritual={ritual} done={ritualDone} lang={lang} />}
+
       {list.length > 0 && (
         <Card>
-          <YearStrip months={yearMonths(list, lang)} />
+          <YearStrip
+            months={yearMonths(
+              list,
+              lang,
+              ritual?.month ? { month: ritual.month, done: ritualDone } : null,
+            )}
+          />
         </Card>
       )}
-
-      {/* D4a: the progress path and the headroom meter go here (retention plan 3.1 and 3.2). */}
 
       {months.isSuccess && list.length === 0 && (
         <EmptyState
@@ -202,5 +238,54 @@ export default function Home() {
 
       <SwitchSample />
     </Page>
+  );
+}
+
+const RITUAL_STEPS = ['billReceived', 'valuesConfirmed', 'billChecked', 'actionChosen'] as const;
+
+/** "This month": the 4-step monthly ritual (plan 6.2). Ticks only go up within a month. */
+function RitualCard({
+  ritual,
+  done,
+  lang,
+}: {
+  ritual: Progress['ritual'];
+  done: boolean;
+  lang: string;
+}) {
+  const { t } = useTranslation();
+  const month = monthLabel(`${ritual.month}-01`, lang);
+  return (
+    <Card data-testid="ritual" className="space-y-2">
+      <h2 className="font-heading text-card-title font-semibold">
+        {t('home.ritual.title', { month })}
+      </h2>
+      <ul className="space-y-1">
+        {RITUAL_STEPS.map((k) => (
+          <li key={k} className="flex min-h-8 items-center gap-2">
+            <span
+              aria-hidden="true"
+              className={`flex size-6 shrink-0 items-center justify-center rounded-chip border-2 ${
+                ritual[k] ? 'border-green-700 bg-green-700 text-white' : 'border-line bg-surface'
+              }`}
+            >
+              {ritual[k] && <Check size={14} weight="bold" />}
+            </span>
+            <span className={ritual[k] ? 'text-ink' : 'text-ink-muted'}>
+              {t(`home.ritual.${k}`)}
+              <span className="sr-only">
+                {' '}
+                ({t(ritual[k] ? 'home.ritual.done' : 'home.ritual.notYet')})
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {done && (
+        <p className="text-small font-semibold text-green-700">
+          {t('home.ritual.allDone', { month })}
+        </p>
+      )}
+    </Card>
   );
 }

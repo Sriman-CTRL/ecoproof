@@ -185,7 +185,7 @@ function KitSection() {
 
       <Card>
         <Row name="HeadroomMeter">
-          <HeadroomMeter found={DEMO.atStake} captured={DEMO.pf} />
+          <HeadroomMeter found={DEMO.atStake} started={DEMO.pf} />
         </Row>
       </Card>
 

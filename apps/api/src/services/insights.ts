@@ -160,6 +160,8 @@ export async function computeInsights(
   site: Site,
   monthStart: Date,
   shiftableKwh: number | null,
+  /** card: false skips the insight card (headroom only needs the findings; keeps Home fast). */
+  opts: { card?: boolean } = {},
 ): Promise<Insights> {
   const orgId = site.orgId;
   const em = await prisma.energyMonth.findFirst({
@@ -361,9 +363,21 @@ export async function computeInsights(
       inrPerMonth: findings.reduce((t, f) => t + (f.inrPerMonth ?? 0), 0),
       pendingCodes: findings.filter((f) => f.inrPerMonth == null).map((f) => f.code),
     },
-    insightCard: await buildCard(site, em, energyRate, rules.get('tod') ?? null),
+    insightCard:
+      opts.card === false
+        ? NO_CARD
+        : await buildCard(site, em, energyRate, rules.get('tod') ?? null),
   };
 }
+
+const NO_CARD: InsightCard = {
+  sentence: null,
+  comparedWith: null,
+  change: null,
+  largestDriver: null,
+  drivers: [],
+  baseline: null,
+};
 
 async function buildCard(
   site: Site,
@@ -372,14 +386,7 @@ async function buildCard(
   tod: TariffRule | null,
 ): Promise<InsightCard> {
   const orgId = site.orgId;
-  const empty: InsightCard = {
-    sentence: null,
-    comparedWith: null,
-    change: null,
-    largestDriver: null,
-    drivers: [],
-    baseline: null,
-  };
+  const empty: InsightCard = NO_CARD;
   const kwh = num(em.kwh);
   if (kwh == null) return empty;
 

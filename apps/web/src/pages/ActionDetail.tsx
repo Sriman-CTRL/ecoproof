@@ -47,7 +47,8 @@ export default function ActionDetail() {
   const [quote, setQuote] = useState('');
   const plan = useMutation({
     mutationFn: () => postJson(`/sites/${siteId}/actions/${code}/plan`, { status: 'planned' }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['actions'] }),
+    onSuccess: () =>
+      void Promise.all(['actions', 'progress'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   });
 
   const principal = digits(loan);

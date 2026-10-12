@@ -125,7 +125,9 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
       });
       // A new month changes "latest": drop cached months, insights and actions.
       await Promise.all(
-        ['months', 'insights', 'actions'].map((k) => qc.invalidateQueries({ queryKey: [k] })),
+        ['months', 'insights', 'actions', 'progress'].map((k) =>
+          qc.invalidateQueries({ queryKey: [k] }),
+        ),
       );
       navigate(`/results/${r.resultId}`, { replace: true });
     } catch (e) {

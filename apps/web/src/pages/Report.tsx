@@ -59,6 +59,7 @@ export default function Report() {
     onSuccess: () => {
       setRecipient('');
       void qc.invalidateQueries({ queryKey: ['report', id] });
+      void qc.invalidateQueries({ queryKey: ['progress'] });
     },
   });
   const revoke = useMutation({

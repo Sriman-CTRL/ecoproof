@@ -1,5 +1,6 @@
 const indian = new Intl.NumberFormat('en-IN');
 const indian2 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
+const rate = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const inr = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
@@ -11,6 +12,9 @@ export const formatNumber = (n: number): string => indian.format(n);
 
 /** Up to 2 decimals with Indian grouping, for tonnes and intensities. */
 export const formatDecimal = (n: number): string => indian2.format(n);
+
+/** A per-unit rupee rate, always 2 decimals (paise), e.g. 7.5 -> "7.50". */
+export const formatRate = (n: number): string => rate.format(n);
 
 /** Rupee amount with Indian grouping, e.g. 60000 -> "₹60,000". */
 export const formatInr = (n: number): string => inr.format(n);

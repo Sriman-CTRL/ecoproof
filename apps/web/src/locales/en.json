@@ -87,7 +87,18 @@
     "seeAllBills": "See all bills",
     "nextStep": "Next step",
     "switchHint": "Try the other sample",
-    "unitsLine": "{{units}} units"
+    "unitsLine": "{{units}} units",
+    "ritual": {
+      "title": "This month: {{month}}",
+      "billReceived": "Bill received",
+      "valuesConfirmed": "Values confirmed",
+      "billChecked": "Bill checked",
+      "actionChosen": "Next action chosen",
+      "done": "done",
+      "notYet": "not yet",
+      "allDone": "All 4 done for {{month}}."
+    },
+    "headroomTitle": "Money found in your bills"
   },
   "bills": {
     "newTitle": "Add a bill",
@@ -321,7 +332,14 @@
     "lowCostQuote": "Low cost, quote needed",
     "whyOpen": "Why?",
     "whySheet": "Why this number? {{name}}",
-    "noTopFix": "No fix to start yet"
+    "noTopFix": "No fix to start yet",
+    "explain": {
+      "power_factor": "Your bill shows {{kvah}} kVAh but only {{kwh}} kWh did useful work. The {{loss}} kVAh difference is billed at ₹{{rate}} = {{inr}} a month.",
+      "peak_use": "{{peak}} of your {{total}} units ({{pct}}%) were used in peak hours, when each unit costs ₹{{surcharge}} more.",
+      "contracted_demand": "You agreed {{cd}} kVA with the DISCOM, but your highest demand in the last {{months}} bills was {{md}} kVA. You are billed on at least {{billed}} kVA ({{pct}}% of {{cd}}) at ₹{{rate}} per kVA, so the gap costs {{inr}} a month.",
+      "minimum_charges": "Your bill must cover at least {{min}} kVAh; you used {{actual}} kVAh. The {{gap}} kVAh gap is billed at ₹{{rate}} = {{inr}} a month.",
+      "lt_surcharges": "This bill carries {{inr}} of power factor or capacitor surcharges."
+    }
   },
   "actions": {
     "title": "Your action plan",
@@ -478,7 +496,8 @@
       "early": "Too early to confirm",
       "estimate": "Estimate, not verified",
       "genuine": "Genuine document",
-      "mismatch": "Does not match"
+      "mismatch": "Does not match",
+      "reached": "Reached"
     },
     "year": {
       "count": "{{n}} of 12 months",
@@ -512,9 +531,9 @@
       "next": "Next: {{step}}"
     },
     "headroom": {
-      "found": "{{amount}} found",
-      "captured": "{{amount}} captured",
-      "table": "{{amount}} still on the table"
+      "found": "{{amount}} a month found.",
+      "started": "You've started fixes worth {{amount}}.",
+      "table": "{{amount}} a month still on the table."
     },
     "demo": {
       "title": "Design kit",
@@ -647,6 +666,47 @@
       "team": "Team EcoProof, CBIT Hyderabad",
       "proto": "Prototype for an ideathon",
       "note": "Energy and carbon pre-assessment. Not an energy audit."
+    }
+  },
+  "progress": {
+    "title": "Your progress",
+    "open": "See your progress",
+    "loadFailed": "We could not load your progress. Check your internet and try again.",
+    "youAreAt": "You are here: {{stage}}",
+    "notStarted": "Add your first bill to start the path.",
+    "milestone": {
+      "first_footprint": "First footprint",
+      "baseline_ready": "Baseline ready (9 months of bills)",
+      "first_action_done": "First action done",
+      "first_10k_saved": "First ₹10,000 saved (Verified by your bills)",
+      "one_lakh_saved": "₹1 lakh saved (Verified by your bills)",
+      "loan_pack_sent": "Loan-ready summary sent",
+      "buyer_approved": "Buyer request accepted"
+    },
+    "notYet": "Not yet",
+    "comingSoon": "Coming soon",
+    "unlocks": "Unlocks: {{what}}",
+    "unlocked": "Unlocked: {{what}}",
+    "unlock": {
+      "billHealth": "bill health and your first ₹ at stake",
+      "savingsTracking": "savings tracking",
+      "shareCard": "a share card and progress statement",
+      "lenderTracker": "lender view tracker",
+      "buyerRoom": "buyer data room and quarterly progress statement"
+    },
+    "cluster": {
+      "title": "Top 3 in cluster:",
+      "note": "Needs 10 units in your cluster (opt-in). Not a stage."
+    },
+    "datesNote": "Bill milestones show the bill month; actions and sharing show the day they happened.",
+    "next": {
+      "addBill": "Add your latest electricity bill",
+      "moreBills_one": "Add 1 more bill to set your baseline",
+      "moreBills_other": "Add {{count}} more bills to set your baseline",
+      "startAction": "Start: {{title}}",
+      "keepAdding": "Keep adding monthly bills; savings are confirmed after a few months",
+      "makeLoanPack": "Make a loan-ready summary",
+      "shareBuyer": "Share your data with a buyer (coming soon)"
     }
   }
 }

@@ -1,12 +1,19 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+import { computeProgress } from '../services/progress.js';
 import { loadSite } from '../services/scope.js';
 
 export const sitesRouter = Router();
 
 export const CO2_LABEL = 't CO2 (grid) + t CO2e (fuels)';
 const n = (d: { toString(): string } | null | undefined) => (d == null ? null : Number(d));
+
+// Progress path, milestones, headroom and the monthly ritual (plan 6.1/6.2, Doc 04).
+sitesRouter.get('/sites/:siteId/progress', requireAuth, async (req, res) => {
+  const site = await loadSite(req.auth.orgId, String(req.params.siteId));
+  res.json(await computeProgress(site));
+});
 
 sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
   const { orgId } = req.auth;

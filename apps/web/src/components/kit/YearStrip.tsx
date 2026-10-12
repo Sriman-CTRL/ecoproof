@@ -6,6 +6,8 @@ const BASELINE_MONTHS = 9;
 export interface YearMonth {
   label: string;
   confirmed: boolean;
+  /** The monthly ritual's month: its tile fills (with the tile-fill motion) only when all 4 are done. */
+  ritual?: { done: boolean };
 }
 
 /** 12 tiles like the consumption-history graph printed on Indian bills; filled = confirmed bill. */
@@ -20,8 +22,15 @@ export function YearStrip({ months }: { months: YearMonth[] }) {
           <li key={i} className="flex flex-col items-center gap-1">
             <span
               aria-hidden="true"
+              data-testid={m.ritual ? 'ritual-tile' : undefined}
               className={`block h-8 w-full origin-bottom rounded-sm border ${
-                m.confirmed ? 'animate-tile-fill border-green-700 bg-green-700' : 'bg-surface'
+                m.ritual && !m.ritual.done
+                  ? m.confirmed
+                    ? 'border-2 border-green-700 bg-green-50'
+                    : 'border-2 border-dashed border-green-700 bg-surface'
+                  : m.confirmed
+                    ? 'animate-tile-fill border-green-700 bg-green-700'
+                    : 'bg-surface'
               }`}
             />
             <span className="sr-only">

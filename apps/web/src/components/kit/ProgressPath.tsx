@@ -13,7 +13,8 @@ export function ProgressPath({
   currentStage,
   nextStep,
 }: {
-  currentStage: PathStage;
+  /** 0 = nothing measured yet: every stop is still ahead. */
+  currentStage: 0 | PathStage;
   nextStep: string;
 }) {
   const { t } = useTranslation();
@@ -24,7 +25,7 @@ export function ProgressPath({
         <span
           aria-hidden="true"
           className="absolute top-4 left-[10%] h-0.5 bg-green-700"
-          style={{ width: `${(currentStage - 1) * 20}%` }}
+          style={{ width: `${Math.max(0, currentStage - 1) * 20}%` }}
         />
         <ol className="relative grid grid-cols-5">
           {PATH_STAGES.map((stage, i) => {
@@ -60,9 +61,11 @@ export function ProgressPath({
           })}
         </ol>
       </div>
-      <p className="inline-block rounded-button bg-green-50 px-2 py-0.5 text-small font-semibold text-green-700">
-        {t('kit.path.here')}: {t(`kit.path.stage.${PATH_STAGES[currentStage - 1]}`)}
-      </p>
+      {currentStage > 0 && (
+        <p className="inline-block rounded-button bg-green-50 px-2 py-0.5 text-small font-semibold text-green-700">
+          {t('kit.path.here')}: {t(`kit.path.stage.${PATH_STAGES[currentStage - 1]}`)}
+        </p>
+      )}
       <p className="text-body font-semibold">{t('kit.path.next', { step: nextStep })}</p>
     </div>
   );

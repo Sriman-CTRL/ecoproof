@@ -401,6 +401,33 @@ async function seedDemoReport() {
     },
     { reportId: DEMO_REPORT_ID, asOfMonth: monthStart(11) },
   );
+
+  // Demo B shared that summary with a sample lender, who opened it twice: real rows, so the
+  // progress path reaches "Finance-ready" from data. The raw token is never stored (or known).
+  const kb = (s: string) => det(`B:${s}`);
+  const shareId = kb('share:sample-bank');
+  const shareData = {
+    orgId: ORG_B,
+    reportId: DEMO_REPORT_ID,
+    recipient: 'Sample Bank (sample)',
+    tokenHash: createHash('sha256').update(kb('share-token')).digest('hex'),
+    // Same 30-day default as POST /reports/:id/shares.
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    revokedAt: null,
+  };
+  await prisma.share.upsert({
+    where: { id: shareId },
+    update: shareData,
+    create: { id: shareId, ...shareData },
+  });
+  for (const i of [1, 2]) {
+    const d = { orgId: ORG_B, shareId, kind: 'view', userAgent: 'Sample (synthetic)' };
+    await prisma.shareView.upsert({
+      where: { id: kb(`share-view:${i}`) },
+      update: d,
+      create: { id: kb(`share-view:${i}`), ...d },
+    });
+  }
 }
 
 export async function resetDemo() {

@@ -1,10 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { formatInr } from '../../lib/format';
 
-/** One bar: rupees found at full length, captured in green, the rest "still on the table". */
-export function HeadroomMeter({ found, captured }: { found: number; captured: number }) {
+/**
+ * One bar: rupees a month found at full length, fixes started in green, the rest "still on the
+ * table" (retention plan 3.2).
+ */
+export function HeadroomMeter({ found, started }: { found: number; started: number }) {
   const { t } = useTranslation();
-  const got = Math.max(0, Math.min(captured, found));
+  const got = Math.max(0, Math.min(started, found));
   const left = Math.max(0, found - got);
   const pct = found > 0 ? (got / found) * 100 : 0;
   return (
@@ -17,7 +20,7 @@ export function HeadroomMeter({ found, captured }: { found: number; captured: nu
       </div>
       <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-small">
         <span className="num text-green-700">
-          {t('kit.headroom.captured', { amount: formatInr(got) })}
+          {t('kit.headroom.started', { amount: formatInr(got) })}
         </span>
         <span className="num rounded-chip bg-copper-50 px-2 text-copper-800">
           {t('kit.headroom.table', { amount: formatInr(left) })}

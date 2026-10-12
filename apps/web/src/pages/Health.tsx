@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check } from '@phosphor-icons/react/dist/csr/Check';
@@ -10,14 +10,14 @@ import { BottomSheet } from '../components/kit/BottomSheet';
 import { Button } from '../components/kit/Button';
 import { Card } from '../components/kit/Card';
 import { EmptyState } from '../components/kit/EmptyState';
-import { JargonChip, type JargonTerm } from '../components/kit/JargonChip';
+import type { JargonTerm } from '../components/kit/JargonChip';
 import { RupeeHero } from '../components/kit/RupeeHero';
 import { Skeleton } from '../components/kit/Skeleton';
 import { StatusPill } from '../components/kit/StatusPill';
 import { ErrorBox, monthLabel, Page } from '../components/ui';
 import { api, type Finding, type Insights } from '../lib/api';
 import { useActions } from './Actions';
-import { formatDecimal } from '../lib/format';
+import { formatDecimal, formatInr, formatNumber, formatRate } from '../lib/format';
 import { getSession } from '../lib/session';
 
 /**
@@ -177,11 +177,7 @@ function FindingCard({
             />
           </label>
         )}
-        {jargon && (
-          <p className="text-small text-ink-muted">
-            <JargonChip term={jargon} />
-          </p>
-        )}
+        {jargon && <ExplainerLine f={f} term={jargon} />}
         <Button variant="secondary" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           <Info size={20} aria-hidden="true" />
           {t('health.why')}
@@ -204,6 +200,119 @@ function FindingCard({
           {f.assumption && <p className="text-ink-muted">{f.assumption}</p>}
         </div>
       </BottomSheet>
+    </div>
+  );
+}
+
+const num = (v: number | string | null | undefined): number | null =>
+  typeof v === 'number' && Number.isFinite(v) ? v : null;
+
+/**
+ * The bill-specific explainer under a finding (retention plan 7), built only from that finding's
+ * own explain data and rupee figure. Null when a number it needs is missing.
+ */
+export function explainLine(f: Finding, t: TFunction): string | null {
+  const e = f.explain;
+  const inr = num(f.inrPerMonth);
+  switch (f.code) {
+    case 'power_factor': {
+      const [kvah, kwh, loss, rate] = [e.kvah, e.kwh, e.lossKvah, e.energyRatePerKvah].map(num);
+      if (kvah == null || kwh == null || loss == null || rate == null || inr == null) return null;
+      return t('health.explain.power_factor', {
+        kvah: formatNumber(Math.round(kvah)),
+        kwh: formatNumber(Math.round(kwh)),
+        loss: formatNumber(Math.round(loss)),
+        rate: formatRate(rate),
+        inr: formatInr(Math.round(inr)),
+      });
+    }
+    case 'peak_use': {
+      const [peak, total, pct, surcharge] = [
+        e.peakKwh,
+        e.totalKwh,
+        e.peakSharePct,
+        e.peakSurchargeInrPerKwh,
+      ].map(num);
+      if (peak == null || total == null || pct == null || surcharge == null) return null;
+      return t('health.explain.peak_use', {
+        peak: formatNumber(Math.round(peak)),
+        total: formatNumber(Math.round(total)),
+        pct: formatDecimal(pct),
+        surcharge: formatRate(surcharge),
+      });
+    }
+    case 'contracted_demand': {
+      const [cd, md, pct, rate] = [
+        e.contractedDemandKva,
+        e.maxMdKva12Months,
+        e.flagIfMdBelowPctOfCd,
+        e.demandRatePerKva,
+      ].map(num);
+      const months = num(e.monthsConsidered);
+      if (cd == null || md == null || pct == null || rate == null || inr == null) return null;
+      return t('health.explain.contracted_demand', {
+        cd: formatNumber(cd),
+        md: formatNumber(md),
+        months: months ?? 12,
+        pct: formatDecimal(pct),
+        billed: formatNumber(Math.round((pct / 100) * cd)),
+        rate: formatRate(rate),
+        inr: formatInr(Math.round(inr)),
+      });
+    }
+    case 'minimum_charges': {
+      const [min, actual, gap, rate] = [
+        e.minimumKvah,
+        e.actualKvah,
+        e.gapKvah,
+        e.energyRatePerKvah,
+      ].map(num);
+      if (min == null || actual == null || gap == null || rate == null || inr == null) return null;
+      return t('health.explain.minimum_charges', {
+        min: formatNumber(Math.round(min)),
+        actual: formatNumber(Math.round(actual)),
+        gap: formatNumber(Math.round(gap)),
+        rate: formatRate(rate),
+        inr: formatInr(Math.round(inr)),
+      });
+    }
+    case 'lt_surcharges':
+      return inr == null
+        ? null
+        : t('health.explain.lt_surcharges', { inr: formatInr(Math.round(inr)) });
+    default:
+      return null;
+  }
+}
+
+/** "What is power factor?" under a finding: the plain meaning, then what it cost on this bill. */
+function ExplainerLine({ f, term }: { f: Finding; term: JargonTerm }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  const word = t(`kit.jargon.${term}.term`);
+  const own = explainLine(f, t);
+  return (
+    <div className="text-small">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen((o) => !o)}
+        className="min-h-12 text-left font-semibold text-green-700 underline decoration-dotted underline-offset-4"
+      >
+        {t('kit.jargon.open', { term: word })}
+      </button>
+      {open && (
+        <div
+          id={id}
+          className="space-y-1 rounded-card bg-green-50 p-3 text-ink"
+          data-testid="explainer"
+        >
+          <p>{t(`kit.jargon.${term}.line`)}</p>
+          {own && <p className="num font-semibold">{own}</p>}
+        </div>
+      )}
     </div>
   );
 }

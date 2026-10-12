@@ -136,7 +136,19 @@ try {
   }
   await page.getByText('Latest bills').waitFor();
   await page.getByText('At stake every month, found in your bill').waitFor();
+  // D4a: path (Baseline set), headroom (nothing started yet), monthly ritual.
+  await page.getByTestId('progress-path').getByText('You are here: Baseline set').waitFor();
+  await page.getByText("You've started fixes worth ₹0.").waitFor();
+  await page.getByTestId('ritual').waitFor();
   await shot(page, 'home');
+
+  await page.getByTestId('progress-path').click();
+  await page.waitForURL(/\/progress$/);
+  await page.getByTestId('stage-2').getByText('Reached').waitFor();
+  await page.getByTestId('cluster-note').waitFor();
+  await shot(page, 'progress-a');
+  await page.goBack();
+  await page.waitForURL(/\/home$/);
 
   await page.getByRole('navigation').getByRole('link', { name: 'Bills' }).click();
   await page.waitForURL(/\/bills$/);
@@ -181,6 +193,12 @@ try {
   await page.getByRole('button', { name: 'Why?' }).first().click();
   await shot(page, 'health-why', true);
   await page.getByRole('button', { name: 'Close' }).click();
+  // Explainer line: this bill's own numbers (1,00,000 kVAh vs 92,000 kWh on the Oct sample).
+  await page.getByRole('button', { name: 'What is power factor?' }).click();
+  await page
+    .getByTestId('explainer')
+    .getByText(/Your bill shows .* kVAh/)
+    .waitFor();
   await shot(page, 'health');
 
   // Primary button: straight to the API's #1 action (zero-cost first, Doc 02/03 order).
@@ -252,7 +270,25 @@ try {
 
   await page.getByRole('link', { name: 'EcoProof' }).first().click();
   await page.getByText('Latest bills').waitFor();
+  // Oct confirmed and the PF fix planned: the headroom moved.
+  await page.getByText("You've started fixes worth ₹60,000.").waitFor();
   await shot(page, 'home-after');
+
+  // ---------- Demo B: its path comes from its own rows ----------
+  await page.goto(`${WEB}/start`);
+  await page.getByText('Same unit, 6 months later').click();
+  await page.waitForURL(/\/(consent|home)$/);
+  if (page.url().endsWith('/consent')) {
+    await page.getByRole('button', { name: 'I agree' }).click();
+    await page.waitForURL(/\/home$/);
+  }
+  await page.getByTestId('progress-path').waitFor();
+  await page.getByText('Latest bills').waitFor();
+  await shot(page, 'home-b');
+  await page.getByTestId('progress-path').click();
+  await page.waitForURL(/\/progress$/);
+  await page.getByTestId('stage-4').waitFor();
+  await shot(page, 'progress-b');
   await page.close();
 
   // ---------- Telugu, 360x800 ----------
