@@ -12,6 +12,7 @@ import {
   verifyUrlFor,
   type LoanPackResults,
 } from '../src/reports/loanPack.js';
+import { DEMO_REPORT_ID } from '../src/demo/ids.js';
 import { pdfRenderer } from '../src/reports/pdfRenderer.js';
 import { resetDemo, seedDemo } from '../prisma/demo/seed-demo.js';
 
@@ -155,6 +156,19 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     expect(old.status).toBe(200);
     expect(old.body.version).toBe(1);
     expect(old.body.sha256).toBe(v1.sha256);
+  });
+
+  it('seeds a stable sample report for the landing QR that survives re-seeding', async () => {
+    const check = async () => {
+      const r = await request(app).get(`/public/reports/${DEMO_REPORT_ID}/verify`);
+      expect(r.status).toBe(200);
+      return r.body;
+    };
+    const before = await check();
+    await seedDemo(); // re-seeding replaces the report under the same id
+    const after = await check();
+    expect(after.reportId).toBe(before.reportId);
+    expect(JSON.stringify(after)).toMatch(/sample/i);
   });
 
   it('public verify returns exactly the listed keys', async () => {

@@ -82,12 +82,48 @@ let reportId = '';
 const pdfPath = `${out}loan-pack.pdf`;
 const tamperedPath = `${out}loan-pack-tampered.pdf`;
 
+/** Scrolls through the page so lazy images load before the full-height shot. */
+async function loadLazy(page: Page) {
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.documentElement.scrollHeight; y += 500) {
+      window.scrollTo(0, y);
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    window.scrollTo(0, 0);
+  });
+}
+
 try {
+  // ---------- Landing page "/": 390x844 EN, 1280x800 EN, 360x800 TE ----------
+  for (const [w, h, lang, name] of [
+    [390, 844, 'en', 'landing-390'],
+    [1280, 800, 'en', 'landing-1280'],
+    [360, 800, 'te', 'landing-te-360'],
+  ] as const) {
+    const lp = await browser.newPage({ viewport: { width: w, height: h } });
+    await lp.addInitScript((l) => localStorage.setItem('ecoproof.lang', l), lang);
+    await lp.goto(`${WEB}/`);
+    await lp.locator('#how').waitFor();
+    await loadLazy(lp);
+    await lp.getByTestId('money').waitFor();
+    await lp.locator('[role=img] svg').waitFor();
+    await shot(lp, name);
+    await lp.close();
+  }
+
+  // The landing QR target: the seeded sample report must verify (not 404) after a demo reset.
+  const demoReportId = process.env.VITE_DEMO_REPORT_ID ?? '5d3a0a10-0000-4000-8000-0000000000c1';
+  const vp = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await vp.goto(`${WEB}/verify/${demoReportId}`);
+  await vp.getByText('This document is genuine').waitFor();
+  await shot(vp, 'verify-demo-report');
+  await vp.close();
+
   // ---------- English, 390x844 ----------
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(`${WEB}/start`);
   await page.getByText('Sri Lakshmi Castings: before').waitFor();
-  await page.getByText('a month at stake').waitFor();
+  await page.getByText(/Sept? 2026 bill: a month at stake/).waitFor();
   await shot(page, 'start');
 
   await page.getByText('Sri Lakshmi Castings: before').click();
@@ -147,9 +183,9 @@ try {
   await page.getByRole('button', { name: 'Close' }).click();
   await shot(page, 'health');
 
-  // Primary button: straight to the top fix.
+  // Primary button: straight to the API's #1 action (zero-cost first, Doc 02/03 order).
   await page.getByRole('button', { name: 'Start the top fix' }).click();
-  await page.waitForURL(/\/actions\/fix_power_factor/);
+  await page.waitForURL(/\/actions\/reduce_contracted_demand/);
   await page.getByRole('navigation').getByRole('link', { name: 'Plan' }).click();
   await page.waitForURL(/\/actions$/);
   await page.getByText('Your action plan').waitFor();

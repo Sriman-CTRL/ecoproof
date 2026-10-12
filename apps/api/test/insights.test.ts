@@ -52,6 +52,13 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
+const EXPECTED_ORDER = [
+  'reduce_contracted_demand',
+  'shift_peak_use_to_solar_hours',
+  'fix_power_factor',
+  'efficiency_measure_pending_r2',
+];
+
 type F = { code: string; inrPerMonth: number | null; rule: Record<string, unknown> };
 
 describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
@@ -124,6 +131,17 @@ describe('bill health, insight card and action plan (Demo A, Oct 2026)', () => {
     expect(pf.costLow).toBeNull();
     expect(pf.paybackYears).toBeNull();
     expect(pf.co2TonnesPerYear).toBeNull();
+  });
+
+  it('orders actions by one rule: zero-cost first, then payback, then annual rupees', async () => {
+    const r = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
+    type A = { code: string; isZeroCost: boolean; annualInrMid: number | null };
+    const list = r.body.actions as A[];
+    const zero = list.filter((a) => a.isZeroCost);
+    expect(list.slice(0, zero.length)).toEqual(zero);
+    const rupees = zero.map((a) => a.annualInrMid ?? -1);
+    expect(rupees).toEqual([...rupees].sort((a, b) => b - a));
+    expect(list.map((a) => a.code)).toEqual(EXPECTED_ORDER);
   });
 
   it('upserts the plan status', async () => {

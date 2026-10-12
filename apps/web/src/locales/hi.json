@@ -1,5 +1,8 @@
 {
   "app": { "title": "EcoProof", "tagline": "MSME के लिए ऊर्जा और कार्बन प्री-असेसमेंट" },
   "language": { "label": "भाषा" },
-  "placeholder": { "body": "फेज़ 0 स्कैफ़ोल्ड। नमूना बिल राशि:" }
+  "placeholder": { "body": "फेज़ 0 स्कैफ़ोल्ड। नमूना बिल राशि:" },
+  "landing": {
+    "data": { "title": "आपका डेटा, आपका फ़ैसला" }
+  }
 }

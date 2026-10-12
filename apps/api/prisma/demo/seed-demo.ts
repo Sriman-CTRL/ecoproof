@@ -12,7 +12,18 @@ import {
   type Baseline,
   type Factor,
 } from '@ecoproof/calc';
-import { DEMO_ORG_IDS, ORG_A, ORG_B, SITE_A, SITE_B, USER_A, USER_B } from '../../src/demo/ids.js';
+import {
+  DEMO_ORG_IDS,
+  DEMO_REPORT_ID,
+  ORG_A,
+  ORG_B,
+  SITE_A,
+  SITE_B,
+  USER_A,
+  USER_B,
+} from '../../src/demo/ids.js';
+import { createLoanPack } from '../../src/reports/loanPack.js';
+import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
 // ---- fixed demo identifiers (the only rows --reset may delete are those with these org ids)
 export { ORG_A, ORG_B, DEMO_ORG_IDS };
@@ -240,7 +251,7 @@ async function seedOrg(opts: {
   void FORMULA_NOTE;
 }
 
-export async function seedDemo() {
+export async function seedDemo(opts: { demoReport?: boolean } = {}) {
   const gridRow = await prisma.factor.findFirst({
     where: { sourceType: 'grid_electricity_india' },
   });
@@ -358,6 +369,38 @@ export async function seedDemo() {
       create: { id: kb(`ledger:${m.i}`), ...d },
     });
   }
+
+  if (opts.demoReport ?? true) await seedDemoReport();
+}
+
+/**
+ * One loan-ready summary for Demo B's power factor fix, through the real pipeline, under a fixed
+ * id: the landing page QR points at /verify/<id>. Built from the 12 baseline months (to Sep 2026),
+ * the last bills where the finding was still flagged; the fix is marked done.
+ */
+async function seedDemoReport() {
+  const site = await prisma.site.findFirstOrThrow({ where: { id: SITE_B, orgId: ORG_B } });
+  const old = { id: DEMO_REPORT_ID, orgId: ORG_B };
+  const existing = await prisma.report.findFirst({ where: old });
+  if (existing) {
+    const shares = { reportId: existing.id, orgId: ORG_B };
+    await prisma.$transaction([
+      prisma.shareView.deleteMany({ where: { orgId: ORG_B, share: shares } }),
+      prisma.share.deleteMany({ where: shares }),
+      prisma.report.deleteMany({ where: old }),
+      prisma.reportSnapshot.deleteMany({ where: { id: existing.snapshotId, orgId: ORG_B } }),
+    ]);
+  }
+  await createLoanPack(
+    site,
+    {
+      actionCode: 'fix_power_factor',
+      quote: { vendorName: 'Sample Capacitors (synthetic)', amountInr: 250000 },
+      loan: { amountInr: 1000000, ratePct: 8, tenureMonths: 60 },
+      language: 'en',
+    },
+    { reportId: DEMO_REPORT_ID, asOfMonth: monthStart(11) },
+  );
 }
 
 export async function resetDemo() {
@@ -421,5 +464,8 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().finally(() => prisma.$disconnect());
+  main().finally(async () => {
+    await pdfRenderer.close();
+    await prisma.$disconnect();
+  });
 }

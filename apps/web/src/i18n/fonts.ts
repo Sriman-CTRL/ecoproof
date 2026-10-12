@@ -4,6 +4,9 @@
  */
 const loaded = new Set<string>();
 
+/** Latin Extended (rupee sign) and the rest of the Latin families: after first paint. */
+export const loadFullFonts = () => import('./fonts-full');
+
 export function loadScriptFonts(lng: string): Promise<unknown> {
   if (loaded.has(lng)) return Promise.resolve();
   loaded.add(lng);

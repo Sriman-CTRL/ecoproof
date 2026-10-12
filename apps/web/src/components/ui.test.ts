@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { ActionItem } from '../lib/api';
-import { topActionByRupees } from '../pages/Actions';
 import { yearMonths } from './ui';
 
 describe('yearMonths', () => {
@@ -15,20 +13,5 @@ describe('yearMonths', () => {
 
   it('is empty without bills', () => {
     expect(yearMonths([], 'en')).toEqual([]);
-  });
-});
-
-describe('topActionByRupees', () => {
-  const a = (code: string, annualInrMid: number | null) => ({ code, annualInrMid }) as ActionItem;
-  it('picks the action worth most rupees a year, not the first in the list', () => {
-    expect(
-      topActionByRupees([a('reduce_contracted_demand', 480000), a('fix_power_factor', 720000)])
-        ?.code,
-    ).toBe('fix_power_factor');
-  });
-
-  it('falls back to the first action when no saving is known', () => {
-    expect(topActionByRupees([a('x', null), a('y', null)])?.code).toBe('x');
-    expect(topActionByRupees([])).toBeUndefined();
   });
 });

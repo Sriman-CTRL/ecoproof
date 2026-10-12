@@ -1,3 +1,4 @@
+import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import {
   cashTest,
@@ -11,10 +12,12 @@ import {
 import type { Report, ReportSnapshot, Site } from '@prisma/client';
 import QRCode from 'qrcode';
 import { z } from 'zod';
+import { storage } from '../adapters/storage.js';
 import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { DEMO_ORG_IDS } from '../demo/ids.js';
 import { AppError } from '../errors.js';
+import { pdfRenderer } from './pdfRenderer.js';
 import { listActions } from '../services/actions.js';
 import { ACTION_CODE, BASELINE_RULES, type FindingCode } from '../services/insights.js';
 
@@ -149,13 +152,19 @@ export async function buildSnapshot(
   site: Site,
   body: LoanPackBody,
   ids: { reportId: string; version: number; issuedAt: Date },
+  /** Seed use only: build the pack from bills up to this month (default: all bills). */
+  asOfMonth?: Date,
 ) {
   const orgId = site.orgId;
   const org = await prisma.organisation.findFirst({ where: { id: orgId } });
   if (!org) throw new AppError(404, 'NOT_FOUND', 'Organisation not found');
 
   const months = await prisma.energyMonth.findMany({
-    where: { orgId, siteId: site.id },
+    where: {
+      orgId,
+      siteId: site.id,
+      ...(asOfMonth ? { periodStart: { lte: asOfMonth } } : {}),
+    },
     orderBy: { periodStart: 'desc' },
     take: 12,
   });
@@ -351,6 +360,72 @@ export async function buildSnapshot(
     formulaVersion: FORMULA_VERSION,
     dataQualityScore: dq ? Math.round(dq.measuredSharePct * 100) / 100 : null,
   };
+}
+
+const sha256 = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
+
+/**
+ * Doc 05 steps 2-4: snapshot, render, seal, store. Regenerating for the same action makes
+ * version n+1; old versions stay valid. `reportId` and `asOfMonth` are for the demo seed only
+ * (a fixed id so the landing QR keeps working after a reset).
+ */
+export async function createLoanPack(
+  site: Site,
+  body: LoanPackBody,
+  seed: { reportId?: string; asOfMonth?: Date } = {},
+) {
+  const orgId = site.orgId;
+  const previous = await prisma.report.count({
+    where: { orgId, snapshot: { siteId: site.id, type: 'loan_pack', actionCode: body.actionCode } },
+  });
+  const ids = {
+    reportId: seed.reportId ?? randomUUID(),
+    version: previous + 1,
+    issuedAt: new Date(),
+  };
+  const snapshotId = randomUUID();
+
+  const snap = await buildSnapshot(site, body, ids, seed.asOfMonth);
+  const html = await renderHtml(snap.resultsJson, snapshotId);
+  const pdf = await pdfRenderer.render(html, {
+    footerTemplate: footerTemplate(ids.reportId, verifyUrlFor(ids.reportId)),
+  });
+  const seal = sha256(pdf);
+  const fileKey = `reports/${orgId}/${ids.reportId}.pdf`;
+  await storage.put(fileKey, pdf, 'application/pdf');
+
+  await prisma.$transaction([
+    prisma.reportSnapshot.create({
+      data: {
+        id: snapshotId,
+        orgId,
+        siteId: site.id,
+        type: 'loan_pack',
+        language: body.language,
+        actionCode: body.actionCode,
+        inputsJson: snap.inputsJson,
+        resultsJson: snap.resultsJson as object,
+        factorIds: snap.factorIds,
+        formulaVersion: snap.formulaVersion,
+        dataQualityScore: snap.dataQualityScore,
+        createdAt: ids.issuedAt,
+      },
+    }),
+    prisma.report.create({
+      data: {
+        id: ids.reportId,
+        orgId,
+        snapshotId,
+        type: 'loan_pack',
+        language: body.language,
+        fileKey,
+        sha256: seal,
+        version: ids.version,
+        createdAt: ids.issuedAt,
+      },
+    }),
+  ]);
+  return { reportId: ids.reportId, version: ids.version, sha256: seal, fileKey };
 }
 
 // ---------------------------------------------------------------- rendering

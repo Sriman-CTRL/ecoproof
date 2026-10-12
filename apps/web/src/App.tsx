@@ -7,22 +7,34 @@ import { Skeleton } from './components/kit/Skeleton';
 import { ErrorBox, Page } from './components/ui';
 import { api } from './lib/api';
 import { getSession } from './lib/session';
-import ActionDetail from './pages/ActionDetail';
-import Actions from './pages/Actions';
-import Bills from './pages/Bills';
-import Confirm from './pages/Confirm';
-import Consent from './pages/Consent';
-import Health from './pages/Health';
-import Home from './pages/Home';
-import NewBill from './pages/NewBill';
-import Report from './pages/Report';
-import Results from './pages/Results';
-import ShareView from './pages/ShareView';
-import Start from './pages/Start';
-import Verify from './pages/Verify';
+
+// Every route is its own chunk, so the landing page and the owner app load only what they show.
+const ActionDetail = lazy(() => import('./pages/ActionDetail'));
+const Actions = lazy(() => import('./pages/Actions'));
+const Bills = lazy(() => import('./pages/Bills'));
+const Confirm = lazy(() => import('./pages/Confirm'));
+const Consent = lazy(() => import('./pages/Consent'));
+const Health = lazy(() => import('./pages/Health'));
+const Home = lazy(() => import('./pages/Home'));
+const Landing = lazy(() => import('./pages/Landing'));
+const NewBill = lazy(() => import('./pages/NewBill'));
+const Report = lazy(() => import('./pages/Report'));
+const Results = lazy(() => import('./pages/Results'));
+const ShareView = lazy(() => import('./pages/ShareView'));
+const Start = lazy(() => import('./pages/Start'));
+const Verify = lazy(() => import('./pages/Verify'));
 
 /** Design kit preview: dev server only, so it is dropped from the production build. */
 const DevKit = import.meta.env.DEV ? lazy(() => import('./pages/DevKit')) : null;
+
+/** Shown while a route's chunk loads. */
+function RouteFallback() {
+  return (
+    <div className="mx-auto max-w-[480px] p-4">
+      <Skeleton />
+    </div>
+  );
+}
 
 /** Everything except /start and the public verify and share pages needs a demo login. */
 function RequireSession() {
@@ -59,37 +71,31 @@ function RequireConsent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/start" element={<Start />} />
-        {DevKit && (
-          <Route
-            path="/dev/kit"
-            element={
-              <Suspense fallback={null}>
-                <DevKit />
-              </Suspense>
-            }
-          />
-        )}
-        {/* Public: no login, no consent gate (a lender scanning the QR code). */}
-        <Route path="/verify/:reportId" element={<Verify />} />
-        <Route path="/s/:token" element={<ShareView />} />
-        <Route element={<RequireSession />}>
-          <Route path="/consent" element={<Consent />} />
-          <Route element={<RequireConsent />}>
-            <Route path="/home" element={<Home />} />
-            <Route path="/bills" element={<Bills />} />
-            <Route path="/bills/new" element={<NewBill />} />
-            <Route path="/bills/:documentId/confirm" element={<Confirm />} />
-            <Route path="/results/:resultId" element={<Results />} />
-            <Route path="/health" element={<Health />} />
-            <Route path="/actions" element={<Actions />} />
-            <Route path="/actions/:code" element={<ActionDetail />} />
-            <Route path="/reports/:id" element={<Report />} />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/start" element={<Start />} />
+          {DevKit && <Route path="/dev/kit" element={<DevKit />} />}
+          {/* Public: no login, no consent gate (a lender scanning the QR code). */}
+          <Route path="/verify/:reportId" element={<Verify />} />
+          <Route path="/s/:token" element={<ShareView />} />
+          <Route element={<RequireSession />}>
+            <Route path="/consent" element={<Consent />} />
+            <Route element={<RequireConsent />}>
+              <Route path="/home" element={<Home />} />
+              <Route path="/bills" element={<Bills />} />
+              <Route path="/bills/new" element={<NewBill />} />
+              <Route path="/bills/:documentId/confirm" element={<Confirm />} />
+              <Route path="/results/:resultId" element={<Results />} />
+              <Route path="/health" element={<Health />} />
+              <Route path="/actions" element={<Actions />} />
+              <Route path="/actions/:code" element={<ActionDetail />} />
+              <Route path="/reports/:id" element={<Report />} />
+            </Route>
           </Route>
-        </Route>
-        <Route path="*" element={<Navigate to="/home" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

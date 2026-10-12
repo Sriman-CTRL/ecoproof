@@ -83,7 +83,11 @@ export async function listActions(
     ];
   });
   // co2SavedTonnes only feeds the ranking; no CO2 saving is claimed for bill-derived fixes.
-  const actions = rankActions(items).map((a) => {
+  // Doc 02 ACT-1 / Doc 03: zero-cost first, then payback, CO2 as tie-breaker. rankActions sorts
+  // stably, so feeding it rows already ordered by annual rupees (unknown last) makes "higher
+  // annual Rs first" the final tie-break, which also orders the zero-cost group (payback 0).
+  const byRupees = [...items].sort((a, b) => (b.annualInrMid ?? -1) - (a.annualInrMid ?? -1));
+  const actions = rankActions(byRupees).map((a) => {
     const out: Partial<typeof a> = { ...a };
     delete out.co2SavedTonnes;
     return out as ActionItem;

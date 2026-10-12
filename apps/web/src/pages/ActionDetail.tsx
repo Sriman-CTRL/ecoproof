@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -11,10 +11,10 @@ import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
 import { StatusPill } from '../components/kit/StatusPill';
 import { CostText, ErrorBox, Page, Rupees } from '../components/ui';
-import { postJson, type LoanPackCreated } from '../lib/api';
+import { api, postJson, type ActionsResponse, type LoanPackCreated } from '../lib/api';
 import { formatDecimal, formatInr } from '../lib/format';
 import { getSession } from '../lib/session';
-import { ActionStatus, actionTitle, CostBadge, useActions } from './Actions';
+import { ActionStatus, actionTitle, CostBadge } from './Actions';
 
 const digits = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
@@ -26,8 +26,19 @@ export default function ActionDetail() {
   const siteId = getSession()?.siteId ?? '';
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const q = useActions(month, true);
-  const a = q.data?.actions.find((x) => x.code === code);
+  // Keyed by action code and dropped as soon as nobody uses it: a saving cached for another
+  // action or an older bill is never shown while this one loads.
+  const q = useQuery({
+    queryKey: ['actions', siteId, 'detail', code, month],
+    gcTime: 0,
+    queryFn: async () => {
+      const qs = new URLSearchParams({ all: '1' });
+      if (month) qs.set('month', month.slice(0, 7));
+      const r = await api<ActionsResponse>(`/sites/${siteId}/actions?${qs}`);
+      return r.actions.find((x) => x.code === code) ?? null;
+    },
+  });
+  const a = q.data ?? undefined;
 
   const [loan, setLoan] = useState('');
   const [rate, setRate] = useState('8');

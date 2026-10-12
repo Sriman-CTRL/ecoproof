@@ -27,17 +27,6 @@ export function useActions(month: string | null, all: boolean, enabled = true) {
   });
 }
 
-/**
- * The action worth most rupees a year. Plan 6.2 ranks by rupees; the API list puts zero-cost
- * actions first, so Home and bill health pick the biggest saving here (see OPEN_ITEMS, UI).
- */
-export function topActionByRupees(actions: ActionItem[] | undefined): ActionItem | undefined {
-  if (!actions?.length) return undefined;
-  return actions.reduce((best, a) =>
-    (a.annualInrMid ?? -1) > (best.annualInrMid ?? -1) ? a : best,
-  );
-}
-
 export const actionTitle = (a: ActionItem, t: TFunction) =>
   t(`actions.name.${a.code}`, { defaultValue: a.title });
 

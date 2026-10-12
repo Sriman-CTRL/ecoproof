@@ -16,7 +16,7 @@ import { Skeleton } from '../components/kit/Skeleton';
 import { StatusPill } from '../components/kit/StatusPill';
 import { ErrorBox, monthLabel, Page } from '../components/ui';
 import { api, type Finding, type Insights } from '../lib/api';
-import { topActionByRupees, useActions } from './Actions';
+import { useActions } from './Actions';
 import { formatDecimal } from '../lib/format';
 import { getSession } from '../lib/session';
 
@@ -73,7 +73,7 @@ export default function Health() {
   const d = q.data;
   const lang = i18n.resolvedLanguage ?? 'en';
   const findings = d ? [...d.findings].sort(biggestFirst) : [];
-  const topAction = topActionByRupees(useActions(month, true).data?.actions)?.code ?? null;
+  const topAction = useActions(month, true).data?.actions[0]?.code ?? null;
 
   return (
     <Page

@@ -14,7 +14,7 @@ import { YearStrip } from '../components/kit/YearStrip';
 import { MonthLedger } from '../components/MonthLedger';
 import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
-import { actionTitle, topActionByRupees, useActions } from './Actions';
+import { actionTitle, useActions } from './Actions';
 import { useInsights } from './Health';
 import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
@@ -60,7 +60,8 @@ export default function Home() {
   const topMonth = top?.month ?? null;
   const insights = useInsights(topMonth, null, { waitForMonth: true });
   const actions = useActions(topMonth, true, topMonth != null);
-  const next = topActionByRupees(actions.data?.actions);
+  // The API's order is the only order (Doc 02 ACT-1): its #1 is the top action.
+  const next = actions.data?.actions[0];
   const card = insights.data?.insightCard;
   const lang = i18n.resolvedLanguage ?? 'en';
   const resume = latestDoc.data;

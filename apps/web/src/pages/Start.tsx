@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { RupeeHero } from '../components/kit/RupeeHero';
 import { SkeletonBlock } from '../components/kit/Skeleton';
 import { YearStrip } from '../components/kit/YearStrip';
-import { ErrorBox, Page, yearMonths } from '../components/ui';
+import { ErrorBox, monthLabel, Page, yearMonths } from '../components/ui';
 import { api, postJson, type Insights, type MonthRow } from '../lib/api';
 import { describeError } from '../lib/errors';
 import { setSession } from '../lib/session';
@@ -33,6 +33,7 @@ function useDemoPreview(demo: 'A' | 'B') {
       return {
         months,
         atStake: insights?.atStake.inrPerMonth ?? null,
+        atStakeMonth: insights?.month ?? null,
         billTotal: months[0]?.rupees.total ?? null,
       };
     },
@@ -56,6 +57,10 @@ function Envelope({
   const preview = useDemoPreview(demo);
   const p = preview.data;
   const value = demo === 'A' ? p?.atStake : p?.billTotal;
+  // The figure is for one bill: say which, so it does not seem to contradict the result screen.
+  const lang = i18n.resolvedLanguage ?? 'en';
+  const billMonth = demo === 'A' ? p?.atStakeMonth : p?.months[0]?.month;
+  const month = billMonth ? monthLabel(billMonth, lang) : '';
   return (
     <div className="relative space-y-3 rounded-card border-2 border-green-700 bg-surface p-4 shadow-card">
       <div>
@@ -81,10 +86,10 @@ function Envelope({
           <RupeeHero
             size="mini"
             value={Math.round(value)}
-            label={t(demo === 'A' ? 'start.previewAtStake' : 'start.previewBill')}
+            label={t(demo === 'A' ? 'start.previewAtStake' : 'start.previewBill', { month })}
           />
         )}
-        {p && <YearStrip months={yearMonths(p.months, i18n.resolvedLanguage ?? 'en')} />}
+        {p && <YearStrip months={yearMonths(p.months, lang)} />}
       </div>
     </div>
   );
