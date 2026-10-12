@@ -4,8 +4,11 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import { Page } from './components/ui';
 import { api } from './lib/api';
 import { getSession } from './lib/session';
+import ActionDetail from './pages/ActionDetail';
+import Actions from './pages/Actions';
 import Confirm from './pages/Confirm';
 import Consent from './pages/Consent';
+import Health from './pages/Health';
 import Home from './pages/Home';
 import NewBill from './pages/NewBill';
 import Results from './pages/Results';
@@ -55,6 +58,9 @@ export default function App() {
             <Route path="/bills/new" element={<NewBill />} />
             <Route path="/bills/:documentId/confirm" element={<Confirm />} />
             <Route path="/results/:resultId" element={<Results />} />
+            <Route path="/health" element={<Health />} />
+            <Route path="/actions" element={<Actions />} />
+            <Route path="/actions/:code" element={<ActionDetail />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/home" replace />} />

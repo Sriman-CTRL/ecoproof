@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
 import { api, ApiError, type Explain, type MonthRow } from '../lib/api';
 import { formatDecimal, formatNumber } from '../lib/format';
+import { useInsights } from './Health';
 import { getSession } from '../lib/session';
 
 const BADGE: Record<string, string> = {
@@ -32,6 +33,8 @@ export default function Results() {
     queryKey: ['months', siteId],
     queryFn: () => api<MonthRow[]>(`/sites/${siteId}/months`),
   });
+  const insights = useInsights(explain.data?.month ?? null);
+  const atStake = (insights.data?.findings ?? []).reduce((t, f) => t + (f.inrPerMonth ?? 0), 0);
   const row = months.data?.find((m) => m.resultId === resultId);
   const ex = explain.data;
   const kwh = ex?.inputs.find((i) => i.kind === 'kwh');
@@ -42,8 +45,13 @@ export default function Results() {
   return (
     <Page
       action={
-        <button type="button" className={PRIMARY} onClick={() => navigate('/home')}>
-          {t('results.backHome')}
+        <button
+          type="button"
+          className={PRIMARY}
+          disabled={!ex}
+          onClick={() => navigate(`/health?month=${ex?.month.slice(0, 7)}`)}
+        >
+          {t('results.seeHealth')}
         </button>
       }
     >
@@ -121,10 +129,29 @@ export default function Results() {
             {whyOpen && <Why ex={ex} />}
           </section>
 
-          <section className="rounded-2xl border-2 border-dashed border-gray-300 p-4">
-            <p className="font-semibold">{t('results.healthPlaceholder')}</p>
-            <p className="text-sm text-gray-600">{t('results.healthPlaceholderBody')}</p>
+          <section className="space-y-1 rounded-2xl bg-white p-5 shadow-sm">
+            <h2 className="font-semibold">{t('results.healthTitle')}</h2>
+            {insights.data && (
+              <>
+                <p className="text-3xl font-bold">
+                  <SourceNumber source={t('results.healthSource')}>
+                    <Rupees value={atStake} />
+                  </SourceNumber>{' '}
+                  <span className="text-base font-normal text-gray-600">
+                    {t('health.perMonth')}
+                  </span>
+                </p>
+                <p className="text-gray-700">
+                  {t('results.healthCount', { count: insights.data.findings.length })}
+                </p>
+              </>
+            )}
+            {insights.isLoading && <p>{t('common.loading')}</p>}
           </section>
+
+          <Link to="/home" className="flex min-h-12 items-center justify-center underline">
+            {t('results.backHome')}
+          </Link>
         </>
       )}
     </Page>

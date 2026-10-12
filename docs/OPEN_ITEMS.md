@@ -48,6 +48,13 @@ Values that are not in the source docs are left null in the seed data and tracke
 - [ ] `apps/web/src/locales/te.json` is machine-drafted: needs native speaker review (Doc 07 gate).
 - [ ] `apps/web/src/locales/hi.json` has only placeholder keys; the web app falls back to English for Hindi until it is written and reviewed.
 
+## Bill health and insight card
+
+- [ ] Peak-share flag threshold (20%) is Doc 03 text, now stored as `peak_flag_above_pct` in the TGSPDCL HT-I(A) `tod` rule; confirm against the tariff order.
+- [ ] No diesel price in the data, so the insight card cannot value the diesel driver in rupees; it is named as the driver only when no rupee driver exists.
+- [ ] Baseline acceptance limits (CV(RMSE) 15%, NMBE 5%, 9 months) are set in `apps/api/src/services/insights.ts`; move them to a versioned table.
+- [ ] Capex cost range for `fix_power_factor` (capacitor bank) is null: shown as "cost pending: get a quote".
+
 ## Doc conflicts - see handover review
 
 _Placeholder for the 8 doc conflicts. To be filled from the handover review._

@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/error.js';
 import { authRouter } from './routes/auth.js';
 import { consentsRouter } from './routes/consents.js';
 import { documentsRouter } from './routes/documents.js';
+import { insightsRouter } from './routes/insights.js';
 import { resultsRouter } from './routes/results.js';
 import { sitesRouter } from './routes/sites.js';
 
@@ -22,7 +23,7 @@ export function createApp() {
     res.json({ status: 'ok', version: pkg.version });
   });
 
-  app.use(authRouter, consentsRouter, documentsRouter, sitesRouter, resultsRouter);
+  app.use(authRouter, consentsRouter, documentsRouter, sitesRouter, resultsRouter, insightsRouter);
   app.use(errorHandler);
   return app;
 }

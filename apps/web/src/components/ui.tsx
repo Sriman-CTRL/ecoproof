@@ -139,3 +139,21 @@ export function monthLabel(iso: string, lang: string): string {
     timeZone: 'UTC',
   }).format(d);
 }
+
+/** "Cost pending: get a quote" when a cost range is not known (never an invented number). */
+export function CostText({ low, high }: { low: number | null; high: number | null }) {
+  const { t } = useTranslation();
+  if (low == null || high == null) return <>{t('actions.costPending')}</>;
+  if (low === 0 && high === 0) return <>{t('actions.costZero')}</>;
+  return (
+    <>
+      {low === high ? (
+        <Rupees value={low} />
+      ) : (
+        <>
+          <Rupees value={low} /> - <Rupees value={high} />
+        </>
+      )}
+    </>
+  );
+}

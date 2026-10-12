@@ -105,6 +105,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@ecoproof/calc':
+        specifier: workspace:*
+        version: link:../../packages/calc
       '@ecoproof/shared':
         specifier: workspace:*
         version: link:../../packages/shared

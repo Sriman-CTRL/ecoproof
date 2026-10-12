@@ -17,7 +17,8 @@
       "peak_windows": ["06:00-10:00", "18:00-22:00"],
       "peak_surcharge_inr_per_kwh": 1.5,
       "solar_window": "10:00-18:00",
-      "solar_rebate_inr_per_kwh": 0.5
+      "solar_rebate_inr_per_kwh": 0.5,
+      "peak_flag_above_pct": 20
     },
     "source": "Mercom, FY 2026-27",
     "valid_from": "2026-04-01",

@@ -1,6 +1,11 @@
 {
-  "app": { "title": "EcoProof", "tagline": "Energy and carbon pre-assessment for MSMEs" },
-  "language": { "label": "Language" },
+  "app": {
+    "title": "EcoProof",
+    "tagline": "Energy and carbon pre-assessment for MSMEs"
+  },
+  "language": {
+    "label": "Language"
+  },
   "common": {
     "sampleBadge": "Sample data",
     "switchDemo": "Switch sample",
@@ -53,7 +58,17 @@
     "resume": "Continue your last bill",
     "noCarbon": "Carbon not calculated yet",
     "loadFailed": "We could not load your months. Check your internet and try again.",
-    "sourceBill": "Taken from your confirmed bill for {{month}}."
+    "sourceBill": "Taken from your confirmed bill for {{month}}.",
+    "nextAction": "Your next action",
+    "insight": "Your bill is {{inr}} {{direction}} than the same month last year ({{kwh}} units, {{co2}} {{co2Label}}). Largest driver: {{driver}}.",
+    "higher": "higher",
+    "lower": "lower",
+    "driver": {
+      "production": "production change",
+      "power_factor": "power factor",
+      "peak_use": "peak-hour share",
+      "diesel": "diesel use"
+    }
   },
   "bills": {
     "newTitle": "Add a bill",
@@ -102,20 +117,62 @@
     }
   },
   "fields": {
-    "consumerNo": { "label": "Consumer number", "unit": "" },
-    "billNo": { "label": "Bill number", "unit": "" },
-    "periodStart": { "label": "Bill period start", "unit": "" },
-    "periodEnd": { "label": "Bill period end", "unit": "" },
-    "kwh": { "label": "Units used (kWh)", "unit": "kWh" },
-    "kvah": { "label": "Apparent units (kVAh)", "unit": "kVAh" },
-    "pf": { "label": "Power factor", "unit": "" },
-    "mdKva": { "label": "Maximum demand", "unit": "kVA" },
-    "contractedDemandKva": { "label": "Contracted demand", "unit": "kVA" },
-    "peakKwh": { "label": "Peak-hour units", "unit": "kWh" },
-    "energyCharges": { "label": "Energy charges", "unit": "Rs" },
-    "demandCharges": { "label": "Demand charges", "unit": "Rs" },
-    "otherCharges": { "label": "Other charges", "unit": "Rs" },
-    "total": { "label": "Bill total", "unit": "Rs" }
+    "consumerNo": {
+      "label": "Consumer number",
+      "unit": ""
+    },
+    "billNo": {
+      "label": "Bill number",
+      "unit": ""
+    },
+    "periodStart": {
+      "label": "Bill period start",
+      "unit": ""
+    },
+    "periodEnd": {
+      "label": "Bill period end",
+      "unit": ""
+    },
+    "kwh": {
+      "label": "Units used (kWh)",
+      "unit": "kWh"
+    },
+    "kvah": {
+      "label": "Apparent units (kVAh)",
+      "unit": "kVAh"
+    },
+    "pf": {
+      "label": "Power factor",
+      "unit": ""
+    },
+    "mdKva": {
+      "label": "Maximum demand",
+      "unit": "kVA"
+    },
+    "contractedDemandKva": {
+      "label": "Contracted demand",
+      "unit": "kVA"
+    },
+    "peakKwh": {
+      "label": "Peak-hour units",
+      "unit": "kWh"
+    },
+    "energyCharges": {
+      "label": "Energy charges",
+      "unit": "Rs"
+    },
+    "demandCharges": {
+      "label": "Demand charges",
+      "unit": "Rs"
+    },
+    "otherCharges": {
+      "label": "Other charges",
+      "unit": "Rs"
+    },
+    "total": {
+      "label": "Bill total",
+      "unit": "Rs"
+    }
   },
   "results": {
     "title": "Your numbers for {{month}}",
@@ -148,10 +205,115 @@
       "owner_entered": "you entered",
       "estimate": "estimate"
     },
-    "healthPlaceholder": "Bill health check: next",
-    "healthPlaceholderBody": "Coming in the next update.",
     "backHome": "Back to home",
     "loadFailed": "We could not load this result. Go back to Home and try again.",
-    "notFound": "This result was not found. Go back to Home."
+    "notFound": "This result was not found. Go back to Home.",
+    "seeHealth": "See bill health",
+    "healthTitle": "Bill health check",
+    "healthSource": "Sum of the flagged checks on this bill; tap See bill health for each one.",
+    "healthCount_one": "{{count}} finding on this bill",
+    "healthCount_other": "{{count}} findings on this bill"
+  },
+  "health": {
+    "title": "Bill health check: {{month}}",
+    "perMonth": "per month",
+    "noFindings": "No problems found on this bill.",
+    "passed": "Checks passed",
+    "passedLabel": {
+      "power_factor": "Power factor OK",
+      "peak_use": "Peak-hour use OK",
+      "contracted_demand": "Contracted demand OK",
+      "minimum_charges": "Minimum charges OK",
+      "lt_surcharges": "Surcharges OK"
+    },
+    "name": {
+      "power_factor": "Low power factor",
+      "peak_use": "Peak-hour use",
+      "contracted_demand": "Contracted demand too high",
+      "minimum_charges": "Paying minimum charges",
+      "lt_surcharges": "Surcharges on your bill"
+    },
+    "fix": {
+      "power_factor": "Fit or repair a capacitor bank (APFC panel) to bring power factor to 0.98 or above.",
+      "peak_use": "Move shiftable work out of 6-10 am and 6-10 pm into 10 am-6 pm.",
+      "contracted_demand": "Ask TGSPDCL to reduce contracted demand closer to your real maximum demand.",
+      "minimum_charges": "Your use is below the minimum billed units; check the contracted demand.",
+      "lt_surcharges": "Your bill carries a power factor or capacitor surcharge; fit a capacitor."
+    },
+    "enterUnits": "Enter the units you could move to see the saving",
+    "shiftable": "Units you could move to 10 am-6 pm",
+    "why": "Why?",
+    "rule": "Rule: {{line}} (valid from {{validFrom}})",
+    "ruleSource": "Source: {{source}}",
+    "unknown": "not stated",
+    "seePlan": "See your action plan",
+    "loadFailed": "We could not load the bill health check. Check your internet and try again.",
+    "key": {
+      "kwh": "Units used (kWh)",
+      "kvah": "Billed units (kVAh)",
+      "powerFactor": "Power factor",
+      "flagBelow": "Flagged below",
+      "lossKvah": "Extra billed units (kVAh)",
+      "energyRatePerKvah": "Energy rate from your bill (Rs per kVAh)",
+      "totalKwh": "Total units (kWh)",
+      "peakKwh": "Peak-hour units (kWh)",
+      "peakSharePct": "Peak-hour share (%)",
+      "flagAbovePct": "Flagged above (%)",
+      "peakSurchargeInrPerKwh": "Peak surcharge (Rs per kWh)",
+      "solarRebateInrPerKwh": "Day-time rebate (Rs per kWh)",
+      "shiftableKwh": "Units you could move (kWh)",
+      "contractedDemandKva": "Contracted demand (kVA)",
+      "maxMdKva12Months": "Highest demand in 12 months (kVA)",
+      "monthsBelowThreshold": "Months below 80% of contracted",
+      "monthsConsidered": "Months checked",
+      "flagIfMdBelowPctOfCd": "Flag if demand below (% of contracted)",
+      "flagMonths": "Months needed to flag",
+      "demandRatePerKva": "Demand rate from your bill (Rs per kVA)",
+      "billingDemandKva": "Billing demand (kVA)",
+      "kvahPerKvaPerMonth": "Minimum kVAh per kVA",
+      "minimumKvah": "Minimum billed units (kVAh)",
+      "actualKvah": "Actual billed units (kVAh)",
+      "gapKvah": "Shortfall (kVAh)"
+    }
+  },
+  "actions": {
+    "title": "Your action plan",
+    "zeroCost": "Zero-cost",
+    "perYear": "saved per year",
+    "cost": "Cost",
+    "costPending": "cost pending: get a quote",
+    "costZero": "Rs 0",
+    "payback": "Payback",
+    "years": "{{n}} years",
+    "savingPending": "Saving pending: enter units on the bill health screen",
+    "seeAll": "See all ({{n}})",
+    "openFirst": "Open the first action",
+    "none": "No actions for this bill yet.",
+    "loadFailed": "We could not load your actions. Check your internet and try again.",
+    "rankLabel": "How are these ranked?",
+    "rankNote": "Zero-cost actions first, then shortest payback, then most CO2 saved.",
+    "name": {
+      "fix_power_factor": "Fix power factor (capacitor bank)",
+      "shift_peak_use_to_solar_hours": "Shift work out of peak hours",
+      "reduce_contracted_demand": "Reduce contracted demand",
+      "avoid_minimum_charges": "Avoid minimum charges"
+    },
+    "savingPendingOther": "Saving pending: needs a quote and sector data"
+  },
+  "detail": {
+    "plan": "Plan this action",
+    "planned": "Planned",
+    "notFound": "This action was not found. Go back to your action plan.",
+    "noCo2": "This fix saves rupees on the bill, not kWh, so no CO2 saving is claimed.",
+    "emiTitle": "Loan instalment vs saving",
+    "loan": "Loan amount (Rs)",
+    "rate": "Annual interest rate (%)",
+    "rateHelp": "SIDBI green loans have been offered at 7.5-8.6% (Mercom)",
+    "tenure": "Tenure (months)",
+    "emi": "Monthly instalment (EMI)",
+    "savingLow": "Low-end monthly saving",
+    "difference": "Monthly difference",
+    "cashPositive": "Cash-positive from month 1",
+    "lenderNote": "Summary for the lender's own assessment"
   }
 }

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorBox, monthLabel, Page, PRIMARY, Rupees, SourceNumber } from '../components/ui';
 import { api, type MonthRow } from '../lib/api';
-import { formatDecimal, formatNumber } from '../lib/format';
+import { useActions, actionTitle } from './Actions';
+import { useInsights } from './Health';
+import { formatDecimal, formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
 
 interface LatestDoc {
@@ -37,6 +39,11 @@ export default function Home() {
 
   const list = months.data ?? [];
   const top = list[0];
+  const topMonth = top?.month ?? null;
+  const insights = useInsights(topMonth);
+  const actions = useActions(topMonth, false);
+  const next = actions.data?.actions[0];
+  const card = insights.data?.insightCard;
   const lang = i18n.resolvedLanguage ?? 'en';
   const resume = latestDoc.data;
   const resumeTo =
@@ -89,6 +96,35 @@ export default function Home() {
             <Co2Line m={top} />
           </p>
         </section>
+      )}
+
+      {next && (
+        <Link
+          to={`/actions/${next.code}?month=${topMonth?.slice(0, 7)}`}
+          className="block min-h-12 space-y-1 rounded-2xl border-2 border-emerald-700 bg-white p-5 shadow-sm"
+        >
+          <p className="text-sm font-medium text-gray-600">{t('home.nextAction')}</p>
+          <p className="font-semibold">{actionTitle(next, t)}</p>
+          {next.inrPerMonthLow != null && (
+            <p className="text-2xl font-bold">
+              <Rupees value={next.inrPerMonthLow} />{' '}
+              <span className="text-base font-normal text-gray-600">{t('health.perMonth')}</span>
+            </p>
+          )}
+        </Link>
+      )}
+
+      {card?.change && card.largestDriver && (
+        <p className="rounded-xl bg-white p-4 shadow-sm" data-testid="insight-sentence">
+          {t('home.insight', {
+            direction: t(card.change.inr! >= 0 ? 'home.higher' : 'home.lower'),
+            inr: formatInr(Math.abs(Math.round(card.change.inr ?? 0))),
+            kwh: formatNumber(Math.abs(Math.round(card.change.kwh ?? 0))),
+            co2: card.change.tCo2 == null ? '-' : formatDecimal(Math.abs(card.change.tCo2)),
+            co2Label: top?.co2?.label ?? '',
+            driver: t(`home.driver.${card.largestDriver}`),
+          })}
+        </p>
       )}
 
       {months.isSuccess && list.length === 0 && (

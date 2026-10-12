@@ -80,3 +80,61 @@ export interface Explain {
 }
 
 export type UploadResponse = { documentId: string; status: string };
+
+export interface RuleRef {
+  id: string;
+  source: string;
+  validFrom: string | null;
+  basisNote: string | null;
+  line: string;
+}
+
+export interface Finding {
+  code: string;
+  flagged: boolean;
+  inrPerMonth: number | null;
+  oneLineFix: string;
+  explain: Record<string, number | string | null>;
+  rule: RuleRef;
+  assumption?: string;
+}
+
+export interface InsightCard {
+  sentence: string | null;
+  comparedWith: string | null;
+  change: { inr: number | null; kwh: number | null; tCo2: number | null } | null;
+  largestDriver: 'production' | 'power_factor' | 'peak_use' | 'diesel' | null;
+  baseline: { method: string; diffPct: number } | null;
+}
+
+export interface Insights {
+  month: string;
+  findings: Finding[];
+  passed: Finding[];
+  skipped: Array<{ code: string; reason: string }>;
+  insightCard: InsightCard;
+}
+
+export interface ActionItem {
+  code: string;
+  title: string;
+  isZeroCost: boolean;
+  inrPerMonthLow: number | null;
+  inrPerMonthHigh: number | null;
+  annualInrMid: number | null;
+  costLow: number | null;
+  costHigh: number | null;
+  paybackYears: number | null;
+  co2TonnesPerYear: number | null;
+  co2Note: string | null;
+  /** Bill-health finding this action comes from; null for library rows without a bill-derived saving. */
+  finding: string | null;
+  source: string;
+  status: string;
+}
+
+export interface ActionsResponse {
+  month: string;
+  total: number;
+  actions: ActionItem[];
+}
