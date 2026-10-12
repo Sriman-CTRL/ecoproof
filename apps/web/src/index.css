@@ -97,6 +97,13 @@
     line-height: var(--text-body--line-height);
   }
 
+  /* iPhone Safari zooms the page when a focused field is under 16px. */
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 1em);
+  }
+
   h1,
   h2,
   h3 {

@@ -1,0 +1,14 @@
+{
+  "name": "EcoProof",
+  "short_name": "EcoProof",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#1B6440",
+  "background_color": "#F7F5EF",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

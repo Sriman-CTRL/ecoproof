@@ -1,5 +1,8 @@
 import { getSession, setSession } from './session';
 
+/** The Render API in production (set at build time); the Vite dev proxy otherwise. */
+export const API_BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -20,7 +23,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   let res: Response;
   try {
-    res = await fetch(`/api${path}`, { ...init, headers });
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   } catch {
     throw new ApiError(0, 'NETWORK', 'Could not reach the server');
   }
@@ -46,7 +49,7 @@ export const postJson = <T>(path: string, data: unknown) =>
 export async function publicApi<T>(path: string): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`/api${path}`);
+    res = await fetch(`${API_BASE}${path}`);
   } catch {
     throw new ApiError(0, 'NETWORK', 'Could not reach the server');
   }

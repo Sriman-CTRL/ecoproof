@@ -1,0 +1,33 @@
+# Render Blueprint: EcoProof API on the free plan. Secrets are filled in the Render dashboard (sync: false).
+services:
+  - type: web
+    name: ecoproof-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # The public site never sends real bills to Gemini: uploads read the sample bill.
+      - key: DOCUMENT_READER
+        value: fake
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false
+      - key: PUBLIC_WEB_URL
+        sync: false

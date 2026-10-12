@@ -10,6 +10,7 @@ const Env = z.object({
   DOCUMENT_READER: z.enum(['gemini', 'fake']).optional(),
   JWT_SECRET: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(4000),
+  /** Comma-separated web origins allowed by CORS (the Vercel URL); localhost dev is always allowed. */
   WEB_ORIGIN: z.string().min(1).default('http://localhost:5173'),
   /** Base URL printed in report QR codes and share links. */
   PUBLIC_WEB_URL: z.string().min(1).default('http://localhost:5173'),
@@ -32,7 +33,13 @@ function load() {
       'Invalid environment, check: GEMINI_API_KEY (required when DOCUMENT_READER=gemini)',
     );
   }
-  return { ...env, DOCUMENT_READER };
+  const WEB_ORIGINS = [
+    ...new Set([
+      ...env.WEB_ORIGIN.split(',').map((o) => o.trim().replace(/\/$/, '')),
+      'http://localhost:5173',
+    ]),
+  ].filter(Boolean);
+  return { ...env, DOCUMENT_READER, WEB_ORIGINS };
 }
 
 export const config = load();

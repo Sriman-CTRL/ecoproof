@@ -26,6 +26,9 @@ importers:
       prettier:
         specifier: ^3.6.0
         version: 3.9.10
+      tsx:
+        specifier: ^4.20.0
+        version: 4.23.15
       typescript:
         specifier: ~5.9.0
         version: 5.9.3
@@ -214,6 +217,9 @@ importers:
 
   packages/calc:
     devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
       vitest:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@24.19.2)(jiti@2.7.0)(jsdom@30.1.2(@noble/hashes@1.8.0))(lightningcss@1.32.0)(tsx@4.23.15)
@@ -223,6 +229,10 @@ importers:
       zod:
         specifier: ^4.1.0
         version: 4.6.6
+    devDependencies:
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
 
 packages:
 

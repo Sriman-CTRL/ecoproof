@@ -4,8 +4,10 @@
     "noEmit": false,
     "outDir": "dist",
     "rootDir": "src",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    // Bundler resolution follows the workspace packages' TS sources for types; the API's own
+    // imports carry .js extensions, so the emitted ESM runs on Node as is.
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   },
   "include": ["src"]
 }

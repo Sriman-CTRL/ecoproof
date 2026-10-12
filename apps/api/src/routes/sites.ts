@@ -1,7 +1,8 @@
+import { netBilledUnits } from '@ecoproof/calc';
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
-import { billParts } from '../services/domesticTariff.js';
+import { billParts, loadDomesticTariff } from '../services/domesticTariff.js';
 import { computeProgress } from '../services/progress.js';
 import { computeSavings } from '../services/savings.js';
 import { computeSchemes } from '../services/schemes.js';
@@ -56,6 +57,7 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
   ]);
   const byMonth = new Map(results.map((r) => [r.month.getTime(), r]));
   const household = org?.type === 'household';
+  const netMetering = household ? (await loadDomesticTariff()).tariff.netMetering : null;
   res.json(
     months.map((m) => {
       const r = byMonth.get(m.periodStart.getTime());
@@ -84,8 +86,8 @@ sitesRouter.get('/sites/:siteId/months', requireAuth, async (req, res) => {
         ...(household
           ? {
               exportKwh: n(m.exportKwh),
-              // Units the DISCOM bills: import minus export, never below zero (TGERC para 3.30.4).
-              billedKwh: Math.max((n(m.kwh) ?? 0) - (n(m.exportKwh) ?? 0), 0),
+              // Units the DISCOM bills, by the stored net-metering rule (TGERC para 3.30.4).
+              billedKwh: netBilledUnits(n(m.kwh) ?? 0, n(m.exportKwh), netMetering!),
               solarInstalledKwp: n(m.solarInstalledKwp),
             }
           : { intensity: n(r?.intensity) }),

@@ -18,11 +18,12 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url),
 
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: config.WEB_ORIGIN }));
+  app.use(cors({ origin: config.WEB_ORIGINS }));
   app.use(express.json());
 
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', version: pkg.version });
+    // No DB call: a cheap warm-up ping. `reader` tells the web whether uploads are read for real.
+    res.json({ status: 'ok', version: pkg.version, reader: config.DOCUMENT_READER });
   });
 
   app.use(

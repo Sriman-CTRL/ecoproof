@@ -9,6 +9,7 @@ import { BUTTON_CLASS, Button } from '../components/kit/Button';
 import { JargonChip, type JargonTerm } from '../components/kit/JargonChip';
 import { Skeleton } from '../components/kit/Skeleton';
 import { StickyPrimaryBar } from '../components/kit/StickyPrimaryBar';
+import { DemoReaderBanner } from '../components/DemoReaderBanner';
 import { ErrorBox, Page } from '../components/ui';
 import { ApiError, api, postJson, type DocumentView } from '../lib/api';
 import { describeError } from '../lib/errors';
@@ -165,6 +166,7 @@ export function ConfirmForm({ documentId, doc }: { documentId: string; doc: Docu
 
       <section className="space-y-3">
         <h1 className="font-heading text-title font-semibold">{t('confirm.title')}</h1>
+        <DemoReaderBanner />
         <p className="text-small text-ink-muted">{t('confirm.help')}</p>
 
         {errors.length > 0 && (

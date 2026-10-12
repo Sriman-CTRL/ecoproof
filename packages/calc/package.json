@@ -5,11 +5,20 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "ecoproof-dist": "./dist/index.js",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/index.js",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "devDependencies": {
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "esbuild": "0.28.2"
   }
 }

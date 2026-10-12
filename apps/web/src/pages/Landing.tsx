@@ -501,11 +501,18 @@ function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="bg-green-900 text-green-200" style={{ backgroundImage: GRAIN }}>
-      <div className={`${WRAP} space-y-1 py-8 text-small`}>
-        <p className="font-semibold text-white">{t('landing.footer.sdg')}</p>
-        <p>{t('landing.footer.team')}</p>
-        <p>{t('landing.footer.proto')}</p>
-        <p>{t('landing.footer.note')}</p>
+      <div className={`${WRAP} flex items-center justify-between gap-6 py-8 text-small`}>
+        <div className="space-y-1">
+          <p className="font-semibold text-white">{t('landing.footer.sdg')}</p>
+          <p>{t('landing.footer.team')}</p>
+          <p>{t('landing.footer.proto')}</p>
+          <p>{t('landing.footer.note')}</p>
+        </div>
+        {/* Desktop only: a judge scans it from the projected screen to open the live site. */}
+        <div data-testid="footer-qr" className="hidden flex-col items-center gap-2 md:flex">
+          <Qr url={window.location.origin} alt={t('landing.footer.qrAlt')} />
+          <p className="max-w-44 text-center">{t('landing.footer.qr')}</p>
+        </div>
       </div>
     </footer>
   );

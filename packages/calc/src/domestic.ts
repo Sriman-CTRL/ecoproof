@@ -15,7 +15,12 @@ export interface DomesticTariff {
   fixed: { rateInrPerKw: number; aboveUnits: number; rateAboveInrPerKw: number };
   /** Customer charge by the home's total monthly units. */
   customer: { upToUnits: number | null; inrPerMonth: number }[];
+  /** How a net-metered home's billed units are found (tariff_rules `domestic_net_metering`). */
+  netMetering: { billedOn: NetMeteringBasis };
 }
+
+/** The only basis the FY 2026-27 order gives (para 3.30.4): import minus export for the month. */
+export type NetMeteringBasis = 'import_minus_export';
 
 export interface DomesticBillInput {
   /** Billed units for the month. For a net-metered home: max(import - export, 0). */
@@ -107,6 +112,17 @@ export function domesticBill(input: DomesticBillInput): DomesticBillResult {
   };
 }
 
-/** Billed units for a net-metered home (R9, TGERC order para 3.30.4): import minus export, floor 0. */
-export const netBilledUnits = (importKwh: number, exportKwh: number | null): number =>
-  Math.max(importKwh - (exportKwh ?? 0), 0);
+/**
+ * Billed units for a net-metered home, by the stored net-metering rule (R9, TGERC order para
+ * 3.30.4): import minus export, floor 0. Excess export is not valued (rate not in the order).
+ */
+export function netBilledUnits(
+  importKwh: number,
+  exportKwh: number | null,
+  rule: DomesticTariff['netMetering'],
+): number {
+  if (rule.billedOn !== 'import_minus_export') {
+    throw new InvalidInputError(`Unsupported net-metering basis: ${String(rule.billedOn)}`);
+  }
+  return Math.max(importKwh - (exportKwh ?? 0), 0);
+}

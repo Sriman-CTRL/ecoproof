@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "screens": "tsx scripts/screens.ts",
-    "kit": "tsx scripts/kit.ts"
+    "kit": "tsx scripts/kit.ts",
+    "icons": "tsx scripts/icons.ts"
   },
   "dependencies": {
     "@ecoproof/calc": "workspace:*",

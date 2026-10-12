@@ -7,6 +7,7 @@ import { ChatCircle } from '@phosphor-icons/react/dist/csr/ChatCircle';
 import { FileArrowUp } from '@phosphor-icons/react/dist/csr/FileArrowUp';
 import { BUTTON_CLASS, Button } from '../components/kit/Button';
 import { Card } from '../components/kit/Card';
+import { DemoReaderBanner } from '../components/DemoReaderBanner';
 import { ErrorBox, Page } from '../components/ui';
 import { ApiError, api, postJson, type DocumentView, type UploadResponse } from '../lib/api';
 import { describeError } from '../lib/errors';
@@ -135,8 +136,7 @@ export default function NewBill() {
             <input
               type="file"
               className="sr-only"
-              accept="image/*"
-              capture="environment"
+              accept="image/*,application/pdf"
               data-testid="bill-file"
               onChange={pick}
             />
@@ -145,6 +145,7 @@ export default function NewBill() {
       }
     >
       <h1 className="font-heading text-title font-semibold">{t('bills.newTitle')}</h1>
+      <DemoReaderBanner />
       {busy ? (
         <Card className="space-y-3 text-center" role="status">
           {preview && (
@@ -176,8 +177,7 @@ export default function NewBill() {
             <input
               type="file"
               className="sr-only"
-              accept="image/*"
-              capture="environment"
+              accept="image/*,application/pdf"
               onChange={pick}
             />
           </label>

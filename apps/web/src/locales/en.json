@@ -137,7 +137,8 @@
     "chooseFile": "Choose file",
     "photoHelp": "Hold the phone steady in good light and keep the whole bill in the picture.",
     "scanAlt": "Your bill photo while it is being read",
-    "blurry": "Photo is blurry. Retake in good light."
+    "blurry": "Photo is blurry. Retake in good light.",
+    "demoReader": "Demo mode: this reads the sample bill, not your photo. Live bill reading is switched off on the public site to protect real bills."
   },
   "confirm": {
     "title": "Check your bill",
@@ -688,7 +689,9 @@
       "sdg": "SDG 13 Climate Action",
       "team": "Team EcoProof, CBIT Hyderabad",
       "proto": "Prototype for an ideathon",
-      "note": "Energy and carbon pre-assessment. Not an energy audit."
+      "note": "Energy and carbon pre-assessment. Not an energy audit.",
+      "qr": "Scan to open EcoProof on your phone",
+      "qrAlt": "EcoProof website QR code"
     }
   },
   "progress": {

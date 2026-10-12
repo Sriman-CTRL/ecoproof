@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { Prisma, PrismaClient, type Factor as FactorRow } from '@prisma/client';
+import { Prisma, type Factor as FactorRow } from '@prisma/client';
 import {
   domesticBill,
   netBilledUnits,
@@ -26,6 +26,7 @@ import {
   USER_B,
   USER_H,
 } from '../../src/demo/ids.js';
+import { prisma } from '../../src/db.js';
 import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
 import { DOMESTIC_PRICING_LABEL, loadDomesticTariff } from '../../src/services/domesticTariff.js';
 import { createLoanPack } from '../../src/reports/loanPack.js';
@@ -33,8 +34,6 @@ import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
 // ---- fixed demo identifiers (the only rows --reset may delete are those with these org ids)
 export { ORG_A, ORG_B, ORG_H, DEMO_ORG_IDS };
-
-const prisma = new PrismaClient();
 
 const A = JSON.parse(
   readFileSync(new URL('./assumptions.json', import.meta.url), 'utf8'),
@@ -458,7 +457,7 @@ async function seedHousehold() {
   const seedRow = async (m: (typeof rows)[number]) => {
     // TGERC order para 3.30.4: billed units and slab group use import minus export for the
     // month; excess export is settled at a rate we do not have, so it is not counted.
-    const billedKwh = netBilledUnits(m.importKwh, m.exportKwh);
+    const billedKwh = netBilledUnits(m.importKwh, m.exportKwh, tariff.netMetering);
     const bill = domesticBill({ units: billedKwh, sanctionedLoadKw: sanctionedKw, tariff });
     const emId = k(`em:${m.i}`);
     const emData = {

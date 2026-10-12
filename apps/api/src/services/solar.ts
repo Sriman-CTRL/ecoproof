@@ -4,6 +4,7 @@ import {
   pmSuryaGharCfa,
   rooftopBenchmarkCost,
   solarPlanSize,
+  type DomesticTariff,
 } from '@ecoproof/calc';
 import type { EnergyMonth, Site } from '@prisma/client';
 import { prisma } from '../db.js';
@@ -100,16 +101,19 @@ async function requireHousehold(site: Site) {
   if (org?.type !== 'household') throw notFound('Solar plan');
 }
 
-/** Units the DISCOM bills after netting import and export within the month (TGERC cl. 8.1.3). */
-const billedKwh = (m: EnergyMonth) => netBilledUnits(n(m.kwh) ?? 0, n(m.exportKwh));
+type NetMetering = DomesticTariff['netMetering'];
+
+/** Units the DISCOM bills after netting import and export within the month (stored LT-I rule). */
+const billedKwh = (m: EnergyMonth, nm: NetMetering) =>
+  netBilledUnits(n(m.kwh) ?? 0, n(m.exportKwh), nm);
 
 /**
  * Average Rs per kWh from the household's own bills: energy charges / billed units. Null when any
  * bill has no rupees.
  */
-function averageRate(months: EnergyMonth[]): number | null {
+function averageRate(months: EnergyMonth[], nm: NetMetering): number | null {
   if (!months.length || months.some((m) => m.energyCharges == null)) return null;
-  const kwh = months.reduce((t, m) => t + billedKwh(m), 0);
+  const kwh = months.reduce((t, m) => t + billedKwh(m, nm), 0);
   const inr = months.reduce((t, m) => t + Number(m.energyCharges), 0);
   return kwh > 0 ? inr / kwh : null;
 }
@@ -149,15 +153,16 @@ export async function computeSolarPlan(site: Site) {
   const plan = size(d.areaPerKwp.value);
   const conservative = size(d.areaPerKwpConservative.value);
 
-  const rate = averageRate(months);
   // Saving: for each before-solar month, the bill at its units less the bill at its units minus an
   // even share of the year's generation (even monthly generation is a simplification, OPEN_ITEMS).
   const { tariff, sources: tariffSources } = await loadDomesticTariff();
+  const nm = tariff.netMetering;
+  const rate = averageRate(months, nm);
   const genPerMonth = plan.annualGenKwh / 12;
   const bill = (units: number) =>
     domesticBill({ units, sanctionedLoadKw: sanctioned, tariff }).totalInr;
   const savingSum = months.reduce(
-    (t, m) => t + bill(billedKwh(m)) - bill(Math.max(billedKwh(m) - genPerMonth, 0)),
+    (t, m) => t + bill(billedKwh(m, nm)) - bill(Math.max(billedKwh(m, nm) - genPerMonth, 0)),
     0,
   );
   const benchmarkCostInr = rooftopBenchmarkCost(plan.kwp);
@@ -256,11 +261,13 @@ function omitValue<T extends { value: unknown }>(o: T): Omit<T, 'value' | 'maxKw
 export async function computeSolarResults(site: Site) {
   await requireHousehold(site);
   const where = { orgId: site.orgId, siteId: site.id };
-  const [months, results, ledger] = await Promise.all([
+  const [months, results, ledger, { tariff }] = await Promise.all([
     prisma.energyMonth.findMany({ where, orderBy: { periodStart: 'asc' } }),
     prisma.result.findMany({ where }),
     prisma.savingsLedger.findMany({ where }),
+    loadDomesticTariff(),
   ]);
+  const nm = tariff.netMetering;
   const after = months.filter((m) => m.solarInstalledKwp != null);
   const byStart = new Map(months.map((m) => [iso(m.periodStart), m]));
   const scope2 = new Map(results.map((r) => [iso(r.month), n(r.scope2)]));
@@ -279,9 +286,9 @@ export async function computeSolarResults(site: Site) {
       importKwh,
       exportKwh,
       netKwh: importKwh - exportKwh,
-      billedKwh: billedKwh(m),
+      billedKwh: billedKwh(m, nm),
       lastYearKwh: ly ? n(ly.kwh) : null,
-      savedKwh: ly ? (n(ly.kwh) ?? 0) - billedKwh(m) : null,
+      savedKwh: ly ? (n(ly.kwh) ?? 0) - billedKwh(m, nm) : null,
       billInr,
       lastYearBillInr,
       savedInr: billInr == null || lastYearBillInr == null ? null : r2(lastYearBillInr - billInr),

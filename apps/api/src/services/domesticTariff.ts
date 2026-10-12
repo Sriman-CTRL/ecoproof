@@ -59,6 +59,13 @@ export async function loadDomesticTariff(): Promise<{
     }),
   );
   const fx = p('domestic_fixed_charge');
+  // The stored rule says, in the order's words, what the bill nets; only import - export is known.
+  const billedUnits = p('domestic_net_metering').billed_units;
+  if (billedUnits !== 'import - export for the month') {
+    throw new Error(
+      `tariff_rules domestic_net_metering: unsupported billed_units ${String(billedUnits)}`,
+    );
+  }
   const customer = (
     p('domestic_customer_charge').bands as { up_to_units: Up; inr_per_month: number }[]
   ).map((b) => ({ upToUnits: b.up_to_units, inrPerMonth: b.inr_per_month }));
@@ -71,6 +78,7 @@ export async function loadDomesticTariff(): Promise<{
         rateAboveInrPerKw: fx.rate_above_inr_per_kw_month as number,
       },
       customer,
+      netMetering: { billedOn: 'import_minus_export' },
     },
     ruleIds: rows.map((r) => r.id).sort(),
     sources: RULES.map((t) => by.get(t)!).map((r) => ({

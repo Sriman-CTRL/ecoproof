@@ -1,4 +1,4 @@
-import { chromium, type Browser } from 'playwright';
+import { chromium } from 'playwright';
 
 export interface PdfOptions {
   /** Playwright footer HTML, repeated on every page (inline styles only). */
@@ -11,21 +11,22 @@ export interface PdfRenderer {
   close(): Promise<void>;
 }
 
-export class PlaywrightPdfRenderer implements PdfRenderer {
-  private browser: Promise<Browser> | null = null;
+/** Container-safe flags: no user namespaces for the sandbox, and a small /dev/shm. */
+const LAUNCH_ARGS = ['--no-sandbox', '--disable-dev-shm-usage'];
 
-  private launch(): Promise<Browser> {
-    this.browser ??= chromium.launch().catch((e: unknown) => {
-      this.browser = null;
-      throw e;
-    });
-    return this.browser;
-  }
+const mb = (bytes: number) => Math.round(bytes / 1024 / 1024);
+
+/**
+ * Launches Chromium for each PDF and closes it after, so an idle API holds no browser
+ * (the free host has 512 MB). PDFs are rare, so the launch cost is acceptable.
+ */
+export class PlaywrightPdfRenderer implements PdfRenderer {
+  private loggedMemory = false;
 
   async render(html: string, opts: PdfOptions): Promise<Buffer> {
-    const browser = await this.launch();
-    const page = await browser.newPage();
+    const browser = await chromium.launch({ args: LAUNCH_ARGS });
     try {
+      const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'load' });
       const pdf = await page.pdf({
         format: 'A4',
@@ -35,17 +36,21 @@ export class PlaywrightPdfRenderer implements PdfRenderer {
         footerTemplate: opts.footerTemplate,
         margin: { top: '16mm', right: '14mm', bottom: '26mm', left: '14mm' },
       });
+      if (!this.loggedMemory) {
+        this.loggedMemory = true;
+        const m = process.memoryUsage();
+        console.log(
+          `PDF render memory (API process, browser open): rss ${mb(m.rss)} MB, heap ${mb(m.heapUsed)} MB`,
+        );
+      }
       return Buffer.from(pdf);
     } finally {
-      await page.close();
+      await browser.close();
     }
   }
 
-  async close(): Promise<void> {
-    const b = this.browser;
-    this.browser = null;
-    if (b) await (await b).close();
-  }
+  /** Nothing to release: each render closes its own browser. */
+  async close(): Promise<void> {}
 }
 
 export const pdfRenderer: PdfRenderer = new PlaywrightPdfRenderer();

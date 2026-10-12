@@ -106,7 +106,7 @@ try {
     await lp.locator('#how').waitFor();
     await loadLazy(lp);
     await lp.getByTestId('money').waitFor();
-    await lp.locator('[role=img] svg').waitFor();
+    await lp.locator('[role=img] svg').first().waitFor();
     await shot(lp, name);
     await lp.close();
   }
@@ -124,9 +124,9 @@ try {
   await page.goto(`${WEB}/start`);
   await page.getByText('Sri Lakshmi Castings: before').waitFor();
   await page.getByText(/Sept? 2026 bill: a month at stake/).waitFor();
-  // S9: the third card is the sample home (units, no rupees until the R9 tariff).
+  // The third card is the sample home; since R9 it shows its LT-I bill total in rupees.
   await page.getByText('A home in Hyderabad (sample)').waitFor();
-  await page.getByText(/Sept? 2026 bill: 160 units/).waitFor();
+  await page.getByText(/Sept? 2026 bill: total/).waitFor();
   await shot(page, 'start');
 
   await page.getByText('Sri Lakshmi Castings: before').click();

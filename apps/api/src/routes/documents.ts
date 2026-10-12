@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { Router } from 'express';
 import multer from 'multer';
 import { ConfirmBody, ManualBody, POWER_BILL_FIELD_NAMES, PowerBillFields } from '@ecoproof/shared';
+import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { AppError } from '../errors.js';
 import { storage } from '../adapters/storage.js';
@@ -26,6 +28,21 @@ const upload = multer({
   },
 });
 
+/**
+ * Demo mode (fake reader, the public site): the uploaded photo never leaves the request. The
+ * sample bill is stored in its place, which is also what the fake reader returns. The hash of
+ * the upload is still kept so a repeat upload is recognised.
+ */
+let sampleBill: Buffer | null = null;
+const SAMPLE_BILL_MIME = 'image/png';
+function storedFile(file: Express.Multer.File): { bytes: Buffer; mime: string } {
+  if (config.DOCUMENT_READER !== 'fake') return { bytes: file.buffer, mime: file.mimetype };
+  sampleBill ??= readFileSync(
+    new URL('../../prisma/demo/bills/bill-2026-10-clean.png', import.meta.url),
+  );
+  return { bytes: sampleBill, mime: SAMPLE_BILL_MIME };
+}
+
 const sha256 = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -48,8 +65,9 @@ documentsRouter.post(
       res.status(200).json({ status: 'already_received', documentId: existing.id });
       return;
     }
-    const key = `${orgId}/${sha}.${MIME_EXT[req.file.mimetype]}`;
-    await storage.put(key, req.file.buffer, req.file.mimetype);
+    const stored = storedFile(req.file);
+    const key = `${orgId}/${sha}.${MIME_EXT[stored.mime]}`;
+    await storage.put(key, stored.bytes, stored.mime);
     const doc = await prisma.document.create({
       data: {
         orgId,

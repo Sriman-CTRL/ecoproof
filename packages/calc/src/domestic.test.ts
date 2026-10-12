@@ -42,6 +42,7 @@ const tariff: DomesticTariff = {
     { upToUnits: 800, inrPerMonth: 140 },
     { upToUnits: null, inrPerMonth: 160 },
   ],
+  netMetering: { billedOn: 'import_minus_export' },
 };
 const bill = (units: number, kw = 3) => domesticBill({ units, sanctionedLoadKw: kw, tariff });
 
@@ -91,8 +92,14 @@ describe('domesticBill', () => {
 
 describe('netBilledUnits', () => {
   it('is import minus export, never below zero', () => {
-    expect(netBilledUnits(210, 190)).toBe(20);
-    expect(netBilledUnits(160, 170)).toBe(0);
-    expect(netBilledUnits(300, null)).toBe(300);
+    const nm = tariff.netMetering;
+    expect(netBilledUnits(210, 190, nm)).toBe(20);
+    expect(netBilledUnits(160, 170, nm)).toBe(0);
+    expect(netBilledUnits(300, null, nm)).toBe(300);
+  });
+
+  it('refuses a net-metering basis it does not know', () => {
+    const rule = { billedOn: 'gross' } as unknown as DomesticTariff['netMetering'];
+    expect(() => netBilledUnits(210, 190, rule)).toThrow(/net-metering basis/);
   });
 });
