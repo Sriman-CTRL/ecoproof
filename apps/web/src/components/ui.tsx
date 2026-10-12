@@ -1,36 +1,41 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight';
 import { LANGUAGES } from '../i18n';
 import { formatInr, inrWords } from '../lib/format';
 import { getSession, setSession } from '../lib/session';
+import { BUTTON_CLASS } from './kit/Button';
+import { ErrorNote } from './kit/ErrorNote';
+import { SourceChip } from './kit/SourceChip';
+import { StickyPrimaryBar } from './kit/StickyPrimaryBar';
 
-export const PRIMARY =
-  'flex min-h-12 w-full items-center justify-center rounded-xl bg-emerald-700 px-4 text-base font-semibold text-white active:bg-emerald-800 disabled:bg-gray-300 disabled:text-gray-500';
+/** Kept for existing screens; the same look as the kit's primary Button. */
+export const PRIMARY = BUTTON_CLASS.primary;
 
 export function Header({ showBusiness = true }: { showBusiness?: boolean }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const session = getSession();
   return (
-    <header className="flex items-center justify-between gap-2 border-b bg-white px-4 py-3">
+    <header className="flex min-h-14 items-center justify-between gap-2 bg-green-900 px-4 py-2 text-white">
       <div className="min-w-0">
-        <Link to="/home" className="block text-base font-bold leading-tight">
+        <Link to="/home" className="block font-heading text-card-title font-semibold">
           {showBusiness && session ? session.orgName : t('app.title')}
         </Link>
         {session && showBusiness && (
-          <span className="mt-0.5 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+          <span className="mt-0.5 inline-block rounded-chip bg-copper-500 px-2 text-small font-semibold text-green-900">
             {t('common.sampleBadge')}
           </span>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <label className="sr-only" htmlFor="lang">
           {t('language.label')}
         </label>
         <select
           id="lang"
-          className="min-h-10 rounded-lg border px-2 text-sm"
+          className="min-h-12 rounded-button border border-green-200 bg-green-900 px-2 text-small text-white"
           value={i18n.resolvedLanguage}
           onChange={(e) => void i18n.changeLanguage(e.target.value)}
         >
@@ -43,13 +48,14 @@ export function Header({ showBusiness = true }: { showBusiness?: boolean }) {
         {session && (
           <button
             type="button"
-            className="min-h-10 rounded-lg border px-2 text-sm"
+            className="inline-flex min-h-12 items-center gap-1 rounded-button border border-green-200 px-2 text-small"
             onClick={() => {
               setSession(null);
               navigate('/start');
             }}
           >
-            ⇄ {t('common.switchDemo')}
+            <ArrowsLeftRight size={18} aria-hidden="true" />
+            {t('common.switchDemo')}
           </button>
         )}
       </div>
@@ -68,30 +74,20 @@ export function Page({
   showBusiness?: boolean;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col bg-gray-50">
+    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col bg-paper">
       <Header showBusiness={showBusiness} />
-      <main className="flex-1 space-y-4 p-4">{children}</main>
-      {action && (
-        <div className="sticky bottom-0 border-t bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          {action}
-        </div>
-      )}
+      <main className="flex-1 space-y-3 p-4">{children}</main>
+      {action && <StickyPrimaryBar>{action}</StickyPrimaryBar>}
     </div>
   );
 }
 
+/** Kept for existing screens: an ErrorNote with the message only. */
 export function ErrorBox({ children }: { children: ReactNode }) {
-  return (
-    <div
-      role="alert"
-      className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800"
-    >
-      {children}
-    </div>
-  );
+  return <ErrorNote what={children} />;
 }
 
-/** A number that can be tapped to see where it comes from (principle 4). */
+/** Kept for existing screens: a SourceChip whose sheet shows the given source line. */
 export function SourceNumber({
   children,
   source,
@@ -101,21 +97,10 @@ export function SourceNumber({
   source: string;
   className?: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const { t } = useTranslation();
   return (
-    <span className="inline-flex flex-col">
-      <button
-        type="button"
-        className={`text-left underline decoration-dotted underline-offset-4 ${className}`}
-        aria-expanded={open}
-        title={t('common.tapSource')}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {children}
-      </button>
-      {open && <span className="mt-1 text-xs font-normal text-gray-600">{source}</span>}
-    </span>
+    <SourceChip lineName={source} className={className}>
+      {children}
+    </SourceChip>
   );
 }
 
@@ -123,10 +108,10 @@ export function SourceNumber({
 export function Rupees({ value }: { value: number }) {
   const words = inrWords(value);
   return (
-    <>
+    <span className="num">
       {formatInr(value)}
-      {words && <span className="ml-1 text-[0.6em] font-normal text-gray-600">({words})</span>}
-    </>
+      {words && <span className="ml-1 text-[0.6em] font-normal text-ink-muted">({words})</span>}
+    </span>
   );
 }
 

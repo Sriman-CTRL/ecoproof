@@ -15,10 +15,16 @@ export const formatDecimal = (n: number): string => indian2.format(n);
 /** Rupee amount with Indian grouping, e.g. 60000 -> "₹60,000". */
 export const formatInr = (n: number): string => inr.format(n);
 
+/** Lakh/crore scale for amounts of Rs 1 lakh or more, e.g. 2500000 -> { amount: "25", unit: "lakh" }. */
+export function inrScale(n: number): { amount: string; unit: 'lakh' | 'crore' } | null {
+  const a = Math.abs(n);
+  if (a >= 1e7) return { amount: indian2.format(Math.round((n / 1e7) * 100) / 100), unit: 'crore' };
+  if (a >= 1e5) return { amount: indian2.format(Math.round((n / 1e5) * 100) / 100), unit: 'lakh' };
+  return null;
+}
+
 /** Words for amounts over Rs 1 lakh, e.g. 2500000 -> "25 lakh". Empty below 1 lakh. */
 export function inrWords(n: number): string {
-  const a = Math.abs(n);
-  if (a >= 1e7) return `${indian2.format(Math.round((n / 1e7) * 100) / 100)} crore`;
-  if (a >= 1e5) return `${indian2.format(Math.round((n / 1e5) * 100) / 100)} lakh`;
-  return '';
+  const s = inrScale(n);
+  return s ? `${s.amount} ${s.unit}` : '';
 }

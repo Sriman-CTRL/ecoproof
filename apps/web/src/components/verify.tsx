@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
+import { XCircle } from '@phosphor-icons/react/dist/csr/XCircle';
 import type { VerifyView } from '../lib/api';
 import { formatInr } from '../lib/format';
 import { Rupees } from './ui';
@@ -86,13 +88,21 @@ export function HashCheck({ expected }: { expected: string }) {
       />
       {busy && <p>{t('common.loading')}</p>}
       {result === 'match' && (
-        <p role="status" className="rounded-lg bg-emerald-100 p-3 font-semibold text-emerald-900">
-          ✓ {t('verify.match')}
+        <p
+          role="status"
+          className="flex items-start gap-2 rounded-card bg-green-50 p-3 font-semibold text-green-700"
+        >
+          <CheckCircle size={22} className="shrink-0" aria-hidden="true" />
+          {t('verify.match')}
         </p>
       )}
       {result === 'mismatch' && (
-        <p role="status" className="rounded-lg bg-red-100 p-3 font-semibold text-red-900">
-          ✗ {t('verify.mismatch')}
+        <p
+          role="status"
+          className="flex items-start gap-2 rounded-card bg-loss-50 p-3 font-semibold text-loss"
+        >
+          <XCircle size={22} className="shrink-0" aria-hidden="true" />
+          {t('verify.mismatch')}
         </p>
       )}
       <p className="break-all font-mono text-xs text-gray-500">SHA-256: {expected}</p>

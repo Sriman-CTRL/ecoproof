@@ -63,3 +63,7 @@ Values that are not in the source docs are left null in the seed data and tracke
 ## Doc conflicts - see handover review
 
 _Placeholder for the 8 doc conflicts. To be filled from the handover review._
+
+## UI
+
+- [ ] Source sheet (`SourceChip`) shows the whole bill image, not a crop around the value: extraction returns no field coordinates. Add coordinates to the extraction adapter to enable cropping.

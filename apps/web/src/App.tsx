@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Page } from './components/ui';
@@ -16,6 +17,9 @@ import Results from './pages/Results';
 import ShareView from './pages/ShareView';
 import Start from './pages/Start';
 import Verify from './pages/Verify';
+
+/** Design kit preview: dev server only, so it is dropped from the production build. */
+const DevKit = import.meta.env.DEV ? lazy(() => import('./pages/DevKit')) : null;
 
 /** Everything except /start and the public verify and share pages needs a demo login. */
 function RequireSession() {
@@ -54,6 +58,16 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/start" element={<Start />} />
+        {DevKit && (
+          <Route
+            path="/dev/kit"
+            element={
+              <Suspense fallback={null}>
+                <DevKit />
+              </Suspense>
+            }
+          />
+        )}
         {/* Public: no login, no consent gate (a lender scanning the QR code). */}
         <Route path="/verify/:reportId" element={<Verify />} />
         <Route path="/s/:token" element={<ShareView />} />

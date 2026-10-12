@@ -50,6 +50,27 @@ Open gaps live in `docs/OPEN_ITEMS.md`. Never invent a number, factor, tariff, r
 - Prisma bypasses Supabase RLS, so the API MUST filter by `org_id` on every query.
 - Deferred tables: purchases, buyer_requests, notifications. Report snapshots live in `report_snapshots`; share views in `share_views`.
 
+## UI rules
+
+Design plan: `docs/design/04-ui-design-plan.md`. Component kit: `apps/web/src/components/kit/` (preview at `/dev/kit` in dev).
+
+Guardrails (plan 6.3):
+
+- No streak counters that can be lost, no "You'll lose your progress!", no countdown timers, no fake urgency, no nagging beyond the 4-messages-a-month cap. A "12 months tracked" counter is fine because it never goes backwards.
+- No points or coins of any kind. Rupees are the points. No wallets, lucky draws, spin wheels or scratch cards.
+- No EcoProof document is called a certificate. ZED is the certificate we guide owners to. No ZED or government logos.
+- "Verified" only as "Verified by your bills", with the method note on the progress statement and savings screen.
+- No generic green labels and no tree or car equivalences without a sourced factor.
+- Partner offers are labelled "Partner offer" and never appear inside the ranked action list.
+- No inflated savings; every figure follows Doc 03 and shows its data quality.
+- No public rank without opt-in; bottom positions visible only to the unit itself.
+
+Fixed phrases (plan 7): "Energy and carbon pre-assessment", "Summary for the lender's own assessment", "Estimate, not verified", "Too early to confirm", "Likely eligible; confirm with the scheme office".
+
+Banned words (whole word, any case; enforced by `apps/web/src/locales/locales.test.ts`): audit, approved, sanctioned, eligible, certified, compliant, certificate, verified, green certified, eco-friendly, carbon neutral, sustainable unit, green factory.
+
+Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not an energy audit", "ZED certification", "ZED certificate".
+
 ## Data rules
 
 - Only sample, or consented and anonymised, bills on the Gemini free tier.

@@ -368,5 +368,103 @@
     "notFound": "No document with this report ID.",
     "expired": "This link has expired. Ask the business to share a new one.",
     "linkNotFound": "This link is not valid. Ask the business to share a new one."
+  },
+  "kit": {
+    "rupee": {
+      "words": "about ₹{{amount}} {{unit}}",
+      "lakh": "lakh",
+      "crore": "crore"
+    },
+    "stub": {
+      "perMonth": "a month"
+    },
+    "source": {
+      "title": "Where this number comes from",
+      "month": "Bill month: {{month}}",
+      "billImage": "Your bill",
+      "close": "Close"
+    },
+    "jargon": {
+      "open": "What is {{term}}?",
+      "kvah": {
+        "term": "kVAh",
+        "line": "kVAh: all the power your unit draws, including power that does no useful work. HT bills charge on this."
+      },
+      "powerFactor": {
+        "term": "power factor",
+        "line": "Power factor: how much of the power you pay for does useful work. When it is low, the DISCOM charges extra."
+      },
+      "maximumDemand": {
+        "term": "maximum demand",
+        "line": "Maximum demand: the highest load (kVA) your unit drew at one time in the bill month."
+      },
+      "contractedDemand": {
+        "term": "contracted demand",
+        "line": "Contracted demand: the load (kVA) you agreed with the DISCOM. You pay demand charges on it even if you use less."
+      },
+      "peakHours": {
+        "term": "peak hours",
+        "line": "Peak hours: times of day when each unit costs more under the time-of-day tariff."
+      }
+    },
+    "stamp": {
+      "verified": "Verified by your bills",
+      "early": "Too early to confirm",
+      "estimate": "Estimate, not verified"
+    },
+    "year": {
+      "count": "{{n}} of 12 months",
+      "toUnlock_one": "{{count}} more to unlock your savings baseline",
+      "toUnlock_other": "{{count}} more months to unlock your savings baseline",
+      "ready": "Savings baseline ready",
+      "confirmed": "bill confirmed",
+      "missing": "no bill yet"
+    },
+    "emi": {
+      "emi": "Loan EMI",
+      "saving": "Monthly saving",
+      "left": "{{amount}} left in your pocket every month",
+      "short": "{{amount}} short every month"
+    },
+    "quality": {
+      "label": "measured",
+      "check": "Check data",
+      "aria": "{{pct}}% of the data is measured"
+    },
+    "path": {
+      "stage": {
+        "measured": "Measured",
+        "baseline": "Baseline set",
+        "saving": "Saving",
+        "finance": "Finance-ready",
+        "buyer": "Buyer-ready"
+      },
+      "here": "You are here",
+      "reached": "reached",
+      "next": "Next: {{step}}"
+    },
+    "headroom": {
+      "found": "{{amount}} found",
+      "captured": "{{amount}} captured",
+      "table": "{{amount}} still on the table"
+    },
+    "demo": {
+      "title": "Design kit",
+      "note": "Developer preview. Sample data (synthetic), Demo A.",
+      "english": "English",
+      "telugu": "Telugu",
+      "atStake": "At stake on your bill every month",
+      "unitsLine": "{{units}} units (kWh) this month",
+      "co2Line": "{{tonnes}} t CO2 (grid)",
+      "pfFix": "Fix power factor",
+      "emptyTitle": "No bills yet",
+      "emptyBody": "Add your latest electricity bill to see where your money goes.",
+      "errorWhat": "We could not read this photo of your bill.",
+      "errorDo": "Take the photo again in good light, with the whole bill in view.",
+      "pillDone": "Done",
+      "pillCheck": "Please check",
+      "secondary": "See all months",
+      "danger": "Delete this bill"
+    }
   }
 }

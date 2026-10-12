@@ -1,1 +1,144 @@
 @import 'tailwindcss';
+
+/* Design tokens: docs/design/04-ui-design-plan.md 2.1, 2.2, 2.4. Light theme only (no dark mode in v1). */
+@theme {
+  --color-paper: #f7f5ef;
+  --color-surface: #ffffff;
+  --color-line: #e3e0d6;
+  --color-ink: #1a1f1c;
+  --color-ink-muted: #5b635e;
+  --color-green-50: #eef6f0;
+  --color-green-100: #d5eadb;
+  --color-green-200: #a9d3b5;
+  --color-green-600: #237a4b;
+  --color-green-700: #1b6440;
+  --color-green-900: #0e3524;
+  --color-copper-50: #fdf3e3;
+  --color-copper-500: #f2b25c;
+  --color-copper-700: #b45309;
+  --color-copper-800: #8a4a0b;
+  --color-loss: #b42318;
+  /* Error background tint: red means error/loss, copper means "please check"; never mix them. */
+  --color-loss-50: #fdecea;
+
+  --radius-card: 12px;
+  --radius-button: 10px;
+  --radius-chip: 999px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06);
+
+  --font-heading:
+    'Anek Latin Variable', 'Anek Telugu Variable', 'Anek Devanagari Variable', 'Noto Sans Variable',
+    'Noto Sans Telugu Variable', 'Noto Sans Devanagari Variable', sans-serif;
+  --font-body:
+    'Noto Sans Variable', 'Noto Sans Telugu Variable', 'Noto Sans Devanagari Variable', sans-serif;
+
+  /* Type scale in rem so it survives 130% text size. Never below 14px. */
+  --text-hero: 2.5rem;
+  --text-hero--line-height: 2.75rem;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.875rem;
+  --text-card-title: 1.125rem;
+  --text-card-title--line-height: 1.5rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  /* text-xs is lifted to the 14px floor so existing screens never go below it. */
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.25rem;
+
+  --animate-stamp-press: stamp-press 250ms ease-out;
+  --animate-tile-fill: tile-fill 250ms ease-out;
+
+  /*
+   * TRANSITION ALIASES (remove in D2 once screens use the token names).
+   * Existing screens hard-code Tailwind palette classes; these point them at the EcoProof palette.
+   * Copper is "please check"; red is error/loss. They must never look the same.
+   */
+  --color-emerald-50: var(--color-green-50);
+  --color-emerald-100: var(--color-green-100);
+  --color-emerald-700: var(--color-green-700);
+  --color-emerald-800: var(--color-green-900);
+  --color-emerald-900: var(--color-green-900);
+  --color-amber-50: var(--color-copper-50);
+  --color-amber-100: var(--color-copper-50);
+  --color-amber-400: var(--color-copper-700);
+  --color-amber-500: var(--color-copper-700);
+  --color-amber-700: var(--color-copper-700);
+  --color-amber-800: var(--color-copper-800);
+  --color-amber-900: var(--color-copper-800);
+  --color-red-50: var(--color-loss-50);
+  --color-red-100: var(--color-loss-50);
+  --color-red-300: var(--color-loss);
+  --color-red-700: var(--color-loss);
+  --color-red-800: var(--color-loss);
+  --color-red-900: var(--color-loss);
+  --color-gray-50: var(--color-paper);
+  --color-gray-100: var(--color-line);
+  --color-gray-300: var(--color-line);
+  --color-gray-500: var(--color-ink-muted);
+  --color-gray-600: var(--color-ink-muted);
+  --color-gray-700: var(--color-ink-muted);
+}
+
+@keyframes stamp-press {
+  from {
+    transform: scale(1.15) rotate(-6deg);
+    opacity: 0.4;
+  }
+  to {
+    transform: scale(1) rotate(-3deg);
+    opacity: 1;
+  }
+}
+
+@keyframes tile-fill {
+  from {
+    transform: scaleY(0.2);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-green-700);
+    outline-offset: 2px;
+  }
+}
+
+/* Money and units line up like a ledger. */
+@utility num {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

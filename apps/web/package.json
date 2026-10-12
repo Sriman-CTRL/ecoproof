@@ -8,11 +8,19 @@
     "build": "tsc -p tsconfig.json && vite build",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "screens": "tsx scripts/screens.ts"
+    "screens": "tsx scripts/screens.ts",
+    "kit": "tsx scripts/kit.ts"
   },
   "dependencies": {
     "@ecoproof/calc": "workspace:*",
     "@ecoproof/shared": "workspace:*",
+    "@fontsource-variable/anek-devanagari": "5.3.0",
+    "@fontsource-variable/anek-latin": "5.3.0",
+    "@fontsource-variable/anek-telugu": "5.3.0",
+    "@fontsource-variable/noto-sans": "5.3.0",
+    "@fontsource-variable/noto-sans-devanagari": "5.3.0",
+    "@fontsource-variable/noto-sans-telugu": "5.3.0",
+    "@phosphor-icons/react": "2.1.10",
     "@tanstack/react-query": "^5.104.2",
     "browser-image-compression": "^2.0.2",
     "i18next": "^25.5.0",

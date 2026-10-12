@@ -4,6 +4,7 @@ import en from '../locales/en.json';
 import hi from '../locales/hi.json';
 import te from '../locales/te.json';
 import { readStore, writeStore } from '../lib/session';
+import { applyLanguage } from './fonts';
 
 export const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -22,7 +23,12 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+applyLanguage(initial);
+
 // Switching language never changes stored data: it only remembers the choice on this device.
-i18n.on('languageChanged', (lng) => writeStore(LANG_KEY, lng));
+i18n.on('languageChanged', (lng) => {
+  writeStore(LANG_KEY, lng);
+  applyLanguage(lng);
+});
 
 export default i18n;
