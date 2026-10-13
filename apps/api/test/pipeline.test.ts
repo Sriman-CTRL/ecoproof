@@ -197,9 +197,9 @@ describe('bill pipeline', () => {
       .set(auth(tokenB))
       .send({
         fields: manualFields({
-          billNo: 'B-2027-04',
-          periodStart: '2027-04-01',
-          periodEnd: '2027-04-30',
+          billNo: 'B-2026-10',
+          periodStart: '2026-10-01',
+          periodEnd: '2026-10-31',
         }),
       });
     expect(m.status).toBe(201);

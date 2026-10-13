@@ -1,6 +1,6 @@
 // Smoke test for a deployed EcoProof: pnpm smoke <apiUrl> <webUrl>
 // Read-only: logs in as the demos and reads; never uploads or changes data.
-import { DEMO_REPORT_ID } from '../apps/api/src/demo/ids.js';
+import { DEMO_CARBON_STATEMENT_ID, DEMO_REPORT_ID } from '../apps/api/src/demo/ids.js';
 
 const [apiArg, webArg] = process.argv.slice(2);
 if (!apiArg || !webArg) {
@@ -86,9 +86,27 @@ await check('public verify (demo report)', async () => {
   await getJson(`${API}/public/reports/${DEMO_REPORT_ID}/verify`);
   return 'demo report';
 });
-for (const path of ['/', '/household/solar', '/verify/<demo report>']) {
+await check('public verify (pitch QR, Demo A)', async () => {
+  const r = await getJson<{ type: string; businessName: string; headline: { totalT: number } }>(
+    `${API}/public/reports/${DEMO_CARBON_STATEMENT_ID}/verify`,
+  );
+  if (r.type !== 'carbon_statement') throw new Error(`type ${r.type}`);
+  return `${r.businessName}, ${r.headline.totalT} t`;
+});
+await check('public sample (site figures)', async () => {
+  const r = await getJson<{
+    actions: Array<{ code: string; co2: { tPerYearLow: number; tPerYearHigh: number } | null }>;
+  }>(`${API}/public/sample`);
+  const igbt = r.actions.find((a) => a.code === 'igbt_furnace');
+  if (!igbt?.co2) throw new Error('no igbt_furnace CO2');
+  return `IGBT ${igbt.co2.tPerYearLow}-${igbt.co2.tPerYearHigh} t CO2/yr`;
+});
+for (const path of ['/', '/household/solar', '/verify/<demo report>', '/verify/<pitch qr>']) {
   await check(`web ${path}`, async () => {
-    const res = await fetch(`${WEB}${path.replace('<demo report>', DEMO_REPORT_ID)}`, {
+    const url = path
+      .replace('<demo report>', DEMO_REPORT_ID)
+      .replace('<pitch qr>', DEMO_CARBON_STATEMENT_ID);
+    const res = await fetch(`${WEB}${url}`, {
       signal: AbortSignal.timeout(60_000),
     });
     if (res.status !== 200) throw new Error(`status ${res.status}`);

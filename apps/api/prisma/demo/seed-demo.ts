@@ -14,6 +14,7 @@ import {
   type Baseline,
 } from '@ecoproof/calc';
 import {
+  DEMO_CARBON_STATEMENT_ID,
   DEMO_ORG_IDS,
   DEMO_REPORT_ID,
   ORG_A,
@@ -29,6 +30,7 @@ import {
 import { prisma } from '../../src/db.js';
 import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
 import { DOMESTIC_PRICING_LABEL, loadDomesticTariff } from '../../src/services/domesticTariff.js';
+import { createCarbonStatement } from '../../src/reports/carbonStatement.js';
 import { createLoanPack } from '../../src/reports/loanPack.js';
 import { pdfRenderer } from '../../src/reports/pdfRenderer.js';
 
@@ -58,8 +60,15 @@ function det(key: string): string {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const monthStart = (i: number) => new Date(Date.UTC(2025, 9 + i, 1)); // i=0 -> Oct 2025
-const monthEnd = (i: number) => new Date(Date.UTC(2025, 10 + i, 0));
+type Tag = 'A' | 'B';
+/**
+ * Demo A: i=0 -> Oct 2025, 12 bills to Sep 2026. Demo B runs 6 months earlier (i=0 -> Apr 2025,
+ * 18 bills to Sep 2026), so no demo bill falls after demo day (13 Oct 2026). Same values; row ids
+ * key on i, so they survive the shift.
+ */
+const SHIFT: Record<Tag, number> = { A: 0, B: -6 };
+const monthStart = (i: number, tag: Tag) => new Date(Date.UTC(2025, 9 + SHIFT[tag] + i, 1));
+const monthEnd = (i: number, tag: Tag) => new Date(Date.UTC(2025, 10 + SHIFT[tag] + i, 0));
 
 interface MonthRow {
   i: number;
@@ -113,7 +122,7 @@ async function seedOrg(opts: {
   withAfter: boolean;
 }) {
   const { orgId, siteId, userId, name, phone, rows } = opts;
-  const tag = orgId === ORG_A ? 'A' : 'B';
+  const tag: Tag = orgId === ORG_A ? 'A' : 'B';
   const k = (s: string) => det(`${tag}:${s}`);
   const cd = num('contractedDemandKva');
   const md = num('mdKva');
@@ -184,14 +193,14 @@ async function seedOrg(opts: {
   const rate = num('energyRatePerKvah');
   const resultsRows: Prisma.ResultUncheckedCreateInput[] = [];
   for (const m of rows) {
-    const start = monthStart(m.i);
+    const start = monthStart(m.i, tag);
     const energyCharges = r2(m.kvah * rate);
     const demandCharges = r2(billedMd * num('demandRatePerKva'));
     const emId = k(`em:${m.i}`);
     const emData = {
       orgId,
       siteId,
-      periodEnd: monthEnd(m.i),
+      periodEnd: monthEnd(m.i, tag),
       kwh: m.kwh,
       kvah: m.kvah,
       pf: m.pf,
@@ -209,7 +218,7 @@ async function seedOrg(opts: {
     };
     await prisma.energyMonth.upsert({
       where: { id: emId },
-      update: emData,
+      update: { periodStart: start, ...emData },
       create: { id: emId, periodStart: start, ...emData },
     });
     const fuelId = k(`fuel:${m.i}`);
@@ -237,7 +246,7 @@ async function seedOrg(opts: {
     };
     await prisma.productionMonth.upsert({
       where: { id: prodId },
-      update: prodData,
+      update: { month: start, ...prodData },
       create: { id: prodId, month: start, ...prodData },
     });
 
@@ -246,11 +255,11 @@ async function seedOrg(opts: {
       fuels: [
         {
           quantity: num('dieselLitresPerMonth'),
-          factor: await factorAt('diesel_litre', monthEnd(m.i)),
+          factor: await factorAt('diesel_litre', monthEnd(m.i, tag)),
         },
       ],
       outputTonnes: m.p,
-      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i)),
+      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i, tag)),
     });
     resultsRows.push({
       id: k(`result:${m.i}`),
@@ -267,9 +276,8 @@ async function seedOrg(opts: {
     });
   }
   for (const r of resultsRows) {
-    const { id, month, ...rest } = r;
+    const { id, ...rest } = r;
     await prisma.result.upsert({ where: { id: id! }, update: rest, create: r });
-    void month;
   }
   void FORMULA_NOTE;
 }
@@ -296,7 +304,7 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     siteId: SITE_B,
     userId: USER_B,
     phone: '+91-SAMPLE-0002',
-    name: 'Sri Lakshmi Castings (sample, 6 months later)',
+    name: 'Sri Lakshmi Castings (sample, after the fixes)',
     rows: rowsB,
     withAfter: true,
   });
@@ -306,8 +314,8 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
   const baseData = {
     orgId: ORG_B,
     siteId: SITE_B,
-    start: monthStart(0),
-    end: monthEnd(11),
+    start: monthStart(0, 'B'),
+    end: monthEnd(11, 'B'),
     a: baseline.a,
     b: baseline.b,
     cvRmse: baseline.cvRmsePct,
@@ -331,7 +339,7 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
       source: 'SYNTHETIC DEMO placeholder, retired in S8c: replaced by igbt_furnace (research R2)',
     },
   });
-  const doneAt = new Date('2026-09-30T00:00:00Z');
+  const doneAt = monthEnd(11, 'B'); // end of the baseline: 31 Mar 2026
   for (const [key, actionId] of [
     ['pf', pfAction.id],
     ['eff', effAction.id],
@@ -354,7 +362,7 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
       productionTonnes: m.p,
       actualKwh: m.kwh,
       effectiveRatePerKwh: energyCharges / m.kwh,
-      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i)),
+      gridFactor: await factorAt('grid_electricity_india', monthEnd(m.i, 'B')),
     });
     cumulative += s.savedKwh;
     const status = savingsStatus({
@@ -365,7 +373,7 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
     const d = {
       orgId: ORG_B,
       siteId: SITE_B,
-      month: monthStart(m.i),
+      month: monthStart(m.i, 'B'),
       actionId: effAction.id,
       kwhSaved: r2(s.savedKwh),
       inrSaved: r2(s.inrSaved),
@@ -380,7 +388,10 @@ export async function seedDemo(opts: { demoReport?: boolean } = {}) {
   }
 
   await seedHousehold();
-  if (opts.demoReport ?? true) await seedDemoReport();
+  if (opts.demoReport ?? true) {
+    await seedDemoReport();
+    await seedDemoCarbonStatement();
+  }
 }
 
 // ---- Demo H: a sample home (HH-1). SYNTHETIC bills, none after Sep 2026 (demo day 13 Oct 2026).
@@ -518,7 +529,7 @@ async function seedHousehold() {
 
 /**
  * One loan-ready summary for Demo B's power factor fix, through the real pipeline, under a fixed
- * id: the landing page QR points at /verify/<id>. Built from the 12 baseline months (to Sep 2026),
+ * id: the landing page QR points at /verify/<id>. Built from the 12 baseline months (to Mar 2026),
  * the last bills where the finding was still flagged; the fix is marked done.
  */
 async function seedDemoReport() {
@@ -542,7 +553,7 @@ async function seedDemoReport() {
       loan: { amountInr: 1000000, ratePct: 8, tenureMonths: 60 },
       language: 'en',
     },
-    { reportId: DEMO_REPORT_ID, asOfMonth: monthStart(11) },
+    { reportId: DEMO_REPORT_ID, asOfMonth: monthStart(11, 'B') },
   );
 
   // Demo B shared that summary with a sample lender, who opened it twice: real rows, so the
@@ -571,6 +582,23 @@ async function seedDemoReport() {
       create: { id: kb(`share-view:${i}`), ...d },
     });
   }
+}
+
+/** Demo A's carbon statement under the fixed pitch-deck id (Oct 2025 - Sep 2026 bills). */
+async function seedDemoCarbonStatement() {
+  const site = await prisma.site.findFirstOrThrow({ where: { id: SITE_A, orgId: ORG_A } });
+  const old = { id: DEMO_CARBON_STATEMENT_ID, orgId: ORG_A };
+  const existing = await prisma.report.findFirst({ where: old });
+  if (existing) {
+    const shares = { reportId: existing.id, orgId: ORG_A };
+    await prisma.$transaction([
+      prisma.shareView.deleteMany({ where: { orgId: ORG_A, share: shares } }),
+      prisma.share.deleteMany({ where: shares }),
+      prisma.report.deleteMany({ where: old }),
+      prisma.reportSnapshot.deleteMany({ where: { id: existing.snapshotId, orgId: ORG_A } }),
+    ]);
+  }
+  await createCarbonStatement(site, { language: 'en' }, { reportId: DEMO_CARBON_STATEMENT_ID });
 }
 
 export async function resetDemo() {

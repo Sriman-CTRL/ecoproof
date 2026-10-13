@@ -11,6 +11,11 @@ export const SITE_H = '5d3a0a10-0000-4000-8000-0000000000d1';
 export const USER_H = '5d3a0a10-0000-4000-8000-0000000000d2';
 /** Demo B's loan-ready summary: fixed so the landing page QR (/verify/<id>) survives a reset. */
 export const DEMO_REPORT_ID = '5d3a0a10-0000-4000-8000-0000000000c1';
+/**
+ * Demo A's carbon statement: first made from the UI on 12 Oct 2026 and printed as the pitch deck
+ * QR (/verify/<id>), so it is re-seeded under the same id on every reset. Never change it.
+ */
+export const DEMO_CARBON_STATEMENT_ID = 'cff77d8b-daca-4276-85d9-c44c7556f966';
 export const DEMO_ORG_IDS = [ORG_A, ORG_B, ORG_H];
 
 export const DEMOS = {

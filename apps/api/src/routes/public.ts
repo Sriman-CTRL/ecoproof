@@ -7,6 +7,7 @@ import { prisma } from '../db.js';
 import { AppError, notFound } from '../errors.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { verifyView } from '../reports/loanPack.js';
+import { publicSample } from '../services/publicSample.js';
 
 /**
  * No login. Reports are looked up by id or share token only, and the response is limited to
@@ -24,6 +25,11 @@ publicRouter.get('/public/reports/:id/verify', async (req, res) => {
   });
   if (!report) throw notFound('Report');
   res.json(verifyView(report));
+});
+
+// D6b public site: SYNTHETIC demo figures (Demo A foundry, Demo H home), never a real unit.
+publicRouter.get('/public/sample', async (_req, res) => {
+  res.json(await publicSample());
 });
 
 publicRouter.get('/public/shares/:token', async (req, res) => {

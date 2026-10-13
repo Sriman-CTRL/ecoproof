@@ -338,7 +338,7 @@ try {
 
   // ---------- Demo B: its path comes from its own rows ----------
   await page.goto(`${WEB}/start`);
-  await page.getByText('Same unit, 6 months later').click();
+  await page.getByText('Same unit, after the fixes').click();
   await page.waitForURL(/\/(consent|home)$/);
   if (page.url().endsWith('/consent')) {
     await page.getByRole('button', { name: 'I agree' }).click();
@@ -436,7 +436,7 @@ try {
   const tb = await browser.newPage({ viewport: { width: 360, height: 800 } });
   await tb.addInitScript(() => localStorage.setItem('ecoproof.lang', 'te'));
   await tb.goto(`${WEB}/start`);
-  await tb.getByText('అదే యూనిట్, 6 నెలల తర్వాత').click();
+  await tb.getByText('అదే యూనిట్, సవరణల తర్వాత').click();
   await tb.waitForURL(/\/(consent|home)$/);
   if (tb.url().endsWith('/consent')) {
     await tb.getByRole('button', { name: 'నేను అంగీకరిస్తున్నాను' }).click();
@@ -467,7 +467,7 @@ try {
   async function demoPage(demo: 'A' | 'B' | 'H', w: number, h: number, lang: 'en' | 'te') {
     const card = {
       A: 'Sri Lakshmi Castings: before',
-      B: 'Same unit, 6 months later',
+      B: 'Same unit, after the fixes',
       H: 'A home in Hyderabad (sample)',
     }[demo];
     const p = await browser.newPage({ viewport: { width: w, height: h } });

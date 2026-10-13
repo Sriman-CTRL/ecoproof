@@ -155,13 +155,24 @@ export async function renderCarbonHtml(
 export const carbonFooter = (reportId: string) =>
   footerHtml(CARBON_FOOTER, reportId, verifyUrlFor(reportId));
 
-/** Doc 05 pipeline: snapshot, render, seal, store. A new statement is version n+1. */
-export async function createCarbonStatement(site: Site, body: CarbonStatementBody) {
+/**
+ * Doc 05 pipeline: snapshot, render, seal, store. A new statement is version n+1.
+ * `seed.reportId` is for the demo seed only (a fixed id the pitch QR points at).
+ */
+export async function createCarbonStatement(
+  site: Site,
+  body: CarbonStatementBody,
+  seed: { reportId?: string } = {},
+) {
   const orgId = site.orgId;
   const previous = await prisma.report.count({
     where: { orgId, snapshot: { siteId: site.id, type: 'carbon_statement' } },
   });
-  const ids = { reportId: randomUUID(), version: previous + 1, issuedAt: new Date() };
+  const ids = {
+    reportId: seed.reportId ?? randomUUID(),
+    version: previous + 1,
+    issuedAt: new Date(),
+  };
   const snapshotId = randomUUID();
   const results = await buildResults(site, ids);
   const html = await renderCarbonHtml(results, snapshotId);

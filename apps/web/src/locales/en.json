@@ -30,7 +30,7 @@
     "intro": "Try EcoProof with a made-up foundry or home. No real bills are used.",
     "demoA": "Sri Lakshmi Castings: before",
     "demoADesc": "12 months of bills. Add the latest bill to see this month.",
-    "demoB": "Same unit, 6 months later",
+    "demoB": "Same unit, after the fixes",
     "demoBDesc": "After the free bill fixes. See the savings.",
     "failed": "Could not start the demo. Make sure the server is running, then try again.",
     "previewAtStake": "{{month}} bill: a month at stake",
