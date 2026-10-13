@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ActionPeerCases } from '../components/MitraBits';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { Button } from '../components/kit/Button';
@@ -226,6 +227,7 @@ export default function ActionDetail() {
                 )}
                 <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>
               </Card>
+              <ActionPeerCases actionCode={code} />
             </div>
           </div>
         </>

@@ -16,6 +16,7 @@ import { SourceChip } from '../components/kit/SourceChip';
 import { YearStrip } from '../components/kit/YearStrip';
 import { CarbonTile } from '../components/CarbonTile';
 import { DualAxisChart } from '../components/DualAxisChart';
+import { MitraHomeLine } from '../components/MitraBits';
 import { MonthLedger } from '../components/MonthLedger';
 import { SourceSplitBar } from '../components/SourceSplitBar';
 import { ErrorBox, monthLabel, Page, SwitchSample, yearMonths } from '../components/ui';
@@ -242,6 +243,8 @@ export default function Home() {
               <ArrowRight size={20} className="shrink-0 text-green-700" aria-hidden="true" />
             </Link>
           )}
+
+          <MitraHomeLine />
 
           {months.isLoading || (top && insights.isLoading) ? (
             <Skeleton />

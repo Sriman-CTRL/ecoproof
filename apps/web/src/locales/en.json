@@ -1399,6 +1399,21 @@
       "open": "Open the request pack",
       "email": "Email it to RICH",
       "emailHelp": "Opens your own email app with the pack link. You send it yourself."
+    },
+    "cluster": {
+      "title": "Cluster circle: compare with neighbours once 10 units join",
+      "sample": "Sample layout, no neighbour data yet",
+      "body": "When 10 units in your cluster join, you will see where you stand against similar foundries. Only you see your own position."
+    },
+    "home": {
+      "next": "Next free step: {{title}} (₹0)",
+      "followUp": "Did you hear back from {{runBy}}? Mark it or upload the reply."
+    },
+    "actionPeer": "A foundry that did this",
+    "siteRow": {
+      "title": "Mitra",
+      "body": "Mitra: connects you to real NGOs and government help, step by free step.",
+      "note": "These are public programmes. EcoProof is not part of them; you contact them yourself."
     }
   }
 }

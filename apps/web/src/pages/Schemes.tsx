@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { WomenOwnedToggle } from '../components/MitraBits';
 import { ArrowSquareOut } from '@phosphor-icons/react/dist/csr/ArrowSquareOut';
 import { Warning } from '@phosphor-icons/react/dist/csr/Warning';
 import { BUTTON_CLASS } from '../components/kit/Button';
@@ -95,6 +96,7 @@ function ZedReadiness({ z, lang }: { z: ZedCard; lang: string }) {
             : t('schemes.zed.subsidyUnknown')}
         {z.scStApplied && ` ${t('schemes.zed.extraApplied', { pct: z.scStExtraPct })}`}
       </p>
+      <WomenOwnedToggle checked={z.womenOwned} />
       <p className="text-small text-ink-muted">{z.rewardNote}</p>
 
       <h3 className="font-heading font-semibold">{t('schemes.zed.banksTitle')}</h3>

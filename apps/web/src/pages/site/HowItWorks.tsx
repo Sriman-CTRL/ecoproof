@@ -122,6 +122,11 @@ export default function HowItWorks() {
             <Stage key={s} n={i + 1} s={s} visual={visuals[s]} />
           ))}
         </ol>
+        <div className="space-y-1 rounded-card border bg-surface p-4" data-testid="how-mitra">
+          <h2 className="font-heading text-card-title font-semibold">{t('mitra.siteRow.title')}</h2>
+          <p>{t('mitra.siteRow.body')}</p>
+          <p className="text-small text-ink-muted">{t('mitra.siteRow.note')}</p>
+        </div>
         <Link to="/carbon-method" className={`${LINK_BTN} border border-green-700 text-green-700`}>
           {t('site.how.seeMethod')}
         </Link>

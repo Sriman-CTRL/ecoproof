@@ -6,6 +6,7 @@ import { ArrowSquareOut } from '@phosphor-icons/react/dist/csr/ArrowSquareOut';
 import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { BUTTON_CLASS, Button } from '../components/kit/Button';
 import { Card, CARD_CLASS } from '../components/kit/Card';
+import { PeerCaseCard, WomenOwnedToggle } from '../components/MitraBits';
 import { Skeleton } from '../components/kit/Skeleton';
 import { StatusPill, type PillTone } from '../components/kit/StatusPill';
 import { ErrorBox, Page } from '../components/ui';
@@ -15,7 +16,6 @@ import {
   useMitraPage,
   useMitraProof,
   useMitraStep,
-  useWomenOwned,
   type Commitment,
   type MitraItem,
   type MitraPage,
@@ -85,7 +85,6 @@ function Dots({ done, total }: { done: number; total: number }) {
 
 function ZedLine({ z }: { z: ZedCard }) {
   const { t } = useTranslation();
-  const women = useWomenOwned();
   return (
     <div className="space-y-2 rounded-card border p-3" data-testid="mitra-zed">
       <p className="font-semibold">{t('mitra.zed.reward', { inr: formatInr(z.rewardInr) })}</p>
@@ -100,21 +99,7 @@ function ZedLine({ z }: { z: ZedCard }) {
             : t('schemes.zed.subsidyUnknown')}
         {z.scStApplied && ` ${t('schemes.zed.extraApplied', { pct: z.scStExtraPct })}`}
       </p>
-      <label className="flex min-h-12 cursor-pointer items-center gap-3">
-        <input
-          type="checkbox"
-          className="h-5 w-5 accent-green-700"
-          checked={z.womenOwned}
-          disabled={women.isPending}
-          onChange={(e) => women.mutate(e.target.checked)}
-          data-testid="women-owned-toggle"
-        />
-        <span>
-          <span className="block font-semibold">{t('mitra.zed.womenToggle')}</span>
-          <span className="block text-small text-ink-muted">{t('mitra.zed.womenHelp')}</span>
-        </span>
-      </label>
-      {women.isError && <ErrorBox>{t('mitra.actionFailed')}</ErrorBox>}
+      <WomenOwnedToggle checked={z.womenOwned} />
     </div>
   );
 }
@@ -149,27 +134,6 @@ function CommitmentBlock({ c, lang }: { c: Commitment | null; lang: string }) {
       ) : (
         <p className="text-small text-ink-muted">{t('mitra.commitment.noBills')}</p>
       )}
-    </div>
-  );
-}
-
-export function PeerCaseCard({ p }: { p: PeerCase }) {
-  const { t } = useTranslation();
-  return (
-    <div className="space-y-1 rounded-card border p-3" data-testid="peer-case">
-      <p className="font-semibold">
-        {p.company}, {p.place}
-      </p>
-      <p className="text-small font-semibold text-copper-800">{t('mitra.peer.label')}</p>
-      <p>{p.measure}</p>
-      <ul className="num space-y-0.5 text-small">
-        <li>{t('mitra.peer.invest', { text: p.investmentText })}</li>
-        {p.savingText && <li>{t('mitra.peer.saving', { text: p.savingText })}</li>}
-        <li>{t('mitra.peer.payback', { text: p.paybackText })}</li>
-        {p.beforeAfterText && <li>{t('mitra.peer.beforeAfter', { text: p.beforeAfterText })}</li>}
-      </ul>
-      <p className="text-small text-ink-muted">“{p.quotedLine}”</p>
-      <ExtLink href={p.sourceUrl}>{p.page ? `${p.source}, ${p.page}` : p.source}</ExtLink>
     </div>
   );
 }
@@ -292,10 +256,24 @@ function StepCard({
       {item.code === 'zed_pledge' && zed && <ZedLine z={zed} />}
       {item.kind === 'commitment' && <CommitmentBlock c={commitment} lang={lang} />}
       {item.kind === 'learn' && (
-        <div className="space-y-2">
+        <div className="space-y-2" data-testid="neighbours">
+          <h3 className="font-heading font-semibold">{t('mitra.peer.title')}</h3>
           {peerCases.map((p) => (
             <PeerCaseCard key={p.code} p={p} />
           ))}
+          <div
+            className="space-y-1 rounded-card border border-dashed p-3"
+            data-testid="cluster-circle"
+          >
+            <p className="font-semibold">{t('mitra.cluster.title')}</p>
+            <p className="text-small font-semibold text-copper-800">{t('mitra.cluster.sample')}</p>
+            <div className="flex items-end gap-2" aria-hidden="true">
+              {[40, 64, 52, 76, 46].map((h, i) => (
+                <span key={i} className="w-6 rounded-t bg-line" style={{ height: `${h}px` }} />
+              ))}
+            </div>
+            <p className="text-small text-ink-muted">{t('mitra.cluster.body')}</p>
+          </div>
         </div>
       )}
       {item.kind === 'visit' && (item.address || item.contactPhone || item.contactEmail) && (

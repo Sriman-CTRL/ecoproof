@@ -160,6 +160,17 @@ describe('Mitra API', () => {
     }
   });
 
+  it('peer cases by action: the IGBT case for igbt_furnace only', async () => {
+    const res = await request(app).get('/peer-cases?actionCode=igbt_furnace').set(auth(tokenA));
+    expect(res.status).toBe(200);
+    expect(res.body.map((p: { company: string }) => p.company)).toEqual([
+      'Marvelous Metals Pvt Ltd',
+    ]);
+    expect(res.body[0].quotedLine).toBe(
+      'with an investment of INR 27.75 lakhs, and a payback period of 25 months',
+    );
+  });
+
   it('unknown step is 404 and a bad page is 400', async () => {
     const u = await request(app).post(`/sites/${siteA}/mitra/nope/start`).set(auth(tokenA));
     expect(u.status).toBe(404);

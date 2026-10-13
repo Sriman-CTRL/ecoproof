@@ -171,3 +171,12 @@ export function useMitraProof() {
     },
   });
 }
+
+/** Published foundry cases for one action (ActionDetail). */
+export function usePeerCases(actionCode: string) {
+  return useQuery({
+    queryKey: ['peer-cases', actionCode],
+    queryFn: () => api<PeerCase[]>(`/peer-cases?actionCode=${encodeURIComponent(actionCode)}`),
+    enabled: !!actionCode,
+  });
+}

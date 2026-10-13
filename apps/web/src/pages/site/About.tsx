@@ -30,6 +30,15 @@ export default function About() {
                   <td className="px-4 py-3">{t(`site.sdg.${r}.long`)}</td>
                 </tr>
               ))}
+              <tr className="border-t align-top" data-testid="about-mitra">
+                <th scope="row" className="px-4 py-3 font-heading font-semibold text-green-700">
+                  {t('mitra.siteRow.title')}
+                </th>
+                <td className="space-y-1 px-4 py-3">
+                  <p>{t('mitra.siteRow.body')}</p>
+                  <p className="text-small text-ink-muted">{t('mitra.siteRow.note')}</p>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

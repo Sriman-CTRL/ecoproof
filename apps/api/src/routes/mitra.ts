@@ -14,6 +14,7 @@ import {
   computeMitraSummary,
   itemViewWithPack,
   loadMitraItem,
+  listPeerCases,
   loadStep,
   markDone,
   markStarted,
@@ -46,6 +47,12 @@ mitraRouter.post('/sites/:siteId/mitra/:code/done', requireAuth, async (req, res
   const item = await loadMitraItem(String(req.params.code));
   const step = await markDone(site, item);
   res.json(await itemViewWithPack(site, item, step));
+});
+
+// Published case studies for one action (ActionDetail peer card). Global reference rows.
+mitraRouter.get('/peer-cases', requireAuth, async (req, res) => {
+  const actionCode = z.string().trim().min(1).max(80).safeParse(req.query.actionCode);
+  res.json(await listPeerCases(actionCode.success ? actionCode.data : undefined));
 });
 
 const ProfileBody = z
