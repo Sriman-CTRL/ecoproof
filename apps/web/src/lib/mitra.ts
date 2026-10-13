@@ -46,7 +46,14 @@ export interface RequestPackInfo {
   atStakeInr: number;
   topActionTitle: string | null;
   email: string;
+  subject: string;
+  /** Four lines; the owner sends it from their own mail app. */
+  body: string;
 }
+
+/** mailto: link for the request pack (EcoProof never sends it). */
+export const packMailto = (p: RequestPackInfo) =>
+  `mailto:${p.email}?subject=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.body)}`;
 
 export interface PeerCase {
   code: string;
@@ -137,6 +144,30 @@ export function useWomenOwned() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['mitra'] });
       void qc.invalidateQueries({ queryKey: ['schemes'] });
+    },
+  });
+}
+
+/** Proof upload (or the labelled demo sample) -> confirmed + Certificate of Participation. */
+export function useMitraProof() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (
+      v:
+        | { code: string; sample: true }
+        | { code: string; file: File; proofType: string; eventDate: string },
+    ) => {
+      const path = `/sites/${siteId()}/mitra/${v.code}/proof`;
+      if ('sample' in v) return postJson<MitraItem>(path, { sample: true });
+      const form = new FormData();
+      form.append('file', v.file);
+      form.append('proofType', v.proofType);
+      if (v.eventDate) form.append('eventDate', v.eventDate);
+      return api<MitraItem>(path, { method: 'POST', body: form });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['mitra'] });
+      void qc.invalidateQueries({ queryKey: ['reports'] });
     },
   });
 }

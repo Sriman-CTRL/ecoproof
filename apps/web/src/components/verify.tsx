@@ -118,6 +118,35 @@ export function VerifyCard({ v, sourced = false }: { v: VerifyView; sourced?: bo
         <CbamLines h={v.headline} />
       ) : v.headline.kind === 'carbon_statement' ? (
         <CarbonLines h={v.headline} />
+      ) : v.headline.kind === 'request_pack' ? (
+        <div className="space-y-1 border-t pt-3" data-testid="verify-pack">
+          <p className="font-heading text-card-title font-semibold">
+            {t('reports.type.request_pack')}
+          </p>
+          <p>{v.headline.programme}</p>
+          <p>
+            {t('verify.footprint')} ({monthLabel(v.headline.month, i18n.resolvedLanguage ?? 'en')}
+            ):{' '}
+            <b className="num">
+              {formatDecimal(Math.round(v.headline.totalT * 10) / 10)} {t('carbon.unit')}
+            </b>
+          </p>
+          <p className="text-small text-ink-muted">{v.headline.closing}</p>
+        </div>
+      ) : v.headline.kind === 'participation_certificate' ? (
+        <div className="space-y-1 border-t pt-3" data-testid="verify-participation">
+          <p className="font-heading text-card-title font-semibold">
+            {t('reports.type.participation_certificate')}
+          </p>
+          <p>
+            {t('mitra.cert.tookPart', {
+              title: v.headline.stepTitle,
+              runBy: v.headline.runBy,
+              date: dateText(v.headline.eventDate, i18n.resolvedLanguage ?? 'en'),
+            })}
+          </p>
+          <p className="text-small text-ink-muted">{v.headline.footer}</p>
+        </div>
       ) : (
         <LoanLines h={v.headline} sourced={sourced} />
       )}

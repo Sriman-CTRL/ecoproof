@@ -19,6 +19,12 @@ export const storage = {
     if (error || !data) throw new Error(`Storage download failed: ${error?.message ?? 'no data'}`);
     return Buffer.from(await data.arrayBuffer());
   },
+  /** Demo reset only (Mitra proof files and reports of demo orgs). Missing keys are fine. */
+  async remove(keys: string[]): Promise<void> {
+    if (!keys.length) return;
+    const { error } = await bucket().remove(keys);
+    if (error) throw new Error(`Storage remove failed: ${error.message}`);
+  },
   async signedUrl(key: string, seconds = 600): Promise<string> {
     const { data, error } = await bucket().createSignedUrl(key, seconds);
     if (error || !data) throw new Error(`Signed URL failed: ${error?.message ?? 'no data'}`);

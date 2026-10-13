@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{title}} {{reportId}}</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Sans', 'DejaVu Sans', Arial, sans-serif;
+        color: #111827;
+        font-size: 10.5pt;
+        line-height: 1.45;
+        margin: 0;
+      }
+      h1 {
+        font-size: 18pt;
+        margin: 0 0 3mm;
+      }
+      h2 {
+        font-size: 12.5pt;
+        margin: 6mm 0 2mm;
+        border-bottom: 1px solid #d1d5db;
+        padding-bottom: 1.2mm;
+      }
+      p {
+        margin: 0 0 2mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+      }
+      th,
+      td {
+        border: 1px solid #d1d5db;
+        padding: 1.4mm 2mm;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f3f4f6;
+      }
+      td.num,
+      th.num {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .muted {
+        color: #4b5563;
+        font-size: 9pt;
+      }
+      .badge {
+        display: inline-block;
+        background: #fef3c7;
+        color: #78350f;
+        border: 1px solid #f59e0b;
+        border-radius: 4px;
+        padding: 1mm 3mm;
+        font-weight: 600;
+        font-size: 9.5pt;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4mm;
+      }
+      .tile {
+        border: 2px solid #047857;
+        border-radius: 6px;
+        padding: 3mm 4mm;
+      }
+      .big {
+        font-size: 15pt;
+        font-weight: 700;
+      }
+      .note {
+        background: #f9fafb;
+        border: 1px solid #d1d5db;
+        padding: 3mm;
+        border-radius: 4px;
+        font-size: 9pt;
+      }
+      .qr {
+        display: flex;
+        gap: 4mm;
+        align-items: center;
+        margin-top: 5mm;
+      }
+      .qr img {
+        width: 28mm;
+        height: 28mm;
+      }
+      ul {
+        margin: 0 0 2mm;
+        padding-left: 5mm;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="muted">EcoProof · energy and carbon pre-assessment · prepared for you to send</p>
+    <h1>{{title}}</h1>
+    {{{sampleBadge}}}
+    <p><b>{{businessName}}</b> · {{siteAddress}}</p>
+    <p class="muted">Prepared {{issuedDate}} · Report ID {{reportId}} · Version {{version}}</p>
+
+    <div class="pair" style="margin-top: 4mm">
+      <div class="tile">
+        <p class="muted">At stake on the power bill, {{latestMonth}}</p>
+        <p class="big">{{atStake}} a month</p>
+      </div>
+      <div class="tile">
+        <p class="muted">Carbon, {{latestMonth}}</p>
+        <p class="big">{{latestTotal}}</p>
+      </div>
+    </div>
+
+    <h2>What we would like to ask for</h2>
+    <p>{{ask}}</p>
+
+    <h2>12-month footprint by month and scope</h2>
+    {{{monthsTable}}}
+    <p class="muted">Total for the period: {{periodTotal}}</p>
+
+    <h2>Top 3 actions from our bills</h2>
+    {{{actionsTable}}}
+
+    <h2>Schemes to ask about</h2>
+    {{{schemesList}}}
+
+    <h2>Method</h2>
+    <div class="note">{{{methodLines}}}</div>
+
+    <div class="qr">
+      <img src="{{qrDataUrl}}" alt="QR code" />
+      <p class="muted">Check this pack: {{verifyUrl}}<br />{{closing}}</p>
+    </div>
+  </body>
+</html>

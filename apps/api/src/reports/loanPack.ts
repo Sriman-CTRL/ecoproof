@@ -17,6 +17,7 @@ import { config } from '../config.js';
 import { prisma } from '../db.js';
 import { DEMO_ORG_IDS } from '../demo/ids.js';
 import { AppError } from '../errors.js';
+import type { CertificateResults, RequestPackResults } from './mitraDocs.js';
 import type { CarbonStatementResults } from './carbonStatement.js';
 import type { CbamResults } from './cbamSheet.js';
 import { dateText, dec, fill, footerHtml, inr, int, monthName, table, esc } from './html.js';
@@ -67,7 +68,7 @@ const FINDING_TITLE: Record<FindingCode, string> = {
 };
 
 /** Same English names the app shows (apps/web/src/locales/en.json actions.name). */
-const MEASURE_TITLE: Record<string, string> = {
+export const MEASURE_TITLE: Record<string, string> = {
   fix_power_factor: 'Fix power factor (APFC panel)',
   shift_peak_use_to_solar_hours: 'Shift work out of peak hours',
   reduce_contracted_demand: 'Reduce contracted demand',
@@ -714,6 +715,35 @@ export function verifyView(report: Report & { snapshot: ReportSnapshot }) {
         label: c.label,
         avoidedT: saved ? (saved.verifiedTco2 > 0 ? saved.verifiedTco2 : saved.tco2) : null,
         avoidedVerified: !!saved && saved.verifiedTco2 > 0,
+      },
+    };
+  }
+  if (report.type === 'request_pack') {
+    const p = report.snapshot.resultsJson as unknown as RequestPackResults;
+    return {
+      ...base,
+      businessName: p.business.name,
+      headline: {
+        kind: 'request_pack' as const,
+        programme: p.programme,
+        month: p.latestMonth,
+        totalT: p.latestT,
+        label: p.label,
+        closing: p.closing,
+      },
+    };
+  }
+  if (report.type === 'participation_certificate') {
+    const c = report.snapshot.resultsJson as unknown as CertificateResults;
+    return {
+      ...base,
+      businessName: c.business.name,
+      headline: {
+        kind: 'participation_certificate' as const,
+        stepTitle: c.step.title,
+        runBy: c.step.runBy,
+        eventDate: c.eventDate,
+        footer: c.footer,
       },
     };
   }

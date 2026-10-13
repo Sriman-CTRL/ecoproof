@@ -1,10 +1,20 @@
 import { findMitraBanned } from '@ecoproof/shared';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { storage } from '../src/adapters/storage.js';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { DEMO_ORG_IDS, ORG_A } from '../src/demo/ids.js';
+import {
+  QUOTES,
+  renderCertificateHtml,
+  renderRequestPackHtml,
+  type CertificateResults,
+  type RequestPackResults,
+} from '../src/reports/mitraDocs.js';
 import { followUpDue, NOT_PART_LINE, orderItems } from '../src/services/mitra.js';
+import { resetDemo, seedDemo } from '../prisma/demo/seed-demo.js';
 
 const app = createApp();
 const auth = (t: string) => ({ Authorization: `Bearer ${t}` });
@@ -189,4 +199,145 @@ describe('follow-up check-ins', () => {
     expect(due).not.toContain(14);
     expect(due).toHaveLength(28);
   });
+});
+
+const text = (html: string) =>
+  html
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+const quoteTexts = Object.values(QUOTES).map((q) => q.text);
+
+describe('request pack and Certificate of Participation', () => {
+  let packId = '';
+  let certId = '';
+  let proofKey = '';
+
+  it('starting the RAMP hand-off builds the request pack and the mailto text', async () => {
+    const res = await request(app)
+      .post(`/sites/${siteA}/mitra/tg_ramp_assessment/start`)
+      .set(auth(tokenA));
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('started');
+    const p = res.body.requestPack;
+    packId = p.reportId;
+    expect(p.email).toBe('cmanager-rich@telangana.gov.in');
+    expect(p.subject).toBe(
+      `Request: greening consultation and carbon footprint assessment, ${p.businessName}`,
+    );
+    expect(p.body.split('\n')).toHaveLength(4);
+    expect(p.body).toContain(p.verifyUrl);
+    expect(findMitraBanned(`${p.subject}\n${p.body}`)).toEqual([]);
+
+    const report = await prisma.report.findFirst({
+      where: { id: packId, orgId: ORG_A },
+      include: { snapshot: true },
+    });
+    expect(report?.type).toBe('request_pack');
+    const r = report!.snapshot.resultsJson as unknown as RequestPackResults;
+    expect(r.topActions.length).toBeGreaterThan(0);
+    const html = await renderRequestPackHtml(r);
+    expect(html).toContain('EcoProof is not part of this programme.');
+    expect(findMitraBanned(text(html))).toEqual([]);
+
+    // A second start reuses the same pack.
+    const again = await request(app)
+      .post(`/sites/${siteA}/mitra/tg_ramp_assessment/start`)
+      .set(auth(tokenA));
+    expect(again.body.requestPack.reportId).toBe(packId);
+  });
+
+  it('done_self never gets a certificate (403)', async () => {
+    await request(app).post(`/sites/${siteA}/mitra/bee_sidhiee/done`).set(auth(tokenA));
+    const res = await request(app)
+      .post(`/sites/${siteA}/mitra/bee_sidhiee/certificate`)
+      .set(auth(tokenA));
+    expect(res.status).toBe(403);
+    const none = await request(app)
+      .post(`/sites/${siteA}/mitra/zed_pledge/certificate`)
+      .set(auth(tokenA));
+    expect(none.status).toBe(403);
+  });
+
+  it('proof before start is refused', async () => {
+    const res = await request(app)
+      .post(`/sites/${siteA}/mitra/wri_india_training/proof`)
+      .set(auth(tokenA))
+      .send({ sample: true });
+    expect(res.status).toBe(409);
+  });
+
+  it('sample proof confirms the step and issues a sealed Certificate of Participation', async () => {
+    await request(app).post(`/sites/${siteA}/mitra/cbit_student_visit/start`).set(auth(tokenA));
+    const res = await request(app)
+      .post(`/sites/${siteA}/mitra/cbit_student_visit/proof`)
+      .set(auth(tokenA))
+      .send({ sample: true });
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('confirmed');
+    expect(res.body.proofType).toBe('sample');
+    certId = res.body.certificate.reportId;
+    expect(res.body.certificateReportId).toBe(certId);
+
+    const report = await prisma.report.findFirst({
+      where: { id: certId, orgId: ORG_A },
+      include: { snapshot: true },
+    });
+    expect(report?.type).toBe('participation_certificate');
+    const pdf = await storage.get(report!.fileKey);
+    expect(createHash('sha256').update(pdf).digest('hex')).toBe(report!.sha256);
+    expect(res.body.certificate.sha256).toBe(report!.sha256);
+
+    const r = report!.snapshot.resultsJson as unknown as CertificateResults;
+    expect(r.isSample).toBe(true);
+    expect(r.evidence).toMatch(
+      /^Confirmed by: Sample proof \(demo mode\) uploaded by the owner on /,
+    );
+    expect(r.quotes.map((q) => q.text)).toEqual([QUOTES.sdg13.text, QUOTES.sdg133.text]);
+    const html = await renderCertificateHtml(r);
+    expect(html).toContain('<div class="watermark">SAMPLE</div>');
+    expect(html).toContain('Certificate of Participation');
+    expect(findMitraBanned(text(html), quoteTexts)).toEqual([]);
+    expect(findMitraBanned(r.footer)).toEqual([]);
+
+    const step = await prisma.mitraStep.findFirst({
+      where: { orgId: ORG_A, itemCode: 'cbit_student_visit' },
+    });
+    proofKey = step!.proofFileKey!;
+    const proof = await request(app)
+      .get(`/sites/${siteA}/mitra/cbit_student_visit/proof`)
+      .set(auth(tokenA));
+    expect(proof.status).toBe(200);
+    expect(proof.body.downloadUrl).toMatch(/^https?:/);
+
+    // Public verify shows only the participation headline.
+    const v = await request(app).get(`/public/reports/${certId}/verify`);
+    expect(v.body.headline.kind).toBe('participation_certificate');
+    expect(v.body.headline.stepTitle).toBe('Free visit by the CBIT student team');
+  });
+
+  it('another org gets 404 on the proof file, the certificate and the report', async () => {
+    for (const r of [
+      request(app).get(`/sites/${siteA}/mitra/cbit_student_visit/proof`),
+      request(app).post(`/sites/${siteA}/mitra/cbit_student_visit/certificate`),
+      request(app).post(`/sites/${siteA}/mitra/cbit_student_visit/proof`).send({ sample: true }),
+      request(app).get(`/reports/${certId}`),
+    ]) {
+      expect((await r.set(auth(tokenB))).status).toBe(404);
+    }
+  });
+
+  it('demo reset clears Mitra steps, proof files and Mitra reports', async () => {
+    await resetDemo();
+    expect(await prisma.mitraStep.count({ where: { orgId: { in: DEMO_ORG_IDS } } })).toBe(0);
+    expect(
+      await prisma.report.count({
+        where: { id: { in: [packId, certId] } },
+      }),
+    ).toBe(0);
+    await expect(storage.get(proofKey)).rejects.toThrow();
+    await seedDemo();
+  }, 240_000);
 });

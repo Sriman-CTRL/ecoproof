@@ -1,6 +1,7 @@
 import type { MitraItem, MitraStep, Site } from '@prisma/client';
 import { prisma } from '../db.js';
 import { AppError, notFound } from '../errors.js';
+import { createRequestPack, requestPackInfo } from '../reports/mitraDocs.js';
 import { computeCarbon } from './carbon.js';
 import { computeSchemes, type ZedCard } from './schemes.js';
 
@@ -107,6 +108,13 @@ export async function computeCommitment(
   };
 }
 
+export async function itemViewWithPack(site: Site, item: MitraItem, step: MitraStep | null) {
+  return {
+    ...itemView(item, step),
+    ...(item.kind === 'handoff' ? { requestPack: await requestPackInfo(site, step) } : {}),
+  };
+}
+
 export function itemView(item: MitraItem, step: MitraStep | undefined | null) {
   return {
     code: item.code,
@@ -197,10 +205,20 @@ export async function computeMitraPage(site: Site, page: MitraPage): Promise<Mit
     hasZed ? computeSchemes(site) : Promise.resolve(null),
     c.list.some((i) => i.kind === 'learn') ? listPeerCases() : Promise.resolve([]),
   ]);
+  const packs = new Map(
+    await Promise.all(
+      c.list
+        .filter((i) => i.kind === 'handoff')
+        .map(async (i) => [i.code, await requestPackInfo(site, steps.get(i.code))] as const),
+    ),
+  );
   return {
     page,
     nextStep: c.next,
-    items: c.list.map((i) => itemView(i, steps.get(i.code))),
+    items: c.list.map((i) => ({
+      ...itemView(i, steps.get(i.code)),
+      ...(i.kind === 'handoff' ? { requestPack: packs.get(i.code) ?? null } : {}),
+    })),
     doneCount: c.doneCount,
     totalCount: c.totalCount,
     commitment,
@@ -242,10 +260,24 @@ export async function computeMitraSummary(site: Site, now = new Date()) {
   };
 }
 
-/** started: from not_started only (never downgrades a done or confirmed step). */
+/**
+ * started: from not_started only (never downgrades a done or confirmed step). A hand-off step
+ * (tg_ramp_assessment) also builds its request pack once, for the owner to send themselves.
+ */
 export async function markStarted(site: Site, item: MitraItem): Promise<MitraStep> {
-  const step = await loadStep(site, item.code);
-  if (step && step.status !== 'not_started') return step;
+  let step = await loadStep(site, item.code);
+  if (!step || step.status === 'not_started') step = await setStarted(site, item);
+  if (item.kind === 'handoff' && !step.packReportId) {
+    const pack = await createRequestPack(site, item);
+    step = await prisma.mitraStep.update({
+      where: { id: step.id },
+      data: { packReportId: pack.reportId },
+    });
+  }
+  return step;
+}
+
+function setStarted(site: Site, item: MitraItem): Promise<MitraStep> {
   const now = new Date();
   return prisma.mitraStep.upsert({
     where: {

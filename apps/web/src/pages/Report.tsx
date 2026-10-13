@@ -81,7 +81,10 @@ export default function Report() {
   const r = q.data;
   const isCbam = r?.type === 'cbam_sheet';
   const isCarbon = r?.type === 'carbon_statement';
-  const isLoan = r != null && !isCbam && !isCarbon;
+  const isPack = r?.type === 'request_pack';
+  const isCert = r?.type === 'participation_certificate';
+  const isMitra = isPack || isCert;
+  const isLoan = r != null && !isCbam && !isCarbon && !isMitra;
   return (
     <Page
       tab="reports"
@@ -91,16 +94,20 @@ export default function Report() {
             {t(
               isCbam
                 ? 'report.shareWithBuyer'
-                : isCarbon
-                  ? 'report.shareCarbon'
-                  : 'report.shareWithLender',
+                : isMitra
+                  ? 'mitra.share'
+                  : isCarbon
+                    ? 'report.shareCarbon'
+                    : 'report.shareWithLender',
             )}
           </Button>
         ) : undefined
       }
     >
       <h1 className="font-heading text-title font-semibold">
-        {t(isCbam ? 'cbam.title' : isCarbon ? 'carbon.statementTitle' : 'report.title')}
+        {isMitra
+          ? t(`reports.type.${r!.type}`)
+          : t(isCbam ? 'cbam.title' : isCarbon ? 'carbon.statementTitle' : 'report.title')}
       </h1>
       {q.isLoading && (
         <>
@@ -172,9 +179,11 @@ export default function Report() {
                 {t(
                   isCbam
                     ? 'report.shareTitleBuyer'
-                    : isCarbon
-                      ? 'report.shareCarbon'
-                      : 'report.shareTitle',
+                    : isMitra
+                      ? 'mitra.share'
+                      : isCarbon
+                        ? 'report.shareCarbon'
+                        : 'report.shareTitle',
                 )}
               </h2>
               <form
@@ -240,7 +249,17 @@ export default function Report() {
           </section>
 
           <p className="text-small text-ink-muted">
-            {t(isCbam ? 'cbam.statusNote' : isCarbon ? 'report.carbonNote' : 'detail.lenderNote')}
+            {isCert
+              ? t('mitra.cert.privateNote')
+              : isPack
+                ? t('mitra.pack.note')
+                : t(
+                    isCbam
+                      ? 'cbam.statusNote'
+                      : isCarbon
+                        ? 'report.carbonNote'
+                        : 'detail.lenderNote',
+                  )}
           </p>
         </>
       )}

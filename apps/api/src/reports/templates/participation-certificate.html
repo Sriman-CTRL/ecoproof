@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Certificate of Participation {{reportId}}</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Noto Sans', 'DejaVu Sans', Arial, sans-serif;
+        color: #111827;
+        font-size: 10.5pt;
+        line-height: 1.4;
+        margin: 0;
+      }
+      .frame {
+        position: relative;
+        border: 3px double #047857;
+        border-radius: 8px;
+        padding: 7mm 10mm;
+        min-height: 150mm;
+        overflow: hidden;
+      }
+      .watermark {
+        position: absolute;
+        top: 55mm;
+        left: 40mm;
+        font-size: 96pt;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        color: rgba(185, 28, 28, 0.13);
+        transform: rotate(-24deg);
+        z-index: 0;
+        pointer-events: none;
+      }
+      .content {
+        position: relative;
+        z-index: 1;
+      }
+      .eyebrow {
+        color: #4b5563;
+        font-size: 9pt;
+        margin: 0;
+      }
+      h1 {
+        font-size: 24pt;
+        margin: 1mm 0 2mm;
+        color: #065f46;
+      }
+      .unit {
+        font-size: 17pt;
+        font-weight: 700;
+        margin: 0 0 1mm;
+      }
+      .took {
+        font-size: 12pt;
+        margin: 0 0 4mm;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6mm;
+      }
+      h2 {
+        font-size: 11.5pt;
+        margin: 0 0 1.5mm;
+        color: #065f46;
+      }
+      p {
+        margin: 0 0 1.5mm;
+      }
+      blockquote {
+        margin: 0 0 2.5mm;
+        padding-left: 3mm;
+        border-left: 3px solid #047857;
+        font-style: italic;
+      }
+      .src {
+        display: block;
+        font-style: normal;
+        font-size: 7.5pt;
+        color: #4b5563;
+      }
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 6mm;
+        margin-top: 4mm;
+      }
+      .qr img {
+        width: 24mm;
+        height: 24mm;
+      }
+      .muted {
+        color: #4b5563;
+        font-size: 8.5pt;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      {{{watermark}}}
+      <div class="content">
+        <p class="eyebrow">EcoProof · Mitra · Report ID {{reportId}}</p>
+        <h1>Certificate of Participation</h1>
+        <p class="unit">{{businessName}}</p>
+        <p class="took">took part in <b>{{stepTitle}}</b>, run by {{runBy}}, on {{eventDate}}.</p>
+        <div class="cols">
+          <div>
+            <h2>How this helps your business</h2>
+            <p>{{businessGain}}</p>
+            <p>{{unitFigures}}</p>
+            <h2 style="margin-top: 3mm">How this supports SDG 13</h2>
+            <p>{{sdgLine}}</p>
+          </div>
+          <div>{{{quotes}}}</div>
+        </div>
+        <div class="bottom">
+          <div>
+            <p><b>{{evidence}}</b></p>
+            <p class="muted">{{footer}}</p>
+          </div>
+          <div class="qr"><img src="{{qrDataUrl}}" alt="QR code" /></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

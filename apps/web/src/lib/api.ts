@@ -226,13 +226,34 @@ export interface CarbonHeadline {
   avoidedVerified: boolean;
 }
 
+/** D7 Mitra request pack: prepared for the owner to send; EcoProof is not part of the programme. */
+export interface RequestPackHeadline {
+  kind: 'request_pack';
+  programme: string;
+  month: string;
+  totalT: number;
+  label: string;
+  closing: string;
+}
+
+/** D7 Certificate of Participation: records participation only, never emissions or savings. */
+export interface CertificateHeadline {
+  kind: 'participation_certificate';
+  stepTitle: string;
+  runBy: string;
+  eventDate: string;
+  footer: string;
+}
+
 export interface VerifyView {
   reportId: string;
-  type: 'loan_pack' | 'cbam_sheet' | 'carbon_statement';
+  type:
+    'loan_pack' | 'cbam_sheet' | 'carbon_statement' | 'request_pack' | 'participation_certificate';
   issuedAt: string;
   version: number;
   businessName: string;
-  headline: LoanPackHeadline | CbamHeadline | CarbonHeadline;
+  headline:
+    LoanPackHeadline | CbamHeadline | CarbonHeadline | RequestPackHeadline | CertificateHeadline;
   sha256: string;
 }
 

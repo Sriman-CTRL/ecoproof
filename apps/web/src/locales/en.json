@@ -1369,6 +1369,36 @@
       "sourceLine": "{{source}}"
     },
     "loadFailed": "We could not load Mitra. Check your internet and try again.",
-    "actionFailed": "That did not save. Try again."
+    "actionFailed": "That did not save. Try again.",
+    "share": "Share it (only if you want to)",
+    "cert": {
+      "tookPart": "Took part in {{title}}, run by {{runBy}}, on {{date}}.",
+      "privateNote": "Private by default. It records participation only: it does not certify emissions or savings, and EcoProof is not part of the programme. Share it only if you want to.",
+      "open": "Open your Certificate of Participation",
+      "uploadTitle": "Upload proof to get your Certificate of Participation",
+      "uploadHelp": "An email or screenshot from the organiser, their participation document, or an attendance photo (PDF, JPG or PNG, up to 5 MB).",
+      "proofType": "What is it?",
+      "types": {
+        "organiser_email": "Email or screenshot from the organiser",
+        "organiser_document": "Participation document from the organiser",
+        "attendance_photo": "Attendance photo"
+      },
+      "eventDate": "Date you took part (optional)",
+      "pickFile": "Choose the file",
+      "upload": "Upload proof",
+      "uploading": "Making your Certificate of Participation…",
+      "sample": "Use a sample proof (Demo mode)",
+      "sampleHelp": "Demo mode: no real event happened. The sample proof is clearly labelled, and your Certificate of Participation will carry a SAMPLE mark.",
+      "viewProof": "See your proof"
+    },
+    "pack": {
+      "note": "Prepared for you to send. EcoProof sends nothing and is not part of this programme.",
+      "prepare": "Prepare my request pack",
+      "preparing": "Preparing your request pack…",
+      "ready": "Your request pack is ready",
+      "open": "Open the request pack",
+      "email": "Email it to RICH",
+      "emailHelp": "Opens your own email app with the pack link. You send it yourself."
+    }
   }
 }

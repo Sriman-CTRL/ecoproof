@@ -27,6 +27,7 @@ import {
   USER_B,
   USER_H,
 } from '../../src/demo/ids.js';
+import { storage } from '../../src/adapters/storage.js';
 import { prisma } from '../../src/db.js';
 import { pickFactor, toCalcFactor } from '../../src/jobs/calculate.js';
 import { DOMESTIC_PRICING_LABEL, loadDomesticTariff } from '../../src/services/domesticTariff.js';
@@ -604,7 +605,16 @@ async function seedDemoCarbonStatement() {
 
 export async function resetDemo() {
   const where = { orgId: { in: DEMO_ORG_IDS } };
+  // D7 Mitra: steps are never seeded; their proof files and Mitra PDFs go with them.
+  const [steps, mitraReports] = await Promise.all([
+    prisma.mitraStep.findMany({ where, select: { proofFileKey: true } }),
+    prisma.report.findMany({
+      where: { ...where, type: { in: ['request_pack', 'participation_certificate'] } },
+      select: { fileKey: true },
+    }),
+  ]);
   await prisma.$transaction([
+    prisma.mitraStep.deleteMany({ where }),
     prisma.savingsLedger.deleteMany({ where }),
     prisma.siteAction.deleteMany({ where }),
     prisma.baseline.deleteMany({ where }),
@@ -625,6 +635,10 @@ export async function resetDemo() {
     prisma.membership.deleteMany({ where }),
     prisma.site.deleteMany({ where: { orgId: { in: DEMO_ORG_IDS } } }),
     prisma.organisation.deleteMany({ where: { id: { in: DEMO_ORG_IDS } } }),
+  ]);
+  await storage.remove([
+    ...steps.flatMap((s) => (s.proofFileKey ? [s.proofFileKey] : [])),
+    ...mitraReports.map((r) => r.fileKey),
   ]);
 }
 

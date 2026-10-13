@@ -3,6 +3,8 @@ import { chromium } from 'playwright';
 export interface PdfOptions {
   /** Playwright footer HTML, repeated on every page (inline styles only). */
   footerTemplate: string;
+  /** A4 landscape (Certificate of Participation). */
+  landscape?: boolean;
 }
 
 /** HTML in, PDF bytes out. One Playwright implementation; deploy can swap in another. */
@@ -30,6 +32,7 @@ export class PlaywrightPdfRenderer implements PdfRenderer {
       await page.setContent(html, { waitUntil: 'load' });
       const pdf = await page.pdf({
         format: 'A4',
+        landscape: opts.landscape ?? false,
         printBackground: true,
         displayHeaderFooter: true,
         headerTemplate: '<span></span>',

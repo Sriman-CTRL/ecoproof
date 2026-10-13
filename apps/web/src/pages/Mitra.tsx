@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
@@ -10,7 +11,9 @@ import { StatusPill, type PillTone } from '../components/kit/StatusPill';
 import { ErrorBox, Page } from '../components/ui';
 import { formatDecimal, formatInr } from '../lib/format';
 import {
+  packMailto,
   useMitraPage,
+  useMitraProof,
   useMitraStep,
   useWomenOwned,
   type Commitment,
@@ -20,6 +23,7 @@ import {
   type PeerCase,
 } from '../lib/mitra';
 import { milestoneDate } from '../lib/progress';
+import { getSession } from '../lib/session';
 import type { ZedCard } from '../lib/schemes';
 
 const TONE: Record<MitraStatus, PillTone> = {
@@ -170,6 +174,73 @@ export function PeerCaseCard({ p }: { p: PeerCase }) {
   );
 }
 
+const PROOF_TYPES = ['organiser_email', 'organiser_document', 'attendance_photo'] as const;
+
+/** Upload proof (or, in Demo mode, a clearly labelled sample) -> Certificate of Participation. */
+function ProofBlock({ code }: { code: string }) {
+  const { t } = useTranslation();
+  const proof = useMitraProof();
+  const [file, setFile] = useState<File | null>(null);
+  const [proofType, setProofType] = useState<string>('attendance_photo');
+  const [eventDate, setEventDate] = useState('');
+  const demo = !!getSession()?.demo;
+  const input = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
+  return (
+    <div className="space-y-2 rounded-card border border-green-700 p-3" data-testid="mitra-proof">
+      <p className="font-semibold">{t('mitra.cert.uploadTitle')}</p>
+      <p className="text-small text-ink-muted">{t('mitra.cert.uploadHelp')}</p>
+      <label className="block text-small">
+        <span className="font-semibold">{t('mitra.cert.proofType')}</span>
+        <select className={input} value={proofType} onChange={(e) => setProofType(e.target.value)}>
+          {PROOF_TYPES.map((k) => (
+            <option key={k} value={k}>
+              {t(`mitra.cert.types.${k}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-small">
+        <span className="font-semibold">{t('mitra.cert.eventDate')}</span>
+        <input
+          type="date"
+          className={input}
+          value={eventDate}
+          onChange={(e) => setEventDate(e.target.value)}
+        />
+      </label>
+      <label className="block text-small">
+        <span className="font-semibold">{t('mitra.cert.pickFile')}</span>
+        <input
+          type="file"
+          accept="application/pdf,image/png,image/jpeg"
+          className="mt-1 block min-h-12 w-full text-small"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+      </label>
+      <Button
+        disabled={!file || proof.isPending}
+        onClick={() => file && proof.mutate({ code, file, proofType, eventDate })}
+      >
+        {proof.isPending ? t('mitra.cert.uploading') : t('mitra.cert.upload')}
+      </Button>
+      {demo && (
+        <>
+          <Button
+            variant="secondary"
+            disabled={proof.isPending}
+            onClick={() => proof.mutate({ code, sample: true })}
+            data-testid="mitra-sample-proof"
+          >
+            {t('mitra.cert.sample')}
+          </Button>
+          <p className="text-small text-copper-800">{t('mitra.cert.sampleHelp')}</p>
+        </>
+      )}
+      {proof.isError && <ErrorBox>{t('mitra.actionFailed')}</ErrorBox>}
+    </div>
+  );
+}
+
 function StepCard({
   item,
   commitment,
@@ -270,10 +341,29 @@ function StepCard({
               {item.code === 'cbit_student_visit' ? t('mitra.askVisit') : t('mitra.contacted')}
             </Button>
           )}
-          {item.kind === 'handoff' && item.contactEmail && item.status === 'not_started' && (
-            <Button onClick={start} disabled={step.isPending}>
-              {t('mitra.contacted')}
+          {item.kind === 'handoff' && !item.requestPack && (
+            <Button onClick={start} disabled={step.isPending} data-testid="mitra-prepare-pack">
+              {step.isPending ? t('mitra.pack.preparing') : t('mitra.pack.prepare')}
             </Button>
+          )}
+          {item.kind === 'handoff' && item.requestPack && (
+            <div className="space-y-2 rounded-card bg-green-50 p-3" data-testid="mitra-pack">
+              <p className="font-semibold">{t('mitra.pack.ready')}</p>
+              <Link
+                to={`/reports/${item.requestPack.reportId}`}
+                className="inline-flex min-h-12 items-center font-semibold text-green-700 underline underline-offset-4"
+              >
+                {t('mitra.pack.open')}
+              </Link>
+              <a
+                href={packMailto(item.requestPack)}
+                className={BUTTON_CLASS.primary}
+                data-testid="mitra-mailto"
+              >
+                {t('mitra.pack.email')}
+              </a>
+              <p className="text-small text-ink-muted">{t('mitra.pack.emailHelp')}</p>
+            </div>
           )}
           <Button
             variant="secondary"
@@ -295,6 +385,19 @@ function StepCard({
         <p className="flex items-center gap-1 text-small font-semibold text-green-700">
           <CheckCircle size={16} aria-hidden="true" /> {t('mitra.doneBadge')}
         </p>
+      )}
+      {(item.status === 'started' || item.status === 'done_self') && (
+        <ProofBlock code={item.code} />
+      )}
+      {item.status === 'confirmed' && item.certificateReportId && (
+        <Link
+          to={`/reports/${item.certificateReportId}`}
+          className={BUTTON_CLASS.primary}
+          data-testid="mitra-certificate"
+        >
+          {t('mitra.cert.open')}
+          <ArrowRight size={20} aria-hidden="true" />
+        </Link>
       )}
       {step.isError && <ErrorBox>{t('mitra.actionFailed')}</ErrorBox>}
 
