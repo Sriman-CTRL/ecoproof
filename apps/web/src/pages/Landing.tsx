@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { cashTest, emi } from '@ecoproof/calc';
-import { EmiVsSavingBar } from '../components/kit/EmiVsSavingBar';
+import { LoanResult, LoanTermInputs, useLoanTerms } from '../components/LoanMaths';
+import { ErrorNote } from '../components/kit/ErrorNote';
+import { Skeleton } from '../components/kit/Skeleton';
 import { StampBadge } from '../components/kit/StampBadge';
 import { YearStrip } from '../components/kit/YearStrip';
 import { LANGUAGES } from '../i18n';
 import { loadFullFonts, loadScriptFonts } from '../i18n/fonts';
-import { formatInr, formatNumber } from '../lib/format';
+import type { ActionItem } from '../lib/api';
+import { formatInr } from '../lib/format';
+import { LOAN_EXAMPLE_CODE, usePublicSample } from '../lib/publicSample';
 import { SAMPLE_BILL } from '../lib/sampleBill';
 import { getSession } from '../lib/session';
 
@@ -257,90 +260,70 @@ function HowItWorks() {
   );
 }
 
-const digits = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
-
 function MoneyMaths() {
   const { t } = useTranslation();
-  const [loan, setLoan] = useState('10,00,000');
-  const [rate, setRate] = useState('8');
-  const [months, setMonths] = useState('60');
-  const [saving, setSaving] = useState(formatNumber(Math.round(SAMPLE_BILL.pfLossInr)));
-  const principal = digits(loan);
-  const tenure = Math.floor(Number(months));
-  const annualRate = Number(rate);
-  const monthly = digits(saving);
-  const valid = principal > 0 && tenure > 0 && annualRate >= 0 && Number.isFinite(annualRate);
-  const calc = valid
-    ? (() => {
-        const e = emi({ principal, annualRatePct: annualRate, months: tenure });
-        return { emi: e, test: cashTest({ emi: e, monthlySavingLow: monthly }) };
-      })()
-    : null;
-  const field = 'mt-1 min-h-12 w-full rounded-button border bg-surface px-3 text-body';
+  const sample = usePublicSample();
+  const igbt = sample.data?.actions.find((a) => a.code === LOAN_EXAMPLE_CODE);
   return (
-    <section className={`bg-paper py-12 ${DEFER}`}>
-      <div className={`${WRAP} grid items-start gap-8 md:grid-cols-2`}>
-        <div className="space-y-4">
-          <SectionTitle>{t('landing.money.title')}</SectionTitle>
-          <p className="text-ink-muted">{t('landing.money.intro')}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="col-span-2 block text-small">
-              {t('landing.money.loan')}
-              <input
-                inputMode="numeric"
-                className={`${field} num`}
-                value={loan}
-                onChange={(e) => setLoan(e.target.value)}
-              />
-            </label>
-            <label className="block text-small">
-              {t('landing.money.rate')}
-              <input
-                inputMode="decimal"
-                className={`${field} num`}
-                value={rate}
-                onChange={(e) => setRate(e.target.value)}
-              />
-            </label>
-            <label className="block text-small">
-              {t('landing.money.months')}
-              <input
-                inputMode="numeric"
-                className={`${field} num`}
-                value={months}
-                onChange={(e) => setMonths(e.target.value)}
-              />
-            </label>
-            <label className="col-span-2 block text-small">
-              {t('landing.money.saving')}
-              <input
-                inputMode="numeric"
-                className={`${field} num`}
-                value={saving}
-                onChange={(e) => setSaving(e.target.value)}
-              />
-            </label>
+    <section id="money" className={`scroll-mt-4 bg-paper py-12 ${DEFER}`}>
+      <div className={`${WRAP} space-y-6`}>
+        <SectionTitle>{t('landing.money.title')}</SectionTitle>
+        <div className="max-w-3xl space-y-1 rounded-card border-l-4 border-green-700 bg-surface p-4">
+          <h3 className="font-heading text-card-title font-semibold">
+            {t('landing.money.whyTitle')}
+          </h3>
+          <p className="text-ink-muted">{t('landing.money.why')}</p>
+        </div>
+        {igbt && igbt.inrPerMonthLow != null ? (
+          <LoanExample igbt={igbt} />
+        ) : sample.isError ? (
+          <ErrorNote what={t('common.genericError')} />
+        ) : (
+          <div aria-busy="true" className="space-y-3">
+            <p className="text-small text-ink-muted">{t('loanMaths.loading')}</p>
+            <Skeleton />
           </div>
-        </div>
-        <div
-          className="space-y-3 rounded-card border bg-surface p-4 shadow-card"
-          data-testid="money"
-        >
-          {calc && (
-            <>
-              <EmiVsSavingBar emi={Math.round(calc.emi)} saving={monthly} />
-              <p className="text-small text-ink-muted">
-                {calc.test.cashPositiveFromMonth1
-                  ? t('landing.money.covered')
-                  : t('landing.money.notCovered')}
-              </p>
-            </>
-          )}
-          <p className="text-small font-semibold text-copper-800">{t('landing.money.example')}</p>
-          <p className="text-small text-ink-muted">{t('landing.money.small')}</p>
-        </div>
+        )}
       </div>
     </section>
+  );
+}
+
+function LoanExample({ igbt }: { igbt: ActionItem }) {
+  const { t } = useTranslation();
+  // SIDBI 4E repayment is up to 84 months (findings-all.md R8); 8% a year is the example rate.
+  const terms = useLoanTerms({ loan: igbt.costLow, ratePct: 8, months: 84 });
+  return (
+    <div className="grid items-start gap-8 md:grid-cols-2">
+      <div className="space-y-4">
+        <p className="font-semibold">
+          {t('landing.money.measure', {
+            title: t(`actions.name.${igbt.code}`, { defaultValue: igbt.title }),
+          })}
+        </p>
+        <LoanTermInputs
+          terms={terms}
+          labels={{
+            loan: t('landing.money.loan'),
+            rate: t('landing.money.rate'),
+            months: t('landing.money.months'),
+          }}
+        />
+      </div>
+      <div className="space-y-3 rounded-card border bg-surface p-4 shadow-card" data-testid="money">
+        {terms.emi != null && (
+          <LoanResult
+            emi={terms.emi}
+            savingLow={igbt.inrPerMonthLow!}
+            savingHigh={igbt.inrPerMonthHigh}
+            co2={igbt.co2}
+            billFixesInr={SAMPLE_BILL.atStakeInr}
+          />
+        )}
+        <p className="text-small font-semibold text-copper-800">{t('landing.money.example')}</p>
+        <p className="text-small text-ink-muted">{t('landing.money.small')}</p>
+      </div>
+    </div>
   );
 }
 

@@ -2,18 +2,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { cashTest, emi } from '@ecoproof/calc';
 import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { Button } from '../components/kit/Button';
 import { Card } from '../components/kit/Card';
-import { EmiVsSavingBar } from '../components/kit/EmiVsSavingBar';
 import { Skeleton } from '../components/kit/Skeleton';
 import { SourceChip } from '../components/kit/SourceChip';
-import { StatusPill } from '../components/kit/StatusPill';
+import { LoanResult, LoanTermInputs, useLoanTerms } from '../components/LoanMaths';
 import { actionCo2Text, ErrorBox, Page, Rupees } from '../components/ui';
 import { api, postJson, type ActionsResponse, type LoanPackCreated } from '../lib/api';
 import { formatInr, formatNumber } from '../lib/format';
 import { getSession } from '../lib/session';
+import { useInrInput } from '../lib/useInrInput';
 import {
   ActionCost,
   ActionStatus,
@@ -22,8 +21,6 @@ import {
   paybackText,
   savingPendingText,
 } from './Actions';
-
-const digits = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
 export default function ActionDetail() {
   const { t } = useTranslation();
@@ -42,35 +39,28 @@ export default function ActionDetail() {
       const qs = new URLSearchParams({ all: '1' });
       if (month) qs.set('month', month.slice(0, 7));
       const r = await api<ActionsResponse>(`/sites/${siteId}/actions?${qs}`);
-      return r.actions.find((x) => x.code === code) ?? null;
+      // Zero-cost bill fixes (bill-derived findings) free up money that can cover an EMI gap.
+      const billFixes = r.actions
+        .filter((x) => x.finding != null && x.code !== code)
+        .reduce((t, x) => t + (x.inrPerMonthLow ?? 0), 0);
+      return { action: r.actions.find((x) => x.code === code) ?? null, billFixes };
     },
   });
-  const a = q.data ?? undefined;
+  const a = q.data?.action ?? undefined;
 
-  const [loan, setLoan] = useState('');
-  const [rate, setRate] = useState('8');
-  const [months, setMonths] = useState('60');
   const [vendor, setVendor] = useState('');
-  const [quote, setQuote] = useState('');
+  const quote = useInrInput();
   const plan = useMutation({
     mutationFn: () => postJson(`/sites/${siteId}/actions/${code}/plan`, { status: 'planned' }),
     onSuccess: () =>
       void Promise.all(['actions', 'progress'].map((k) => qc.invalidateQueries({ queryKey: [k] }))),
   });
 
-  const principal = digits(loan);
-  const tenure = Math.floor(Number(months));
-  const annualRate = Number(rate);
-  const valid = principal > 0 && tenure > 0 && annualRate >= 0 && Number.isFinite(annualRate);
-  const monthlyLow = a?.inrPerMonthLow ?? 0;
-  const calc = valid
-    ? (() => {
-        const e = emi({ principal, annualRatePct: annualRate, months: tenure });
-        return { emi: e, test: cashTest({ emi: e, monthlySavingLow: monthlyLow }) };
-      })()
-    : null;
+  const terms = useLoanTerms({ loan: null, ratePct: 8, months: 60 });
+  const { principal, annualRate, tenure } = terms;
+  const calc = terms.emi != null ? { emi: terms.emi } : null;
   const planned = plan.isSuccess || (a != null && a.status !== 'suggested');
-  const quoteInr = digits(quote);
+  const quoteInr = quote.value;
   const makePack = useMutation({
     mutationFn: () =>
       postJson<LoanPackCreated>(`/sites/${siteId}/reports/loan-pack`, {
@@ -201,15 +191,7 @@ export default function ActionDetail() {
                   </label>
                   <label className={labelClass}>
                     <span className="font-semibold">{t('detail.quote')}</span>
-                    <input
-                      inputMode="numeric"
-                      className={inputClass}
-                      value={quote}
-                      onChange={(e) => {
-                        const n = digits(e.target.value);
-                        setQuote(n ? new Intl.NumberFormat('en-IN').format(n) : '');
-                      }}
-                    />
+                    <input className={`${inputClass} num`} {...quote.inputProps} />
                     <span className="text-small text-ink-muted">{t('detail.quoteHelp')}</span>
                   </label>
                   {!calc && <p className="text-small text-ink-muted">{t('detail.needLoan')}</p>}
@@ -221,46 +203,25 @@ export default function ActionDetail() {
                 <h2 className="font-heading text-card-title font-semibold">
                   {t('detail.emiTitle')}
                 </h2>
-                <label className={labelClass}>
-                  <span className="font-semibold">{t('detail.loan')}</span>
-                  <input
-                    inputMode="numeric"
-                    className={inputClass}
-                    value={loan}
-                    onChange={(e) => {
-                      const n = digits(e.target.value);
-                      setLoan(n ? new Intl.NumberFormat('en-IN').format(n) : '');
-                    }}
-                  />
-                </label>
-                <label className={labelClass}>
-                  <span className="font-semibold">{t('detail.rate')}</span>
-                  <input
-                    inputMode="decimal"
-                    className={inputClass}
-                    value={rate}
-                    onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))}
-                  />
-                  <span className="text-small text-ink-muted">{t('detail.rateHelp')}</span>
-                </label>
-                <label className={labelClass}>
-                  <span className="font-semibold">{t('detail.tenure')}</span>
-                  <input
-                    inputMode="numeric"
-                    className={inputClass}
-                    value={months}
-                    onChange={(e) => setMonths(e.target.value.replace(/[^\d]/g, ''))}
-                  />
-                </label>
-                {calc && (
-                  <div className="space-y-3 border-t pt-3" data-testid="emi-panel">
-                    <EmiVsSavingBar emi={Math.round(calc.emi)} saving={Math.round(monthlyLow)} />
-                    {calc.test.cashPositiveFromMonth1 && (
-                      <StatusPill tone="positive">
-                        <CheckCircle size={18} weight="fill" aria-hidden="true" />
-                        {t('detail.cashPositive')}
-                      </StatusPill>
-                    )}
+                <LoanTermInputs
+                  terms={terms}
+                  className={inputClass}
+                  labels={{
+                    loan: t('detail.loan'),
+                    rate: t('detail.rate'),
+                    months: t('detail.tenure'),
+                    rateHelp: t('detail.rateHelp'),
+                  }}
+                />
+                {calc && a.inrPerMonthLow != null && (
+                  <div className="border-t pt-3" data-testid="emi-panel">
+                    <LoanResult
+                      emi={calc.emi}
+                      savingLow={a.inrPerMonthLow}
+                      savingHigh={a.inrPerMonthHigh}
+                      co2={a.co2}
+                      billFixesInr={q.data?.billFixes ?? null}
+                    />
                   </div>
                 )}
                 <p className="text-small text-ink-muted">{t('detail.lenderNote')}</p>

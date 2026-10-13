@@ -36,3 +36,12 @@ export function inrWords(n: number): string {
   const s = inrScale(n);
   return s ? `${s.amount} ${s.unit}` : '';
 }
+
+/** Digits only, as a number: "27,75,000" -> 2775000, "" -> 0. */
+export const parseDigits = (s: string): number => Number(s.replace(/\D/g, '')) || 0;
+
+/** Plain digits shown with Indian grouping once the field is left: "2775000" -> "27,75,000". */
+export function displayDigits(s: string): string {
+  const n = parseDigits(s);
+  return n ? formatNumber(n) : '';
+}

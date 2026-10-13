@@ -544,7 +544,9 @@
       "emi": "Loan EMI",
       "saving": "Monthly saving",
       "left": "{{amount}} left in your pocket every month",
-      "short": "{{amount}} short every month"
+      "short": "{{amount}} short every month",
+      "leftLow": "{{amount}} left every month, even at the low end",
+      "shortLow": "Short by {{amount}} a month at the low end"
     },
     "quality": {
       "label": "measured",
@@ -655,16 +657,15 @@
       }
     },
     "money": {
-      "title": "Try the money maths",
-      "intro": "Change the numbers and see whether the monthly saving covers the loan EMI.",
+      "title": "Why a green loan, and does it pay?",
       "loan": "Loan amount (₹)",
       "rate": "Interest rate (% a year)",
       "months": "Months",
-      "saving": "Monthly saving (₹)",
-      "covered": "Cash-positive from month 1: the saving is more than the EMI.",
-      "notCovered": "The saving does not cover the EMI at these numbers.",
       "example": "Worked example (sample data): the same maths the app uses.",
-      "small": "Summary for the lender's own assessment"
+      "small": "Summary for the lender's own assessment",
+      "whyTitle": "Why a loan?",
+      "why": "The bill fixes above pay back within months and need no loan. The fix that cuts the most carbon is a new, efficient furnace, and that costs lakhs. A green loan spreads the cost; the electricity it saves pays the instalment.",
+      "measure": "Example: {{title}} for the sample foundry"
     },
     "proof": {
       "title": "Proof, not claims",
@@ -1012,5 +1013,11 @@
     "homeChartLabel": "Bill rupees each month (bars) and tonnes of CO2 (line)",
     "rupeeBar": "Bill (Rs a month)",
     "co2Line": "t CO2 a month"
+  },
+  "loanMaths": {
+    "savingRange": "Monthly saving: {{low}} to {{high}}",
+    "cuts": "Cuts about {{text}}",
+    "billFixes": "Bill fixes free up {{amount}} a month, which can cover any gap.",
+    "loading": "Loading the sample foundry's action plan..."
   }
 }

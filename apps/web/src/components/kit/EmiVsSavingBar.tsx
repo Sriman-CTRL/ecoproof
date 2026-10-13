@@ -1,8 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import { formatInr } from '../../lib/format';
 
-/** EMI and monthly saving on the same scale; the gap says what is left or short (FIN-3). */
-export function EmiVsSavingBar({ emi, saving }: { emi: number; saving: number }) {
+/**
+ * EMI and monthly saving on the same scale; the gap says what is left or short (FIN-3).
+ * `lowEnd`: the saving is the low end of a range, and the gap line says so.
+ */
+export function EmiVsSavingBar({
+  emi,
+  saving,
+  lowEnd = false,
+}: {
+  emi: number;
+  saving: number;
+  lowEnd?: boolean;
+}) {
   const { t } = useTranslation();
   const max = Math.max(emi, saving, 1);
   const gap = saving - emi;
@@ -34,8 +45,8 @@ export function EmiVsSavingBar({ emi, saving }: { emi: number; saving: number })
         }`}
       >
         {gap >= 0
-          ? t('kit.emi.left', { amount: formatInr(gap) })
-          : t('kit.emi.short', { amount: formatInr(-gap) })}
+          ? t(lowEnd ? 'kit.emi.leftLow' : 'kit.emi.left', { amount: formatInr(gap) })
+          : t(lowEnd ? 'kit.emi.shortLow' : 'kit.emi.short', { amount: formatInr(-gap) })}
       </p>
     </div>
   );
