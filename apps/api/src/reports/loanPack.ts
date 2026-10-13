@@ -144,6 +144,21 @@ export interface LoanPackResults {
     co2TonnesPerYearAvoided: number | null;
     note: string | null;
     intensityBefore: number | null;
+    /** D6b: t CO2 a year cut by the measure (same kWh range as the rupees) and its factor. */
+    co2Range?: {
+      low: number;
+      high: number;
+      factor: {
+        id: string;
+        value: number;
+        unit: string;
+        version: string | null;
+        source: string;
+        page: string | null;
+      };
+    } | null;
+    /** D6b: the unit's footprint over the snapshot's bill months. */
+    footprint?: { months: number; scope2T: number; scope1T: number; totalT: number } | null;
   };
   dataQuality: {
     measuredSharePct: number;
@@ -275,6 +290,12 @@ export async function buildSnapshot(
   // Carbon: bill-derived fixes (kVAh, demand, billing) save rupees, not kWh.
   const savesUnits = action.finding == null && action.enduse === 'electricity';
   const totalCo2 = results.reduce((t, r) => t + Number(r.scope1 ?? 0) + Number(r.scope2 ?? 0), 0);
+  const scope2Sum = results.reduce((t, r) => t + Number(r.scope2 ?? 0), 0);
+  const scope1Sum = results.reduce((t, r) => t + Number(r.scope1 ?? 0), 0);
+  const co2Factor =
+    savesUnits && action.co2
+      ? await prisma.factor.findUnique({ where: { id: action.co2.factorId } })
+      : null;
   const totalTonnes = results.reduce((t, r) => t + (prodBy.get(r.month.getTime()) ?? 0), 0);
 
   // Data quality: share of emissions resting on measured inputs (Doc 03).
@@ -363,6 +384,24 @@ export async function buildSnapshot(
       co2TonnesPerYearAvoided: savesUnits ? action.co2TonnesPerYear : null,
       note: savesUnits ? null : RUPEES_NOT_UNITS,
       intensityBefore: totalTonnes > 0 ? totalCo2 / totalTonnes : null,
+      co2Range:
+        action.co2 && co2Factor
+          ? {
+              low: action.co2.tPerYearLow,
+              high: action.co2.tPerYearHigh,
+              factor: {
+                id: co2Factor.id,
+                value: Number(co2Factor.value),
+                unit: co2Factor.unit,
+                version: co2Factor.version,
+                source: co2Factor.source,
+                page: co2Factor.page,
+              },
+            }
+          : null,
+      footprint: results.length
+        ? { months: results.length, scope2T: scope2Sum, scope1T: scope1Sum, totalT: totalCo2 }
+        : null,
     },
     dataQuality: dq,
     factors: factors.map((f) => ({
@@ -463,6 +502,35 @@ export async function createLoanPack(
 
 const template = readFileSync(new URL('./templates/loan-pack.html', import.meta.url), 'utf8');
 
+/**
+ * D6b "Carbon impact" block on the measure page: the t CO2 a year range the measure cuts, with its
+ * factor and source, and the unit's footprint over the snapshot months. Older snapshots (no
+ * co2Range / footprint) render without it: past results stay as published.
+ */
+const factor3 = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 3 });
+
+function carbonBlock(r: LoanPackResults): string {
+  const c = r.carbon;
+  const rows: string[] = [];
+  if (c.co2Range) {
+    const f = c.co2Range.factor;
+    rows.push(
+      `<dt>CO2 cut per year</dt><dd>${esc(`${dec(c.co2Range.low)} to ${dec(c.co2Range.high)} t CO2 a year (kWh saved x ${factor3.format(f.value)} ${f.unit})`)}</dd>`,
+      `<dt>Factor</dt><dd>${esc(`${f.version ?? ''} ${f.source}${f.page ? `, ${f.page}` : ''}`.trim())}</dd>`,
+    );
+  } else if (c.note) {
+    rows.push(`<dt>CO2 cut per year</dt><dd>${esc(`none claimed: this measure ${c.note}`)}</dd>`);
+  }
+  if (c.footprint) {
+    const p = c.footprint;
+    rows.push(
+      `<dt>Unit footprint (${p.months} months)</dt><dd>${esc(`${dec(p.scope2T)} t CO2 (grid) + ${dec(p.scope1T)} t CO2e (fuels) = ${dec(p.totalT)} t`)}</dd>`,
+    );
+  }
+  if (!rows.length) return '';
+  return `<h3 style="margin-top: 6mm">Carbon impact</h3><dl class="kv">${rows.join('')}</dl>`;
+}
+
 export async function renderHtml(r: LoanPackResults, snapshotId: string): Promise<string> {
   const qrDataUrl = await QRCode.toDataURL(r.verifyUrl, { margin: 1, width: 300 });
   const m = r.measure;
@@ -553,10 +621,12 @@ export async function renderHtml(r: LoanPackResults, snapshotId: string): Promis
           ? 'not available'
           : `not available (${COST_PENDING})`
         : `${dec(m.paybackYears)} years (${dec(m.paybackYears * 12)} months)`,
-    co2Avoided:
-      r.carbon.co2TonnesPerYearAvoided != null
+    co2Avoided: r.carbon.co2Range
+      ? `${dec(r.carbon.co2Range.low)} to ${dec(r.carbon.co2Range.high)} t CO2 per year`
+      : r.carbon.co2TonnesPerYearAvoided != null
         ? `${dec(r.carbon.co2TonnesPerYearAvoided)} t CO2 per year`
         : (r.carbon.note ?? 'not estimated'),
+    carbonBlock: carbonBlock(r),
     intensityBefore:
       r.carbon.intensityBefore == null
         ? '-'

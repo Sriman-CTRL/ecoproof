@@ -461,7 +461,34 @@
     "shareTitleBuyer": "Share with buyer",
     "sealHelpFile": "This code (SHA-256) changes if even one cell of the file changes.",
     "shareCarbon": "Share the statement",
-    "carbonNote": "Energy and carbon pre-assessment from your own bills. Not a third-party verification."
+    "carbonNote": "Energy and carbon pre-assessment from your own bills. Not a third-party verification.",
+    "why": {
+      "title": "Why this summary exists",
+      "l1": "Banks want proof that a saving is real before they lend for efficiency.",
+      "l2": "A full energy assessment is costly for a small unit.",
+      "l3": "This summary uses the unit's own bills, with a QR so the lender can check it is genuine."
+    },
+    "inside": {
+      "title": "What's inside",
+      "bills": "Bill evidence, month by month",
+      "saving": "Saving range (low to high)",
+      "cost": "Cost range or your quote",
+      "emi": "EMI vs saving",
+      "co2": "CO2 cut per year",
+      "footprint": "12-month carbon footprint",
+      "schemes": "Schemes to ask about",
+      "method": "Method and limits"
+    },
+    "who": {
+      "title": "Who reads it",
+      "body": "The lender, for the lender's own assessment. EcoProof does not lend."
+    },
+    "check": {
+      "title": "How they check it",
+      "body": "The QR on the document opens its verify page, which shows whether the PDF was changed.",
+      "qrAlt": "QR code that opens the verify page of this summary"
+    },
+    "preview": "First page preview"
   },
   "verify": {
     "business": "Business",

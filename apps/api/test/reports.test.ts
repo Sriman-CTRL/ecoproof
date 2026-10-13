@@ -123,6 +123,9 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     expect(s.measure.costText).toBe('Rs 2,50,000');
     expect(s.loan.emi).toBeCloseTo(20276.39, 1);
     expect(s.carbon.note).toBe('saves rupees, not units of energy');
+    // D6b: a bill fix claims no CO2 cut; the unit's footprint line is always there.
+    expect(s.carbon.co2Range).toBeNull();
+    expect(s.carbon.footprint?.months).toBe(12);
     expect(s.months).toHaveLength(12);
     expect(s.months.at(-1)?.documentId).toBeTruthy();
     expect(row.snapshot.factorIds.length).toBeGreaterThan(0);
@@ -143,6 +146,9 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     expect(html).toContain(ZED_LINE);
     expect(html).toContain('Scheme rules last checked 12 October 2026');
 
+    expect(html).toContain('Unit footprint (12 months)');
+    expect(html).toContain('none claimed: this measure saves rupees, not units of energy');
+
     const footer = footerTemplate(row.id, verifyUrlFor(row.id));
     expect(LENDER_LINE).toBe(
       "Summary for the lender's own assessment. Not an approval or sanction.",
@@ -152,6 +158,43 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     );
     expect(footer).toContain(`/verify/${row.id}`);
     expect(footer).not.toMatch(BANNED);
+  });
+
+  it('IGBT furnace pack: carbon impact block with the t CO2 range and its factor (D6b)', async () => {
+    const plan = await request(app)
+      .post(`/sites/${siteA}/actions/igbt_furnace/plan`)
+      .set(auth(tokenA))
+      .send({ status: 'planned' });
+    expect(plan.status).toBe(200);
+    const acts = await request(app).get(`/sites/${siteA}/actions?all=1`).set(auth(tokenA));
+    const igbt = acts.body.actions.find((a: { code: string }) => a.code === 'igbt_furnace');
+    const r = await request(app)
+      .post(`/sites/${siteA}/reports/loan-pack`)
+      .set(auth(tokenA))
+      .send({
+        actionCode: 'igbt_furnace',
+        loan: { amountInr: 2775000, ratePct: 8, tenureMonths: 84 },
+        language: 'en',
+      });
+    expect(r.status).toBe(201);
+    const row = await prisma.report.findFirstOrThrow({
+      where: { id: r.body.reportId },
+      include: { snapshot: true },
+    });
+    const s = row.snapshot.resultsJson as unknown as LoanPackResults;
+    expect(s.carbon.co2Range?.low).toBeCloseTo(igbt.co2.tPerYearLow, 6);
+    expect(s.carbon.co2Range?.high).toBeCloseTo(igbt.co2.tPerYearHigh, 6);
+    expect(s.carbon.co2Range?.factor).toMatchObject({ value: 0.675, version: 'v22.0' });
+    expect(s.carbon.footprint?.totalT).toBeCloseTo(
+      s.carbon.footprint!.scope2T + s.carbon.footprint!.scope1T,
+      6,
+    );
+    const html = await renderHtml(s, row.snapshotId);
+    expect(html).toContain('CO2 cut per year');
+    expect(html).toContain('kWh saved x 0.675 t CO2 per MWh');
+    expect(html).toContain('CEA CO2 Baseline Database');
+    expect(html).toContain('t CO2 (grid) +');
+    expect(html).not.toMatch(BANNED);
   });
 
   it('regenerates as version 2 and version 1 still verifies', async () => {
