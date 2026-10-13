@@ -101,7 +101,18 @@ await check('public sample (site figures)', async () => {
   if (!igbt?.co2) throw new Error('no igbt_furnace CO2');
   return `IGBT ${igbt.co2.tPerYearLow}-${igbt.co2.tPerYearHigh} t CO2/yr`;
 });
-for (const path of ['/', '/household/solar', '/verify/<demo report>', '/verify/<pitch qr>']) {
+for (const path of [
+  '/',
+  '/how-it-works',
+  '/carbon-method',
+  '/for-lenders',
+  '/for-buyers',
+  '/for-homes',
+  '/about',
+  '/household/solar',
+  '/verify/<demo report>',
+  '/verify/<pitch qr>',
+]) {
   await check(`web ${path}`, async () => {
     const url = path
       .replace('<demo report>', DEMO_REPORT_ID)

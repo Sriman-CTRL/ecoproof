@@ -27,6 +27,7 @@ export interface PublicSample {
   carbon: Carbon;
   factors: PublicFactor[];
   actions: ActionItem[];
+  baselineRules: { minMonthsForRegression: number; maxCvRmsePct: number; maxAbsNmbePct: number };
   household: { plan: SolarPlan; results: SolarResults };
 }
 

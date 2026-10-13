@@ -605,56 +605,49 @@
       "myApp": "My app"
     },
     "hero": {
-      "title": "Your electricity bill already shows where the money goes. EcoProof reads it for you.",
-      "sub": "Energy and carbon pre-assessment for MSMEs. In rupees, in Telugu, Hindi or English.",
+      "title": "See your factory's carbon footprint and the money hiding in your electricity bill.",
+      "sub": "Energy and carbon pre-assessment for MSMEs, from the bill you already get. In Telugu, Hindi or English.",
       "primary": "See a sample foundry",
       "secondary": "How it works",
       "phoneAlt": "Phone screen showing the bill health check for a sample foundry: {{inr}} a month lost to power factor",
-      "phoneTag": "Worked example (sample data)"
+      "phoneTag": "Worked example (sample data)",
+      "co2": "{{value}} t CO2",
+      "co2Label": "this month: t CO2 (grid) + t CO2e (fuels)",
+      "atStake": "a month at stake on bill charges",
+      "figTag": "Sample bill, {{month}}"
     },
     "bill": {
       "title": "The bill, decoded",
-      "intro": "Three lines on a high-tension bill hold most of the avoidable cost. Every figure here is from one sample bill.",
+      "intro": "Four lines on a high-tension bill: three hold most of the avoidable cost, one holds the carbon. Every figure here is from one sample bill.",
       "sample": "Sample bill (synthetic). Figures are for this sample only.",
       "alt": "A synthetic high-tension electricity bill with three lines marked: maximum and contracted demand, power factor, and peak-hour units",
       "pf": {
         "name": "Power factor 0.92",
         "means": "How much of the power you pay for does useful work. Below 0.95 the bill adds extra units (kVAh).",
-        "cost": "{{amount}} a month on this sample bill"
+        "cost": "{{amount}} a month on this sample bill",
+        "carbon": "Bill charge, no CO2 change"
       },
       "md": {
         "name": "Maximum demand 300 kVA vs contracted demand 500 kVA",
         "means": "You pay for the demand you contract, not only the demand you use. Contracting nearer your real peak lowers the fixed charge.",
-        "cost": "{{amount}} a month on this sample bill"
+        "cost": "{{amount}} a month on this sample bill",
+        "carbon": "Bill charge, no CO2 change"
       },
       "peak": {
         "name": "Peak-hour units: 23,000 kWh",
         "means": "Units used in peak hours cost more. Moving some work to other hours lowers the bill.",
-        "cost": "{{amount}} per unit moved"
+        "cost": "{{amount}} per unit moved",
+        "carbon": "Shifting hours moves cost, not carbon"
+      },
+      "units": {
+        "name": "Units used: {{kwh}} kWh",
+        "means": "Every unit from the grid carries CO2. This line is where the footprint comes from.",
+        "co2": "{{kwh}} kWh x {{factor}} t/MWh (CEA {{version}}) = {{t}} t CO2"
       }
     },
     "how": {
-      "title": "How it works",
-      "s1": {
-        "title": "Forward your bill",
-        "body": "Take a photo of the bill or upload the PDF.",
-        "alt": "The add-a-bill screen of the app"
-      },
-      "s2": {
-        "title": "Check the values",
-        "body": "EcoProof shows each number it read. You confirm or correct it.",
-        "alt": "The check-your-bill screen of the app"
-      },
-      "s3": {
-        "title": "See the ₹ at stake and the fix",
-        "body": "Rupees first, then units, then CO2, with the fixes in order.",
-        "alt": "The bill health screen of the app"
-      },
-      "s4": {
-        "title": "Track savings your bills prove",
-        "body": "A saving counts only after your own bills show it, month by month.",
-        "sample": "Sample data (synthetic)"
-      }
+      "title": "From bill to proof",
+      "more": "See how it works"
     },
     "money": {
       "title": "Why a green loan, and does it pay?",
@@ -679,15 +672,18 @@
       "title": "Who it's for",
       "msme": {
         "name": "MSMEs",
-        "body": "Metal-engineering units first: foundries, forging and fasteners in Hyderabad clusters. You get your bill read in rupees and the fixes in order."
+        "body": "Metal-engineering units first: foundries, forging and fasteners in Hyderabad clusters. You get your bill read in rupees and the fixes in order.",
+        "link": "How it works"
       },
       "home": {
         "name": "Households",
-        "body": "Rooftop solar and the PM Surya Ghar subsidy. You get your bill read in rupees and a solar check."
+        "body": "Rooftop solar and the PM Surya Ghar subsidy. You get your bill read in rupees and a solar check.",
+        "link": "For homes"
       },
       "lender": {
         "name": "Lenders and EU buyers",
-        "body": "Lenders get a loan-ready summary for the lender's own assessment. For EU buyers: a CBAM supplier sheet (estimate, not verified) for cast pipes and fittings today; most other castings may come into scope from 2028."
+        "body": "Lenders get a loan-ready summary for the lender's own assessment. For EU buyers: a CBAM supplier sheet (estimate, not verified) for cast pipes and fittings today; most other castings may come into scope from 2028.",
+        "link": "For lenders and buyers"
       },
       "zed": "We guide you to MSME ZED; Bronze is effectively free with the ₹10,000 joining reward, and some banks cut rates for ZED units"
     },
@@ -1017,7 +1013,259 @@
   "loanMaths": {
     "savingRange": "Monthly saving: {{low}} to {{high}}",
     "cuts": "Cuts about {{text}}",
-    "billFixes": "Bill fixes free up {{amount}} a month, which can cover any gap.",
-    "loading": "Loading the sample foundry's action plan..."
+    "billFixes": "Bill fixes free up {{amount}} a month, which can cover any gap."
+  },
+  "site": {
+    "nav": {
+      "label": "Site",
+      "menu": "Menu",
+      "home": "Home",
+      "how": "How it works",
+      "method": "Carbon method",
+      "lenders": "For lenders",
+      "buyers": "For buyers",
+      "homes": "For homes",
+      "about": "About"
+    },
+    "story": {
+      "title": "The EcoProof story",
+      "body": "Small factories burn a lot of electricity and fuel, but nobody measures their carbon, because measuring costs money. EcoProof reads the electricity bill they already get and turns it into a carbon footprint, the rupees being lost, and a plan. The quick bill fixes save money straight away. That money, plus a green loan, pays for the machines that actually cut carbon. EcoProof then proves the cut from the next bills, so the owner, the lender and the buyer can all believe it."
+    },
+    "footer": {
+      "team": "Built by a team of 3 from CBIT, Hyderabad.",
+      "synthetic": "Sample data is synthetic.",
+      "links": "Site links"
+    },
+    "loading": "Loading the sample figures...",
+    "sampleTag": "Sample foundry (synthetic), {{month}} bill",
+    "homeTag": "Sample home (synthetic)",
+    "how": {
+      "title": "How it works",
+      "lead": "Six stages, from the bill a unit already gets to proof that a lender and a buyer can check. Rupees and CO2 at every stage.",
+      "owner": "What the owner does",
+      "calc": "What EcoProof works out",
+      "seeMethod": "How every number is made",
+      "s1": {
+        "title": "Upload the bill",
+        "short": "The footprint from the bill: scope 2 from kWh, scope 1 from fuel.",
+        "owner": "Take a photo of the bill or upload the PDF. Add the diesel bought and the tonnes made.",
+        "calc": "Scope 2 = kWh x CEA grid factor. Scope 1 = fuel x its factor. On the sample bill: {{s2}} t CO2 (grid) + {{s1}} t CO2e (fuels).",
+        "alt": "The add-a-bill screen of the app"
+      },
+      "s2": {
+        "title": "Bill health",
+        "short": "Rupees lost on bill charges, in plain words.",
+        "owner": "Check each value EcoProof read; confirm it or correct it.",
+        "calc": "Power factor and contracted demand checks against the tariff. On the sample bill: {{inr}} a month at stake. These are bill charges, so the CO2 does not change.",
+        "alt": "The bill health screen of the app"
+      },
+      "s3": {
+        "title": "Ranked fixes",
+        "short": "Each fix with rupees a year and t CO2 a year, zero-cost first.",
+        "owner": "Pick the fixes to do and mark them planned.",
+        "calc": "Each fix gets rupees saved a year and t CO2 cut a year, both from the same kWh saving. The sample foundry's plan:"
+      },
+      "s4": {
+        "title": "Green loan summary",
+        "short": "EMI vs saving, and the CO2 the machine cuts.",
+        "owner": "Get a quote, enter the loan terms, make the summary.",
+        "calc": "EMI vs the low-end saving, the gap if there is one, and the t CO2 a year the machine cuts."
+      },
+      "s5": {
+        "title": "Savings checked by your bills",
+        "short": "Rupees saved and t CO2 avoided, shown by the next bills.",
+        "owner": "Keep adding each month's bill.",
+        "calc": "New bills are compared with a baseline fitted to the earlier months. Until the statistics pass it says \"Too early to confirm\"; then \"Verified by your bills\"."
+      },
+      "s6": {
+        "title": "Share proof",
+        "short": "Carbon statement and loan summary with a QR; CBAM estimate for EU buyers.",
+        "owner": "Share a link with the lender or buyer, and see who opened it.",
+        "calc": "Each document carries a fingerprint and a QR that opens its verify page. EU buyers get a CBAM supplier sheet: Estimate, not verified.",
+        "qr": "Scan: the sample foundry's carbon statement"
+      }
+    },
+    "method": {
+      "title": "Carbon method",
+      "lead": "How every number is made, worked through with the sample foundry's own figures. Each figure comes from a stored bill and a versioned factor row; none is typed in by hand.",
+      "formula": "Formula",
+      "worked": "Worked through",
+      "source": "Source",
+      "scope2": {
+        "title": "Scope 2: grid electricity",
+        "formula": "kWh x CEA grid factor / 1000 = t CO2",
+        "note": "Location-based: the national CEA grid average. Self-used rooftop solar counts as zero."
+      },
+      "scope1": {
+        "title": "Scope 1: fuel burned on site",
+        "formula": "litres x fuel factor / 1000 = t CO2e",
+        "note": "Open item: the per-litre diesel factor is not yet cross-checked against the IPCC per-kg value, because the diesel density was not researched."
+      },
+      "intensity": {
+        "title": "Intensity per tonne of product",
+        "formula": "(scope 1 + scope 2) / tonnes made",
+        "note": "The main metric: it stays fair when production goes up or down."
+      },
+      "action": {
+        "title": "CO2 cut by an action",
+        "formula": "kWh saved a year x grid factor / 1000",
+        "worked": "{{title}}: {{kwhLow}} to {{kwhHigh}} kWh a year x {{factor}} t/MWh = {{tLow}} to {{tHigh}} t CO2 a year",
+        "note": "Same kWh range as the rupee saving. Bill fixes (power factor, contracted demand, peak hours) change the bill, not the carbon."
+      },
+      "verify": {
+        "title": "Savings check",
+        "formula": "baseline: kWh = a + b x tonnes, fitted to earlier months",
+        "note": "Needs at least {{months}} months and must fit within CV(RMSE) {{cv}}% and NMBE ±{{nmbe}}% (ASHRAE Guideline 14 monthly limits). Until then it says \"Too early to confirm\"; after, \"Verified by your bills\" (EcoProof's own method, not a third-party check)."
+      },
+      "notCounted": {
+        "title": "What is not counted",
+        "embodied": "Embodied carbon in the metal, machines and buildings.",
+        "transport": "Transport of goods and people.",
+        "scope3": "Scope 3: the supply chain, such as purchased pig iron and scrap.",
+        "gases": "Other gases from the grid: the CEA factor is CO2 only, so grid totals say t CO2 and fuel totals say t CO2e."
+      },
+      "limits": {
+        "title": "Honest limits",
+        "grid": "The grid factor is a national average, not the mix of one DISCOM or one hour.",
+        "synthetic": "The demo bills are synthetic: they show the method, not a real unit.",
+        "household": "Household rupees leave out FSA and electricity duty.",
+        "self": "The savings check uses the unit's own bills. It is not a third-party verification."
+      },
+      "lines": "Method lines from the sample foundry's latest bill",
+      "factors": {
+        "title": "Every factor used",
+        "factor": "Factor",
+        "value": "Value",
+        "version": "Version",
+        "valid": "Valid",
+        "sourceCol": "Source and page",
+        "from": "from {{date}}",
+        "always": "no end date"
+      }
+    },
+    "lenders": {
+      "title": "For lenders",
+      "lead": "A short, bill-backed summary for green and energy-efficiency loans to small units, with the carbon the loan cuts.",
+      "big": "EcoProof does not lend. It prepares a summary for the lender's own assessment.",
+      "gets": {
+        "title": "What a lender gets",
+        "bills": "Bill evidence: up to 12 months of confirmed bills, each with its source line.",
+        "range": "A saving range (low to high) from the unit's own bills, not one optimistic number.",
+        "emi": "EMI vs the low-end saving, and the gap if there is one.",
+        "co2": "The t CO2 a year the machine cuts, on the same kWh basis as the rupees.",
+        "footprint": "The unit's 12-month carbon footprint.",
+        "qr": "A QR that opens the verify page, to check the document was not changed."
+      },
+      "why": {
+        "title": "Why it helps green lending",
+        "body": "Banks want proof that a saving is real before they lend for efficiency. A full energy assessment is costly for a small unit. This summary uses the unit's own bills, and after the loan the next bills show whether the saving happened."
+      },
+      "example": "Worked example: the green-loan maths",
+      "qr": {
+        "title": "Check a sample summary",
+        "body": "Scan to open the verify page of the sample loan-ready summary.",
+        "alt": "QR code that opens the verify page of the sample loan-ready summary"
+      },
+      "schemes": {
+        "title": "Schemes to ask about",
+        "note": "Pointers only. Terms change: confirm with the lender or the scheme office.",
+        "sidbi": {
+          "name": "SIDBI 4E",
+          "body": "Energy-efficiency loans: repayment up to 84 months including up to 12 months moratorium; the rate is MCLR-linked. SIDBI's own pages differ on the terms, so use the live sidbi.in values."
+        },
+        "gift": {
+          "name": "MSE-GIFT",
+          "body": "2% a year interest subvention for up to 5 years on term loans up to ₹2 crore, for Udyam micro and small units. The machine must be on the scheme's technology list."
+        },
+        "zed": {
+          "name": "Bank concessions for ZED",
+          "body": "Some banks publish lower rates or fees for units with ZED certification (for example SBI and SIDBI: Bronze 5 bps plus 5% off the processing fee). They are lender-published, vary by level and carry no date: ask the bank."
+        }
+      }
+    },
+    "buyers": {
+      "title": "For buyers",
+      "lead": "Supplier carbon data a buyer can check, built from the supplier's own bills and fuel records.",
+      "statement": {
+        "title": "Carbon statement",
+        "body": "12 months of footprint: scope 1 and scope 2, per tonne of product, with every factor and its source. A QR opens its verify page.",
+        "qr": "Scan: the sample foundry's carbon statement",
+        "alt": "QR code that opens the verify page of the sample carbon statement"
+      },
+      "cbam": {
+        "title": "CBAM supplier sheet",
+        "body": "For EU importers: emissions per tonne of iron and steel goods, from the supplier's fuel and electricity records, in an Excel sheet.",
+        "direct": "For iron and steel, the sheet covers direct emissions only.",
+        "verifier": "Verified data must be confirmed by an accredited verifier.",
+        "stamp": "Estimate, not verified"
+      },
+      "scope": {
+        "title": "Which castings CBAM covers",
+        "now": "In scope now: cast iron pipes (CN 7303) and cast fittings (CN 7307 11, 7307 19).",
+        "later": "Most castings (CN 7325, other cast articles of iron or steel) are not in scope today. They are only proposed for CBAM from 1 January 2028 (COM(2025) 989, not yet adopted).",
+        "note": "Source: EU CBAM goods list and the Commission proposal, as summarised in EcoProof research R4."
+      }
+    },
+    "homes": {
+      "title": "For homes",
+      "lead": "Rooftop solar, the PM Surya Ghar subsidy and the home's own bills, priced on the TGSPDCL LT-I domestic slabs, with the CO2 avoided each year.",
+      "plan": "The sample home's solar plan",
+      "kwp": "Size",
+      "kwpValue": "{{kwp}} kW",
+      "subsidy": "Subsidy (central financial assistance)",
+      "net": "Cost after the subsidy",
+      "saving": "Bill saving a month",
+      "payback": "Payback",
+      "years": "{{n}} years",
+      "co2": "CO2 avoided a year",
+      "slabs": "Bills are priced on the TGSPDCL LT-I domestic slabs (FY 2026-27).",
+      "after": "After solar: {{months}} months of bills, {{inr}} saved against the same months last year.",
+      "try": "Try the sample home",
+      "portal": "PM Surya Ghar portal"
+    },
+    "about": {
+      "title": "About EcoProof",
+      "lead": "An energy and carbon pre-assessment for small factories and homes, built for SDG 13 Climate Action.",
+      "sdgTitle": "SDG 13, row by row",
+      "goal": "What SDG 13 asks",
+      "does": "What EcoProof does",
+      "team": "Built by a team of 3 from CBIT, Hyderabad.",
+      "roadmap": {
+        "title": "What comes next",
+        "whatsapp": "Forward the bill on WhatsApp.",
+        "cluster": "A cluster view for Hyderabad foundry clusters.",
+        "live": "Live bill reading after consent (the public demo uses sample bills today)."
+      }
+    },
+    "sdg": {
+      "title": "SDG 13 Climate Action",
+      "more": "How EcoProof maps to SDG 13",
+      "track": {
+        "name": "Track",
+        "short": "The footprint every month, from the bill.",
+        "long": "A carbon footprint every month from the bill the unit already gets: scope 2 from kWh, scope 1 from fuel, per tonne of product."
+      },
+      "reduce": {
+        "name": "Reduce",
+        "short": "Ranked fixes, each with t CO2 a year.",
+        "long": "A ranked plan of fixes, each with rupees a year and t CO2 a year, and savings checked by the next bills."
+      },
+      "insights": {
+        "name": "Insights",
+        "short": "Bill health in plain words.",
+        "long": "Bill health in plain words: power factor, contracted demand and peak hours, in rupees, in Telugu, Hindi or English."
+      },
+      "incentives": {
+        "name": "Incentives",
+        "short": "Schemes, ZED and green loans.",
+        "long": "Pointers to schemes, ZED and green loans, with a summary for the lender's own assessment."
+      },
+      "who": {
+        "name": "Businesses and individuals",
+        "short": "Factories and homes.",
+        "long": "Small factories first, and homes with rooftop solar and the PM Surya Ghar subsidy."
+      }
+    },
+    "loanTerms": "Loan {{loan}} at {{rate}}% a year over {{months}} months"
   }
 }

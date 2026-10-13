@@ -2,7 +2,7 @@ import { prisma } from '../db.js';
 import { ORG_A, ORG_H, SITE_A, SITE_H } from '../demo/ids.js';
 import { listActions } from './actions.js';
 import { computeCarbon } from './carbon.js';
-import { resolveMonth } from './insights.js';
+import { BASELINE_RULES, resolveMonth } from './insights.js';
 import { computeSolarPlan, computeSolarResults } from './solar.js';
 
 // D6b: the public site's figures, read from the fixed SYNTHETIC demo orgs only (Demo A foundry,
@@ -46,6 +46,8 @@ async function build() {
       validTo: f.validTo?.toISOString().slice(0, 10) ?? null,
     })),
     actions,
+    /** Doc 03 savings check (ASHRAE Guideline 14 monthly limits), as the savings service uses. */
+    baselineRules: BASELINE_RULES,
     household: { plan: solarPlan, results: solarResults },
   };
 }

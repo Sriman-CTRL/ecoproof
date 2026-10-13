@@ -65,6 +65,7 @@ describe('GET /public/sample', () => {
     expect(r.status).toBe(200);
     expect(Object.keys(r.body).sort()).toEqual([
       'actions',
+      'baselineRules',
       'carbon',
       'factors',
       'household',

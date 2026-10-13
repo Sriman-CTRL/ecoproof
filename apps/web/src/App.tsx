@@ -32,6 +32,13 @@ const Savings = lazy(() => import('./pages/Savings'));
 const Schemes = lazy(() => import('./pages/Schemes'));
 const Start = lazy(() => import('./pages/Start'));
 const Verify = lazy(() => import('./pages/Verify'));
+// Public website pages (D6b).
+const SiteAbout = lazy(() => import('./pages/site/About'));
+const SiteCarbonMethod = lazy(() => import('./pages/site/CarbonMethod'));
+const SiteForBuyers = lazy(() => import('./pages/site/ForBuyers'));
+const SiteForHomes = lazy(() => import('./pages/site/ForHomes'));
+const SiteForLenders = lazy(() => import('./pages/site/ForLenders'));
+const SiteHowItWorks = lazy(() => import('./pages/site/HowItWorks'));
 
 /** Design kit preview: dev server only, so it is dropped from the production build. */
 const DevKit = import.meta.env.DEV ? lazy(() => import('./pages/DevKit')) : null;
@@ -88,6 +95,12 @@ export default function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/how-it-works" element={<SiteHowItWorks />} />
+          <Route path="/carbon-method" element={<SiteCarbonMethod />} />
+          <Route path="/for-lenders" element={<SiteForLenders />} />
+          <Route path="/for-buyers" element={<SiteForBuyers />} />
+          <Route path="/for-homes" element={<SiteForHomes />} />
+          <Route path="/about" element={<SiteAbout />} />
           <Route path="/start" element={<Start />} />
           {DevKit && <Route path="/dev/kit" element={<DevKit />} />}
           {/* Public: no login, no consent gate (a lender scanning the QR code). */}
