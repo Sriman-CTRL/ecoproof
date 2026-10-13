@@ -240,6 +240,8 @@ describe('request pack and Certificate of Participation', () => {
     );
     expect(p.body.split('\n')).toHaveLength(4);
     expect(p.body).toContain(p.verifyUrl);
+    expect(p.body).toMatch(/t CO2 \(.* t from grid electricity/);
+    expect(p.body).not.toContain('(fuels)');
     expect(findMitraBanned(`${p.subject}\n${p.body}`)).toEqual([]);
 
     const report = await prisma.report.findFirst({
@@ -310,6 +312,8 @@ describe('request pack and Certificate of Participation', () => {
     const html = await renderCertificateHtml(r);
     expect(html).toContain('<div class="watermark">SAMPLE</div>');
     expect(html).toContain('Certificate of Participation');
+    expect(html).toContain('t from grid electricity');
+    expect(html).not.toContain('(fuels)');
     expect(findMitraBanned(text(html), quoteTexts)).toEqual([]);
     expect(findMitraBanned(r.footer)).toEqual([]);
 

@@ -1346,7 +1346,7 @@
       "pledge2": "Achieve net zero emissions before 2050",
       "pledge3": "Disclose our progress on a yearly basis",
       "yourNumber": "Your number to halve: {{baseline}} t → {{half}} t by {{year}}",
-      "basis": "From your bills, {{from}} to {{to}} ({{label}}).",
+      "basis": "From your bills, {{from}} to {{to}}: {{sentence}}.",
       "noBills": "Add your bills first to see your number.",
       "openForm": "Open the commitment form",
       "made": "I made the commitment"

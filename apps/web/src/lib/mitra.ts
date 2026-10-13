@@ -73,6 +73,8 @@ export interface PeerCase {
 
 export interface Commitment {
   baselineT: number;
+  baselineScope2T: number;
+  baselineScope1T: number;
   halfT: number;
   targetYear: number;
   periodFrom: string;

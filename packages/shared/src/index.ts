@@ -1,6 +1,7 @@
 import { z } from 'zod';
 export * from './powerBill';
 export * from './wording';
+export * from './carbonText';
 
 export const QualityTag = z.enum(['measured', 'owner_entered', 'estimated', 'default']);
 export type QualityTag = z.infer<typeof QualityTag>;

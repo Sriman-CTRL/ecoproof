@@ -77,6 +77,9 @@ const statusOf = (s: MitraStep | undefined | null): MitraStatus =>
 export interface Commitment {
   /** Latest 12-month total, t CO2 (grid) + t CO2e (fuels). */
   baselineT: number;
+  /** Parts of baselineT: grid electricity (scope 2) and diesel (scope 1). */
+  baselineScope2T: number;
+  baselineScope1T: number;
   halfT: number;
   targetYear: number;
   periodFrom: string;
@@ -99,6 +102,8 @@ export async function computeCommitment(
   const status = statusOf(step);
   return {
     baselineT,
+    baselineScope2T: carbon.months.reduce((t, m) => t + m.scope2T, 0),
+    baselineScope1T: carbon.months.reduce((t, m) => t + m.scope1T, 0),
     halfT: baselineT / 2,
     targetYear: Number(carbon.latestMonth.month.slice(0, 4)) + 10,
     periodFrom: carbon.months[0]!.month,

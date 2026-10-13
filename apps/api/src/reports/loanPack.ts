@@ -631,7 +631,7 @@ export async function renderHtml(r: LoanPackResults, snapshotId: string): Promis
     intensityBefore:
       r.carbon.intensityBefore == null
         ? '-'
-        : `${dec(r.carbon.intensityBefore)} t CO2 (grid) + t CO2e (fuels) per tonne of output`,
+        : `${dec(r.carbon.intensityBefore)} t CO2 per tonne of output (grid electricity and diesel)`,
     intensityAfter: r.carbon.note ? `unchanged: this measure ${r.carbon.note}` : 'not estimated',
     measuredSharePct: dq ? `${dec(dq.measuredSharePct)}%` : '-',
     qualityWarning:

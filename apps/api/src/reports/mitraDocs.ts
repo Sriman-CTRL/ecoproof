@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { MitraItem, MitraStep, Site } from '@prisma/client';
+import { carbonSentence } from '@ecoproof/shared';
 import QRCode from 'qrcode';
 import { storage } from '../adapters/storage.js';
 import { prisma } from '../db.js';
@@ -32,12 +33,18 @@ export const MAIL_SUBJECT = (unit: string) =>
 /** RICH contact from findings-round2.md "Re-check, 13 Oct" (the owner sends; EcoProof never does). */
 export const REQUEST_PACK_EMAIL = 'cmanager-rich@telangana.gov.in';
 
+/** "66.8 t CO2 (63.6 t from grid electricity, 3.2 t from diesel)" for the latest month (older snapshots: from the months table). */
+function latestSentence(r: Pick<RequestPackResults, 'latestMonth' | 'latestT' | 'months'>): string {
+  const m = r.months.find((x) => x.month === r.latestMonth);
+  return carbonSentence(m ?? { scope2T: r.latestT, scope1T: 0 });
+}
+
 /** The four-line email body the owner sends from their own mail app. */
 export function mailBody(r: RequestPackResults): string {
   const top = r.topActions[0]?.title;
   return [
     `We are ${r.business.name}. We would like to ask for a greening consultation and carbon footprint assessment under Telangana RAMP.`,
-    `Our latest month (${monthName(r.latestMonth)}): ${t2(r.latestT)} ${r.label}, and ${inr(r.atStakeInr)} a month at stake on our power bill.`,
+    `Our latest month (${monthName(r.latestMonth)}): ${latestSentence(r)}, and ${inr(r.atStakeInr)} a month at stake on our power bill.`,
     top ? `Top action from our bills: ${top}.` : 'Top action from our bills: not found yet.',
     `Our request pack, prepared from our own bills: ${r.verifyUrl}`,
   ].join('\n');
@@ -98,8 +105,6 @@ export const PROOF_LABEL: Record<string, string> = {
 };
 
 const sha256 = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
-/** Tonnes as a number only: the label ("t CO2 (grid) + t CO2e (fuels)") carries the unit. */
-const t2 = (n: number) => dec(Math.round(n * 100) / 100);
 
 /** The unit's own latest figures: Rs at stake a month and t CO2 in the latest month. */
 async function unitFigures(site: Site) {
@@ -217,14 +222,17 @@ export async function renderRequestPackHtml(r: RequestPackResults): Promise<stri
     siteAddress: r.business.siteAddress,
     latestMonth: monthName(r.latestMonth),
     atStake: inr(r.atStakeInr),
-    latestTotal: `${t2(r.latestT)} ${r.label}`,
+    latestTotal: latestSentence(r),
     ask: REQUEST_PACK_ASK,
     monthsTable: table(
       ['Month', 'Scope 1 (t CO2e)', 'Scope 2 (t CO2)', 'Total (t)'],
       r.months.map((m) => [monthName(m.month), dec(m.scope1T), dec(m.scope2T), dec(m.totalT)]),
       [1, 2, 3],
     ),
-    periodTotal: `${t2(r.months.reduce((t, m) => t + m.totalT, 0))} ${r.label}`,
+    periodTotal: carbonSentence({
+      scope2T: r.months.reduce((t, m) => t + m.scope2T, 0),
+      scope1T: r.months.reduce((t, m) => t + m.scope1T, 0),
+    }),
     actionsTable: table(
       ['Action', 'Rs a year (low - high)', 't CO2 a year (low - high)'],
       r.topActions.map((a) => [
@@ -329,7 +337,14 @@ export interface CertificateResults {
   step: { code: string; title: string; runBy: string };
   eventDate: string;
   businessGain: string;
-  figures: { atStakeInr: number; month: string; totalT: number; label: string };
+  figures: {
+    atStakeInr: number;
+    month: string;
+    totalT: number;
+    scope2T?: number;
+    scope1T?: number;
+    label: string;
+  };
   sdgLine: string;
   quotes: Array<{ text: string; source: string; url: string }>;
   evidence: string;
@@ -342,7 +357,7 @@ const certTemplate = readFileSync(
 );
 
 export const unitFiguresLine = (f: CertificateResults['figures']) =>
-  `Your unit's own figures: ${inr(f.atStakeInr)} a month at stake on the power bill, and ${t2(f.totalT)} ${f.label} in ${monthName(f.month)}.`;
+  `Your unit's own figures: ${inr(f.atStakeInr)} a month at stake on the power bill, and ${carbonSentence({ scope2T: f.scope2T ?? f.totalT, scope1T: f.scope1T ?? 0 })} in ${monthName(f.month)}.`;
 
 export async function renderCertificateHtml(r: CertificateResults): Promise<string> {
   const qrDataUrl = await QRCode.toDataURL(r.verifyUrl, { margin: 1, width: 300 });
@@ -398,6 +413,8 @@ export async function createCertificate(site: Site, item: MitraItem, step: Mitra
       atStakeInr,
       month: carbon.latestMonth.month,
       totalT: carbon.latestMonth.totalT,
+      scope2T: carbon.latestMonth.scope2T,
+      scope1T: carbon.latestMonth.scope1T,
       label: carbon.label,
     },
     sdgLine: item.carbonLine ?? `${QUOTES.sdg13.source}: ${QUOTES.sdg13.text}`,

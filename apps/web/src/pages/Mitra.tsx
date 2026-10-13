@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowRight } from '@phosphor-icons/react/dist/csr/ArrowRight';
+import { carbonSentence } from '@ecoproof/shared';
 import { ArrowSquareOut } from '@phosphor-icons/react/dist/csr/ArrowSquareOut';
 import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { BUTTON_CLASS, Button } from '../components/kit/Button';
@@ -127,7 +128,7 @@ function CommitmentBlock({ c, lang }: { c: Commitment | null; lang: string }) {
             {t('mitra.commitment.basis', {
               from: monthText(c.periodFrom, lang),
               to: monthText(c.periodTo, lang),
-              label: c.label,
+              sentence: carbonSentence({ scope2T: c.baselineScope2T, scope1T: c.baselineScope1T }),
             })}
           </p>
         </div>
