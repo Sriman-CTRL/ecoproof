@@ -222,7 +222,8 @@ describe('loan-ready summary (Demo A, Oct 2026, fix_power_factor)', () => {
     const after = await check();
     expect(after.reportId).toBe(before.reportId);
     expect(JSON.stringify(after)).toMatch(/sample/i);
-  });
+    // A full re-seed renders two PDFs (loan summary + the pitch QR carbon statement).
+  }, 120_000);
 
   it('public verify returns exactly the listed keys', async () => {
     const r = await request(app).get(`/public/reports/${v1.reportId}/verify`);

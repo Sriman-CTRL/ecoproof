@@ -142,7 +142,11 @@ try {
   await page.getByText(/Sept? 2026 bill: a month at stake/).waitFor();
   // The third card is the sample home; since R9 it shows its LT-I bill total in rupees.
   await page.getByText('A home in Hyderabad (sample)').waitFor();
-  await page.getByText(/Sept? 2026 bill: total/).waitFor();
+  // Demo B and Demo H both end on a Sep 2026 bill (D6b timeline), so two cards match.
+  await page
+    .getByText(/Sept? 2026 bill: total/)
+    .first()
+    .waitFor();
   await shot(page, 'start');
 
   await page.getByText('Sri Lakshmi Castings: before').click();
@@ -521,6 +525,68 @@ try {
     await d.getByTestId('sidebar').waitFor();
     await shot(d, name);
     await d.close();
+  }
+
+  // ---------- D6b: public site pages, green-loan money maths, loan-ready summary ----------
+  const SITE = [
+    ['/', 'landing'],
+    ['/how-it-works', 'how'],
+    ['/carbon-method', 'method'],
+    ['/for-lenders', 'lenders'],
+    ['/for-buyers', 'buyers'],
+    ['/for-homes', 'homes'],
+    ['/about', 'about'],
+  ] as const;
+  for (const [w, h] of [
+    [1440, 900],
+    [360, 800],
+  ] as const) {
+    for (const [path, slug] of SITE) {
+      for (const lang of path === '/' || path === '/how-it-works'
+        ? (['en', 'te'] as const)
+        : (['en'] as const)) {
+        const sp = await browser.newPage({ viewport: { width: w, height: h } });
+        await sp.addInitScript((l) => localStorage.setItem('ecoproof.lang', l), lang);
+        await sp.goto(`${WEB}${path}`);
+        await sp.getByTestId('site-story').waitFor();
+        await loadLazy(sp);
+        if (path === '/') await sp.getByTestId('loan-result').waitFor({ timeout: 60_000 });
+        await shot(sp, `site-${w}-${lang}-${slug}`);
+        if (path === '/' && lang === 'en') {
+          // The money maths on its own: IGBT default from /public/sample.
+          n += 1;
+          await sp.locator('#money').screenshot({
+            path: `${out}${String(n).padStart(2, '0')}-site-${w}-money.png`,
+          });
+          console.log(
+            'money maths:',
+            (await sp.getByTestId('money').innerText()).replace(/\s+/g, ' '),
+          );
+        }
+        await sp.close();
+      }
+    }
+  }
+
+  // Action detail money maths (Demo A, IGBT furnace, loan typed in) and Demo B's loan-ready summary.
+  for (const [w, h] of [
+    [1440, 900],
+    [360, 800],
+  ] as const) {
+    const ad = await demoPage('A', w, h, 'en');
+    await ad.goto(`${WEB}/actions/igbt_furnace`);
+    await ad.getByTestId('detail-co2').waitFor();
+    await ad.getByLabel(/Loan amount/).fill('2775000');
+    await ad.getByLabel(/Tenure/).fill('84');
+    await ad.getByTestId('loan-result').waitFor();
+    await shot(ad, `loan-${w}-action-igbt`);
+    await ad.close();
+    const rb = await demoPage('B', w, h, 'en');
+    await rb.goto(`${WEB}/reports/${demoReportId}`);
+    await rb.getByTestId('pack-explainer').waitFor();
+    await rb.getByText('Document seal').waitFor();
+    await shot(rb, `loan-${w}-summary-b`);
+    await rb.close();
   }
 
   // 360x800, English and Telugu: Home and Carbon (heroes stack; 5 tabs fit).

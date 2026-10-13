@@ -147,7 +147,10 @@ function Header() {
   return (
     <header className="bg-green-900 text-white">
       <div className={`${WRAP} flex min-h-14 items-center justify-between gap-x-3 py-1`}>
-        <Link to="/" className="font-heading text-card-title font-semibold">
+        <Link
+          to="/"
+          className="inline-flex min-h-12 items-center font-heading text-card-title font-semibold"
+        >
           {t('app.title')}
         </Link>
         <nav aria-label={t('site.nav.label')} className="hidden lg:block">
@@ -165,7 +168,7 @@ function Header() {
           )}
           <Link
             to="/start"
-            className="hidden min-h-11 items-center rounded-button bg-copper-500 px-3 text-small font-semibold text-green-900 sm:inline-flex"
+            className="hidden min-h-12 items-center rounded-button bg-copper-500 px-3 text-small font-semibold text-green-900 sm:inline-flex"
           >
             {t('landing.nav.trySample')}
           </Link>
@@ -235,13 +238,13 @@ function Footer() {
         <nav aria-label={t('site.footer.links')}>
           <ul className="grid grid-cols-2 gap-x-4">
             <li>
-              <Link to="/" className="inline-flex min-h-11 items-center hover:text-white">
+              <Link to="/" className="inline-flex min-h-12 items-center hover:text-white">
                 {t('site.nav.home')}
               </Link>
             </li>
             {SITE_PAGES.map((p) => (
               <li key={p.to}>
-                <Link to={p.to} className="inline-flex min-h-11 items-center hover:text-white">
+                <Link to={p.to} className="inline-flex min-h-12 items-center hover:text-white">
                   {t(`site.nav.${p.key}`)}
                 </Link>
               </li>
@@ -249,7 +252,7 @@ function Footer() {
             <li>
               <Link
                 to="/start"
-                className="inline-flex min-h-11 items-center font-semibold text-copper-500"
+                className="inline-flex min-h-12 items-center font-semibold text-copper-500"
               >
                 {t('landing.nav.trySample')}
               </Link>
