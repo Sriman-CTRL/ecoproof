@@ -128,6 +128,47 @@ const factorKey = (f: {
   validFrom: f.valid_from,
 });
 
+// D7 Mitra (findings-round2.md "Free help listed in Mitra" and "Re-check, 13 Oct").
+const MitraItemRow = z.object({
+  code: z.string(),
+  page: z.enum(['ngo', 'govt', 'both']),
+  kind: z.enum(['handoff', 'link', 'commitment', 'visit', 'learn']),
+  sort_order: z.number().int(),
+  title: z.string(),
+  run_by: z.string(),
+  free_help: z.string(),
+  business_gain: z.string(),
+  carbon_line: z.string().nullable(),
+  how_to_start: z.string(),
+  url: z.string().nullable(),
+  contact_email: z.string().nullable(),
+  contact_phone: z.string().nullable(),
+  address: z.string().nullable(),
+  source_url: z.string(),
+  quoted_line: z.string(),
+  dates_unconfirmed: z.boolean(),
+});
+
+const PeerCaseRow = z.object({
+  code: z.string(),
+  sort_order: z.number().int(),
+  company: z.string(),
+  place: z.string(),
+  action_code: z.string().nullable(),
+  measure: z.string(),
+  investment_text: z.string(),
+  saving_text: z.string().nullable(),
+  payback_text: z.string(),
+  before_after_text: z.string().nullable(),
+  source: z.string(),
+  source_url: z.string(),
+  page: z.string().nullable(),
+  quoted_line: z.string(),
+});
+
+/** Every Mitra row was last checked on 13 Oct 2026 (findings-round2.md re-check). */
+const MITRA_LAST_CHECKED = new Date('2026-10-13T00:00:00Z');
+
 // Reference rows are never deleted: results store factor IDs, so IDs must stay stable.
 async function main() {
   const factors = load('factors.json', z.array(FactorRow));
@@ -137,6 +178,8 @@ async function main() {
   const actions = load('action_library.json', z.object({ rows: z.array(ActionRow) })).rows;
   const cnCodes = load('cbam_cn_codes.json', z.array(CbamCnRow));
   const markups = load('cbam_markups.json', z.array(CbamMarkupRow));
+  const mitraItems = load('mitra_items.json', z.array(MitraItemRow));
+  const peerCases = load('peer_cases.json', z.array(PeerCaseRow));
 
   await prisma.$transaction(async (tx) => {
     for (const f of factors) {
@@ -289,6 +332,55 @@ async function main() {
     }
   });
 
+  for (const m of mitraItems) {
+    const data = {
+      page: m.page,
+      kind: m.kind,
+      sortOrder: m.sort_order,
+      title: m.title,
+      runBy: m.run_by,
+      freeHelp: m.free_help,
+      businessGain: m.business_gain,
+      carbonLine: m.carbon_line,
+      howToStart: m.how_to_start,
+      url: m.url,
+      contactEmail: m.contact_email,
+      contactPhone: m.contact_phone,
+      address: m.address,
+      sourceUrl: m.source_url,
+      quotedLine: m.quoted_line,
+      datesUnconfirmed: m.dates_unconfirmed,
+      lastChecked: MITRA_LAST_CHECKED,
+    };
+    await prisma.mitraItem.upsert({
+      where: { code: m.code },
+      update: data,
+      create: { code: m.code, ...data },
+    });
+  }
+  for (const p of peerCases) {
+    const data = {
+      sortOrder: p.sort_order,
+      company: p.company,
+      place: p.place,
+      actionCode: p.action_code,
+      measure: p.measure,
+      investmentText: p.investment_text,
+      savingText: p.saving_text,
+      paybackText: p.payback_text,
+      beforeAfterText: p.before_after_text,
+      source: p.source,
+      sourceUrl: p.source_url,
+      page: p.page,
+      quotedLine: p.quoted_line,
+    };
+    await prisma.peerCase.upsert({
+      where: { code: p.code },
+      update: data,
+      create: { code: p.code, ...data },
+    });
+  }
+
   const counts = {
     factors: await prisma.factor.count(),
     tariff_rules: await prisma.tariffRule.count(),
@@ -297,6 +389,8 @@ async function main() {
     action_library: await prisma.actionLibrary.count(),
     cbam_cn_codes: await prisma.cbamCnCode.count(),
     cbam_markups: await prisma.cbamMarkup.count(),
+    mitra_items: await prisma.mitraItem.count(),
+    peer_cases: await prisma.peerCase.count(),
   };
   for (const [table, n] of Object.entries(counts)) console.log(`${table}: ${n}`);
 }

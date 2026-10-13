@@ -84,14 +84,16 @@ function ZedReadiness({ z, lang }: { z: ZedCard; lang: string }) {
           </div>
         ))}
       </dl>
-      <p className="text-small">
-        {z.subsidyPct != null && z.udyamCategory
-          ? t('schemes.zed.subsidy', {
-              pct: z.subsidyPct,
-              size: t(`schemes.size.${z.udyamCategory}`),
-            })
-          : t('schemes.zed.subsidyUnknown')}
-        {z.womenScStApplied && ` ${t('schemes.zed.extraApplied', { pct: z.womenScStExtraPct })}`}
+      <p className="text-small" data-testid="zed-subsidy">
+        {z.womenOwned && z.womenOwnedLine
+          ? z.womenOwnedLine
+          : z.subsidyPct != null && z.udyamCategory
+            ? t('schemes.zed.subsidy', {
+                pct: z.subsidyPct,
+                size: t(`schemes.size.${z.udyamCategory}`),
+              })
+            : t('schemes.zed.subsidyUnknown')}
+        {z.scStApplied && ` ${t('schemes.zed.extraApplied', { pct: z.scStExtraPct })}`}
       </p>
       <p className="text-small text-ink-muted">{z.rewardNote}</p>
 

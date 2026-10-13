@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import en from './en.json';
 import te from './te.json';
-import { findBanned } from './wording';
+import { findBanned, findMitraBanned } from './wording';
 
 function strings(o: unknown, path = ''): [string, string][] {
   if (typeof o === 'string') return [[path, o]];
@@ -36,6 +36,13 @@ describe('wording rules', () => {
   ] as const) {
     it(`${name}.json never mentions Gruha Jyothi, free units or 300 units`, () => {
       expect(JSON.stringify(json)).not.toMatch(/gruha|free units|300 units/i);
+    });
+
+    it(`${name}.json Mitra strings pass the Mitra scan (no partner, official, must...)`, () => {
+      const hits = strings(json)
+        .filter(([key]) => key.startsWith('mitra.') || key.startsWith('reports.mitra'))
+        .flatMap(([key, value]) => findMitraBanned(value).map((w) => `${key}: ${w}`));
+      expect(hits).toEqual([]);
     });
 
     it(`${name}.json has no banned words`, () => {

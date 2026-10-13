@@ -58,7 +58,8 @@ Guardrails (plan 6.3):
 
 - No streak counters that can be lost, no "You'll lose your progress!", no countdown timers, no fake urgency, no nagging beyond the 4-messages-a-month cap. A "12 months tracked" counter is fine because it never goes backwards.
 - No points or coins of any kind. Rupees are the points. No wallets, lucky draws, spin wheels or scratch cards.
-- No EcoProof document is called a certificate. ZED is the certificate we guide owners to. No ZED or government logos.
+- CERTIFICATE RULE (Sriman, 13 Oct 2026): "certificate" is allowed only in "Certificate of Participation", and only for a Mitra step whose status is "confirmed". EcoProof never certifies emissions, savings or green status; the carbon footprint statement and loan-ready summary keep their names. ZED is the certificate we guide owners to. No ZED or government logos.
+- Mitra (NGO and government help): EcoProof is not part of any programme. Never "partner", "official", "in association with", "on behalf of", "we will apply"; say "public programme", "you can ask", "prepared for you to send". Never word carbon or a programme as a legal duty ("buyers and lenders may ask for this", never "you must" or "mandatory"). Scan: `findMitraBanned` in `packages/shared/src/wording.ts`.
 - "Verified" only as "Verified by your bills", with the method note on the progress statement and savings screen.
 - No generic green labels and no tree or car equivalences without a sourced factor.
 - Partner offers are labelled "Partner offer" and never appear inside the ranked action list.
@@ -69,7 +70,7 @@ Fixed phrases (plan 7): "Energy and carbon pre-assessment", "Summary for the len
 
 Banned words (whole word, any case; list in `packages/shared/src/wording.ts`, enforced by `apps/web/src/locales/locales.test.ts` and the API report tests): audit, approved, sanctioned, eligible, certified, compliant, certificate, verified, green certified, eco-friendly, carbon neutral, sustainable unit, green factory.
 
-Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not eligible" (Doc 02 FIN-1, always followed by the reason), "Verified data must be confirmed by an accredited verifier" (Doc 05 CBAM status line), "Not an energy audit", "ZED certification", "ZED certificate".
+Allowed exact phrases (stripped before the banned-word scan): "Verified by your bills", "Estimate, not verified", "Likely eligible; confirm with the scheme office", "Not eligible" (Doc 02 FIN-1, always followed by the reason), "Verified data must be confirmed by an accredited verifier" (Doc 05 CBAM status line), "Not an energy audit", "ZED certification", "ZED certificate", "Certificate of Participation" (Sriman, 13 Oct 2026; confirmed Mitra steps only).
 
 Verbatim source quotes are exempt: a stored `quoted_line` shown inside quote marks with its source (e.g. the TGERC "sanctioned load" line) is skipped by the banned-word scan (`findBanned(text, quotedLines)`). EcoProof's own words still count.
 

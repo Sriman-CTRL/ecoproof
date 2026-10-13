@@ -84,8 +84,12 @@ model Organisation {
   cashProfitsLast2y Boolean?  @map("cash_profits_last_2y")
   /// ADDITION: not in Doc 07, needed by FIN-1 (Telangana MSME Policy 2024: units commencing 18 Sep 2024 - 31 Mar 2029)
   commencedOn       DateTime? @map("commenced_on") @db.Date
-  /// ADDITION: not in Doc 07, needed by FIN-1 (ZED: +10% subsidy for women/SC/ST owned units)
+  /// DEPRECATED (D7, 13 Oct 2026): replaced by women_owned + sc_st_owned; unused; drop after the pitch (additive-only migrations tonight)
   womenScStOwned    Boolean?  @map("women_sc_st_owned")
+  /// ADDITION: not in Doc 07, needed by ZED (100% subsidy for women-owned MSMEs, PIB 4 Aug 2026)
+  womenOwned        Boolean?  @map("women_owned")
+  /// ADDITION: not in Doc 07, needed by ZED (+10% subsidy for SC/ST owned units)
+  scStOwned         Boolean?  @map("sc_st_owned")
   createdAt         DateTime  @default(now()) @map("created_at")
 
   sites                 Site[]
@@ -107,6 +111,7 @@ model Organisation {
   auditLog              AuditLog[]
   nonRoutineAdjustments NonRoutineAdjustment[]
   siteEquipment         SiteEquipment[]
+  mitraSteps            MitraStep[]
 
   @@map("organisations")
 }
@@ -139,6 +144,7 @@ model Site {
   nonRoutineAdjustments NonRoutineAdjustment[]
   siteEquipment         SiteEquipment[]
   reportSnapshots       ReportSnapshot[]
+  mitraSteps            MitraStep[]
 
   @@index([orgId])
   @@map("sites")
@@ -671,4 +677,81 @@ model CbamMarkup {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("cbam_markups")
+}
+
+/// ADDITION: not in Doc 07, D7 Mitra: free NGO and government help (findings-round2.md "Free help listed in Mitra")
+model MitraItem {
+  id               String   @id @default(uuid()) @db.Uuid
+  code             String   @unique
+  /// "ngo" | "govt" | "both"
+  page             String
+  title            String
+  runBy            String   @map("run_by")
+  freeHelp         String   @map("free_help")
+  businessGain     String   @map("business_gain")
+  carbonLine       String?  @map("carbon_line")
+  howToStart       String   @map("how_to_start")
+  url              String?
+  contactEmail     String?  @map("contact_email")
+  contactPhone     String?  @map("contact_phone")
+  address          String?
+  /// "handoff" | "link" | "commitment" | "visit" | "learn"
+  kind             String
+  sourceUrl        String   @map("source_url")
+  quotedLine       String   @map("quoted_line")
+  lastChecked      DateTime @map("last_checked") @db.Date
+  /// Findings say UNCONFIRMED for current dates: show "check current dates", never a date
+  datesUnconfirmed Boolean  @default(false) @map("dates_unconfirmed")
+  sortOrder        Int      @default(100) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("mitra_items")
+}
+
+/// ADDITION: not in Doc 07, D7 Mitra: one owner's progress on one free step (org-scoped, never seeded)
+model MitraStep {
+  id                  String    @id @default(uuid()) @db.Uuid
+  orgId               String    @map("org_id") @db.Uuid
+  siteId              String    @map("site_id") @db.Uuid
+  itemCode            String    @map("item_code")
+  /// "not_started" | "started" | "done_self" | "confirmed"
+  status              String
+  proofFileKey        String?   @map("proof_file_key")
+  proofSha256         String?   @map("proof_sha256")
+  proofType           String?   @map("proof_type")
+  proofNote           String?   @map("proof_note")
+  eventDate           DateTime? @map("event_date") @db.Date
+  packReportId        String?   @map("pack_report_id") @db.Uuid
+  certificateReportId String?   @map("certificate_report_id") @db.Uuid
+  startedAt           DateTime? @map("started_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  org  Organisation @relation(fields: [orgId], references: [id])
+  site Site         @relation(fields: [siteId], references: [id])
+
+  @@unique([orgId, siteId, itemCode])
+  @@index([orgId])
+  @@map("mitra_steps")
+}
+
+/// ADDITION: not in Doc 07, D7 Mitra: published case studies ("A foundry that did this")
+model PeerCase {
+  id              String   @id @default(uuid()) @db.Uuid
+  code            String   @unique
+  company         String
+  place           String
+  actionCode      String?  @map("action_code")
+  measure         String
+  investmentText  String   @map("investment_text")
+  savingText      String?  @map("saving_text")
+  paybackText     String   @map("payback_text")
+  beforeAfterText String?  @map("before_after_text")
+  source          String
+  sourceUrl       String   @map("source_url")
+  page            String?
+  quotedLine      String   @map("quoted_line")
+  sortOrder       Int      @default(100) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("peer_cases")
 }

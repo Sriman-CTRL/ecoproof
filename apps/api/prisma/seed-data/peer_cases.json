@@ -1,0 +1,34 @@
+[
+  {
+    "code": "kk_foundry_furnace_lid",
+    "sort_order": 1,
+    "company": "K & K Foundry Pvt. Ltd",
+    "place": "Kolhapur",
+    "action_code": null,
+    "measure": "Furnace lid",
+    "investment_text": "INR 3.50 lakh",
+    "saving_text": "INR 5.30 lakh a year",
+    "payback_text": "6 months",
+    "before_after_text": null,
+    "source": "UNIDO Technology Compendium, Belgaum Foundry Cluster (2020)",
+    "source_url": "https://decarbonization.unido.org/wp-content/uploads/Technology-Compendium-Belgaum-Foundry-Cluster_resized.pdf",
+    "page": null,
+    "quoted_line": "with an investment of INR 3.50 lakhs, and a payback period of 6 months"
+  },
+  {
+    "code": "marvelous_metals_igbt",
+    "sort_order": 2,
+    "company": "Marvelous Metals Pvt Ltd",
+    "place": "Kolhapur",
+    "action_code": "igbt_furnace",
+    "measure": "IGBT induction furnace",
+    "investment_text": "INR 27.75 lakh",
+    "saving_text": null,
+    "payback_text": "25 months",
+    "before_after_text": "656 to 602.1 kWh per tonne",
+    "source": "UNIDO Technology Compendium, Belgaum Foundry Cluster (2020)",
+    "source_url": "https://decarbonization.unido.org/wp-content/uploads/Technology-Compendium-Belgaum-Foundry-Cluster_resized.pdf",
+    "page": null,
+    "quoted_line": "with an investment of INR 27.75 lakhs, and a payback period of 25 months"
+  }
+]

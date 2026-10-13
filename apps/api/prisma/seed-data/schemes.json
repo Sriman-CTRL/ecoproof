@@ -16,6 +16,9 @@
         "fees_inr": { "bronze": 10000, "silver": 40000, "gold": 90000 },
         "subsidy_pct": { "micro": 80, "small": 60, "medium": 50 },
         "women_sc_st_extra_pct": 10,
+        "women_owned_pct": 100,
+        "women_owned_line": "100% subsidy on the cost of ZED certification for women-owned MSMEs (from 11 Nov 2023, PIB 4 Aug 2026)",
+        "women_owned_source_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2294133&reg=48&lang=1",
         "reward_note": "Once only; valid 1 year after the pledge. For Silver or Gold the reward is deducted first, then the subsidy applies.",
         "fees_source_url": "https://zed.msme.gov.in/uploads/Guideline_Book.pdf",
         "bank_concessions": [

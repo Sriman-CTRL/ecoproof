@@ -826,7 +826,9 @@
     "type": {
       "loan_pack": "Loan-ready summary",
       "cbam_sheet": "CBAM supplier sheet (estimate)",
-      "carbon_statement": "Carbon footprint statement"
+      "carbon_statement": "Carbon footprint statement",
+      "request_pack": "Request pack (for you to send)",
+      "participation_certificate": "Certificate of Participation"
     },
     "version": "Version {{n}}",
     "shared_one": "Shared with {{shares}}, viewed {{count}} time",
@@ -834,7 +836,8 @@
     "cbamCreate": "CBAM supplier sheet (estimate)",
     "cbamCreateHelp": "For EU buyers of cast pipes and fittings",
     "carbonCreate": "Carbon footprint statement",
-    "carbonCreateHelp": "Monthly t CO2, factors and method, with a QR check"
+    "carbonCreateHelp": "Monthly t CO2, factors and method, with a QR check",
+    "mitraTitle": "Mitra: free help, step by step"
   },
   "schemes": {
     "title": "Schemes and loans",
@@ -878,7 +881,7 @@
       "bronzeFee": "{{inr}}, covered by the reward",
       "subsidy": "Subsidy on the certification fee for a {{size}} unit: {{pct}}%.",
       "subsidyUnknown": "Add your Udyam category to see the subsidy for your size (micro 80%, small 60%, medium 50%).",
-      "extraApplied": "Includes {{pct}}% extra for women or SC/ST owned units.",
+      "extraApplied": "Includes {{pct}}% extra for SC/ST owned units.",
       "banksTitle": "Bank concessions for ZED units",
       "recheck": "Re-check with the bank before relying on it.",
       "source": "ZED subsidy page",
@@ -1294,5 +1297,78 @@
       }
     },
     "loanTerms": "Loan {{loan}} at {{rate}}% a year over {{months}} months"
+  },
+  "mitra": {
+    "ngo": {
+      "title": "NGO Mitra",
+      "cardTitle": "NGO Mitra — free help from NGOs"
+    },
+    "govt": {
+      "title": "Govt Mitra",
+      "cardTitle": "Govt Mitra — free help from government"
+    },
+    "lead": "Free help for your factory. Every step here costs ₹0.",
+    "progress": "{{done}} of {{total}} free steps done",
+    "nextButton": "Your next free step: {{title}}",
+    "nextLine": "Next: {{title}}",
+    "allDone": "All free steps on this page are done.",
+    "otherPage": {
+      "ngo": "See free help from NGOs",
+      "govt": "See free help from government"
+    },
+    "free": "₹0",
+    "runBy": "Run by {{runBy}}",
+    "youGet": "You get:",
+    "goodForBusiness": "Good for your business:",
+    "forClimate": "For the climate:",
+    "howToStart": "How to start:",
+    "checkDates": "Check current dates with the organiser.",
+    "source": "Source",
+    "checked": "Checked {{date}}",
+    "status": {
+      "not_started": "Not started",
+      "started": "Started",
+      "done_self": "Done",
+      "confirmed": "Confirmed with proof"
+    },
+    "doneBadge": "You marked this done",
+    "open": "Open",
+    "didThis": "I did this",
+    "contacted": "I've contacted them",
+    "askVisit": "Ask for a visit",
+    "readThis": "I read this",
+    "call": "Call {{phone}}",
+    "email": "Email {{email}}",
+    "address": "Address: {{address}}",
+    "commitment": {
+      "pledgesTitle": "The three pledges",
+      "pledge1": "Halve our greenhouse gas emissions within ten years",
+      "pledge2": "Achieve net zero emissions before 2050",
+      "pledge3": "Disclose our progress on a yearly basis",
+      "yourNumber": "Your number to halve: {{baseline}} t → {{half}} t by {{year}}",
+      "basis": "From your bills, {{from}} to {{to}} ({{label}}).",
+      "noBills": "Add your bills first to see your number.",
+      "openForm": "Open the commitment form",
+      "made": "I made the commitment"
+    },
+    "handoff": {
+      "sent": "I've sent it"
+    },
+    "zed": {
+      "reward": "Joining reward: {{inr}}",
+      "womenToggle": "Woman-owned unit",
+      "womenHelp": "Owner-entered. It changes the ZED subsidy line."
+    },
+    "peer": {
+      "title": "Neighbours who did this",
+      "label": "Published case study, not an EcoProof customer",
+      "invest": "Spent: {{text}}",
+      "saving": "Saved: {{text}}",
+      "payback": "Paid back in: {{text}}",
+      "beforeAfter": "Power per tonne: {{text}}",
+      "sourceLine": "{{source}}"
+    },
+    "loadFailed": "We could not load Mitra. Check your internet and try again.",
+    "actionFailed": "That did not save. Try again."
   }
 }

@@ -10,6 +10,7 @@ import { insightsRouter } from './routes/insights.js';
 import { publicRouter } from './routes/public.js';
 import { reportsRouter } from './routes/reports.js';
 import { resultsRouter } from './routes/results.js';
+import { mitraRouter } from './routes/mitra.js';
 import { sitesRouter } from './routes/sites.js';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
@@ -34,6 +35,7 @@ export function createApp() {
     resultsRouter,
     insightsRouter,
     reportsRouter,
+    mitraRouter,
     publicRouter,
   );
   app.use(errorHandler);

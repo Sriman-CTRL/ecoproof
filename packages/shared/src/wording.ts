@@ -31,6 +31,9 @@ export const ALLOWED = [
   'Not an energy audit',
   'ZED certification',
   'ZED certificate',
+  // CERTIFICATE RULE (Sriman, 13 Oct 2026): only for a confirmed Mitra step. EcoProof never
+  // certifies emissions, savings or green status.
+  'Certificate of Participation',
 ] as const;
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -54,4 +57,43 @@ export function findBanned(text: string, quotedLines: readonly string[] = []): s
   return BANNED.filter((w) =>
     new RegExp(`(^|[^\\p{L}\\p{N}-])${escape(w)}($|[^\\p{L}\\p{N}-])`, 'iu').test(rest),
   );
+}
+
+/**
+ * Extra words banned in Mitra text (NGO and government help): EcoProof is not part of any
+ * programme, and nothing is worded as a legal duty (Sriman, 13 Oct 2026). Mitra strings only:
+ * "Partner offer" is a valid label elsewhere.
+ */
+export const MITRA_BANNED = [
+  'partner',
+  'partners',
+  'partnered',
+  'official',
+  'in association with',
+  'on behalf of',
+  'on behalf',
+  'guarantee',
+  'guaranteed',
+  'mandatory',
+  'you must',
+  'we will apply',
+] as const;
+
+/** `findBanned` plus the Mitra words; stored source quotes in quote marks are skipped. */
+export function findMitraBanned(text: string, quotedLines: readonly string[] = []): string[] {
+  let rest = text;
+  for (const q of quotedLines.filter(Boolean)) {
+    for (const [open, close] of [
+      ['“', '”'],
+      ['"', '"'],
+    ] as const) {
+      rest = rest.split(`${open}${q}${close}`).join(' ');
+    }
+  }
+  return [
+    ...findBanned(rest),
+    ...MITRA_BANNED.filter((w) =>
+      new RegExp(`(^|[^\\p{L}\\p{N}-])${escape(w)}($|[^\\p{L}\\p{N}-])`, 'iu').test(rest),
+    ),
+  ];
 }

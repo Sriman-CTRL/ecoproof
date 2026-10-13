@@ -10,6 +10,7 @@ import { StampBadge } from '../components/kit/StampBadge';
 import { ErrorBox, Page } from '../components/ui';
 import { api } from '../lib/api';
 import { milestoneDate } from '../lib/progress';
+import { useMitraSummary, type MitraPage } from '../lib/mitra';
 import { useReports } from '../lib/savings';
 import { getSession } from '../lib/session';
 import { useQuery } from '@tanstack/react-query';
@@ -38,6 +39,44 @@ function useSummaryTarget(): string {
   return pick ? `/actions/${pick.code}` : '/actions';
 }
 
+/** D7 Mitra: two big cards on top, NGO and Govt, each with its progress and next free step. */
+function MitraCards() {
+  const { t } = useTranslation();
+  const q = useMitraSummary();
+  if (!q.data) return q.isLoading ? <Skeleton /> : null;
+  return (
+    <section className="space-y-2" data-testid="mitra-cards">
+      <h2 className="font-heading text-card-title font-semibold">{t('reports.mitraTitle')}</h2>
+      <div className="grid gap-3 lg:grid-cols-2 lg:gap-6">
+        {(['govt', 'ngo'] as MitraPage[]).map((p) => {
+          const s = q.data[p];
+          return (
+            <Link
+              key={p}
+              to={`/mitra/${p}`}
+              className={`${CARD_CLASS} flex min-h-24 items-center justify-between gap-3 border-green-700`}
+              data-testid={`mitra-card-${p}`}
+            >
+              <span className="space-y-1">
+                <span className="block font-heading text-card-title font-semibold">
+                  {t(`mitra.${p}.cardTitle`)}
+                </span>
+                <span className="num block text-small">
+                  {t('mitra.progress', { done: s.done, total: s.total })}
+                </span>
+                <span className="block text-small text-ink-muted">
+                  {s.next ? t('mitra.nextLine', { title: s.next.title }) : t('mitra.allDone')}
+                </span>
+              </span>
+              <ArrowRight size={24} className="shrink-0 text-green-700" aria-hidden="true" />
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function Reports() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage ?? 'en';
@@ -56,6 +95,7 @@ export default function Reports() {
       }
     >
       <h1 className="font-heading text-title font-semibold">{t('reports.title')}</h1>
+      <MitraCards />
       <div className="grid gap-3 lg:grid-cols-2 lg:gap-6">
         <Link
           to="/reports/cbam/new"

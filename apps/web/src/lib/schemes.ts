@@ -26,8 +26,12 @@ export interface ZedCard {
   feesInr: { bronze: number; silver: number; gold: number };
   subsidyPct: number | null;
   udyamCategory: 'micro' | 'small' | 'medium' | null;
-  womenScStExtraPct: number;
-  womenScStApplied: boolean;
+  womenOwned: boolean;
+  scStOwned: boolean;
+  scStExtraPct: number;
+  scStApplied: boolean;
+  womenOwnedLine: string | null;
+  womenOwnedSourceUrl: string | null;
   rewardNote: string;
   bankConcessions: Array<{ bank: string; bronze: string; silver: string; gold: string }>;
   bankNote: string;

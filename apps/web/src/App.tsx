@@ -22,6 +22,7 @@ const HouseholdAfter = lazy(() => import('./pages/HouseholdAfter'));
 const HouseholdHome = lazy(() => import('./pages/HouseholdHome'));
 const HouseholdSolar = lazy(() => import('./pages/HouseholdSolar'));
 const Landing = lazy(() => import('./pages/Landing'));
+const Mitra = lazy(() => import('./pages/Mitra'));
 const NewBill = lazy(() => import('./pages/NewBill'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Report = lazy(() => import('./pages/Report'));
@@ -126,6 +127,7 @@ export default function App() {
               <Route path="/reports/:id" element={<Report />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/schemes" element={<Schemes />} />
+              <Route path="/mitra/:page" element={<Mitra />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/home" replace />} />

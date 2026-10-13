@@ -135,7 +135,8 @@ async function seedOrg(opts: {
     gstRegistered: true,
     cashProfitsLast2y: true,
     commencedOn: new Date('2014-04-01T00:00:00Z'),
-    womenScStOwned: false,
+    womenOwned: false,
+    scStOwned: false,
   };
   await prisma.organisation.upsert({
     where: { id: orgId },

@@ -39,7 +39,12 @@ const Clause = z.object({
 const Zed = z.object({
   fees_inr: z.object({ bronze: z.number(), silver: z.number(), gold: z.number() }),
   subsidy_pct: z.object({ micro: z.number(), small: z.number(), medium: z.number() }),
+  /** Since D7 the +10% applies to SC/ST-owned units only (key kept for the live API). */
   women_sc_st_extra_pct: z.number(),
+  /** PIB 4 Aug 2026: 100% of the ZED certification cost for women-owned MSMEs. */
+  women_owned_pct: z.number().optional(),
+  women_owned_line: z.string().optional(),
+  women_owned_source_url: z.string().optional(),
   reward_note: z.string(),
   fees_source_url: z.string(),
   bank_concessions: z.array(
@@ -136,11 +141,16 @@ export interface ZedCard {
   statusText: string;
   rewardInr: number;
   feesInr: { bronze: number; silver: number; gold: number };
-  /** Subsidy for this unit's size, plus the women/SC/ST extra when the profile says so. */
+  /** 100 for a woman-owned unit; else the size subsidy, plus the SC/ST extra when the profile says so. */
   subsidyPct: number | null;
   udyamCategory: string | null;
-  womenScStExtraPct: number;
-  womenScStApplied: boolean;
+  womenOwned: boolean;
+  scStOwned: boolean;
+  scStExtraPct: number;
+  scStApplied: boolean;
+  /** Shown when the owner marks the unit woman-owned (owner-entered). */
+  womenOwnedLine: string | null;
+  womenOwnedSourceUrl: string | null;
   rewardNote: string;
   bankConcessions: Array<{ bank: string; bronze: string; silver: string; gold: string }>;
   bankNote: string;
@@ -200,16 +210,25 @@ export function matchSchemes(org: Organisation, schemes: Scheme[], now: Date): S
         const z = zr.zed!;
         const size = profile.udyam_category as keyof typeof z.subsidy_pct | null;
         const base = size && size in z.subsidy_pct ? z.subsidy_pct[size] : null;
-        const extra = org.womenScStOwned === true;
+        const women = org.womenOwned === true && z.women_owned_pct != null;
+        const scSt = org.scStOwned === true;
         return {
           status: zedMatch.status,
           statusText: zedMatch.statusText,
           rewardInr: zr.money_inr ?? 0,
           feesInr: z.fees_inr,
-          subsidyPct: base == null ? null : base + (extra ? z.women_sc_st_extra_pct : 0),
+          subsidyPct: women
+            ? z.women_owned_pct!
+            : base == null
+              ? null
+              : base + (scSt ? z.women_sc_st_extra_pct : 0),
           udyamCategory: size,
-          womenScStExtraPct: z.women_sc_st_extra_pct,
-          womenScStApplied: extra,
+          womenOwned: org.womenOwned === true,
+          scStOwned: scSt,
+          scStExtraPct: z.women_sc_st_extra_pct,
+          scStApplied: scSt && !women,
+          womenOwnedLine: z.women_owned_line ?? null,
+          womenOwnedSourceUrl: z.women_owned_source_url ?? null,
           rewardNote: z.reward_note,
           bankConcessions: z.bank_concessions,
           bankNote: z.bank_note,

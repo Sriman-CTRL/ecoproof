@@ -136,3 +136,10 @@ _Placeholder for the 8 doc conflicts. To be filled from the handover review._
 - [ ] The peak-hour shift (ToD) is listed as "bill charge only": it moves kWh to other hours and claims no CO2 change.
 - [ ] Telugu strings added in D6a (`carbon.*`, `health.carbonLine`, `health.billChargeNote`, `nav.carbon`, `reports.carbonCreate*`, `verify.footprint`) are machine-drafted: need native speaker review.
 - [ ] Carbon statement is English only (like the loan-ready summary); no Telugu PDF template.
+
+## Mitra (D7, 13 Oct 2026)
+
+- [ ] `organisations.women_sc_st_owned` is DEPRECATED (replaced by `women_owned` + `sc_st_owned`) but still in the DB and schema: migrations were additive only on pitch night. Drop it in a later migration after the live API has been redeployed.
+- [ ] Peer cases (UNIDO Belgaum compendium): page numbers for the K & K Foundry lid case and the Marvelous Metals IGBT case are not in findings-round2.md, so `peer_cases.page` is null. Re-read the PDF and fill them in.
+- [ ] `teri_sameeeksha` links to https://sameeeksha.org/ (URL given in the D7 prompt; findings cite TERI's role via shaktifoundation.in). Re-check the address.
+- [ ] Telugu strings for `mitra.*` not written yet (English fallback).
