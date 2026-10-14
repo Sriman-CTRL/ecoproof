@@ -145,7 +145,7 @@ function Header() {
     setOpen(false);
   }, [pathname]);
   return (
-    <header className="bg-green-900 text-white">
+    <header className="sticky top-0 z-30 bg-green-900 text-white">
       <div className={`${WRAP} flex min-h-14 items-center justify-between gap-x-3 py-1`}>
         <Link
           to="/"
