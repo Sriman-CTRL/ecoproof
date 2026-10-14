@@ -620,6 +620,7 @@
     "label": "Main",
     "home": "Home",
     "bills": "Bills",
+    "mitra": "Mitra",
     "plan": "Plan",
     "reports": "Reports",
     "solar": "Solar",
@@ -1300,6 +1301,8 @@
     "loanTerms": "Loan {{loan}} at {{rate}}% a year over {{months}} months"
   },
   "mitra": {
+    "indexTitle": "Mitra: free help for your factory",
+    "stepsDone": "{{done}} of {{total}} steps done",
     "ngo": {
       "title": "NGO Mitra",
       "cardTitle": "NGO Mitra — free help from NGOs"

@@ -5,6 +5,7 @@ import type { TFunction } from 'i18next';
 import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight';
 import { Cloud } from '@phosphor-icons/react/dist/csr/Cloud';
 import { Files } from '@phosphor-icons/react/dist/csr/Files';
+import { Handshake } from '@phosphor-icons/react/dist/csr/Handshake';
 import { House } from '@phosphor-icons/react/dist/csr/House';
 import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
 import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
@@ -113,13 +114,19 @@ export function SwitchSample() {
   );
 }
 
-export type TabId = 'home' | 'carbon' | 'bills' | 'plan' | 'reports' | 'solar';
+export type TabId = 'home' | 'carbon' | 'bills' | 'plan' | 'mitra' | 'reports' | 'solar';
 const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'home', to: '/home', icon: House, key: 'nav.home' },
   { id: 'carbon', to: '/carbon', icon: Cloud, key: 'nav.carbon' },
   { id: 'bills', to: '/bills', icon: Receipt, key: 'nav.bills' },
   { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
   { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
+];
+/** Sidebar only: a sixth tab will not fit the 360px bar (Telugu labels), so Mitra sits between Plan and Reports here. */
+const SIDEBAR_TABS: typeof TABS = [
+  ...TABS.slice(0, 4),
+  { id: 'mitra', to: '/mitra', icon: Handshake, key: 'nav.mitra' },
+  TABS[4]!,
 ];
 /** Households have no plan or reports (HH-1): Home, Carbon, Bills, Solar. */
 const HOUSEHOLD_TABS: typeof TABS = [
@@ -172,7 +179,7 @@ export function TabBar({
 function Sidebar({ active }: { active: TabId }) {
   const { t } = useTranslation();
   const session = getSession();
-  const tabs = isHousehold() ? HOUSEHOLD_TABS : TABS;
+  const tabs = isHousehold() ? HOUSEHOLD_TABS : SIDEBAR_TABS;
   return (
     <aside
       className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 bg-green-900 px-4 py-6 text-white lg:flex"
@@ -280,7 +287,11 @@ export function Page({
             </div>
           </StickyPrimaryBar>
         )}
-        <TabBar active={tabs} wide={false} className="order-3 lg:hidden" />
+        <TabBar
+          active={tabs === 'mitra' ? 'reports' : tabs}
+          wide={false}
+          className="order-3 lg:hidden"
+        />
       </div>
     </div>
   );

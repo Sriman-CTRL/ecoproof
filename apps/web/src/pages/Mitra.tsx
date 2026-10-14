@@ -394,12 +394,12 @@ export default function Mitra() {
   const param = useParams().page;
   const page: MitraPage | null = param === 'ngo' || param === 'govt' ? param : null;
   const q = useMitraPage(page ?? 'ngo');
-  if (!page) return <Navigate to="/reports" replace />;
+  if (!page) return <Navigate to="/mitra" replace />;
   const v = q.data;
   const other: MitraPage = page === 'ngo' ? 'govt' : 'ngo';
 
   return (
-    <Page tab="reports">
+    <Page tab="mitra">
       <h1 className="font-heading text-title font-semibold">{t(`mitra.${page}.cardTitle`)}</h1>
       <p className="text-body font-semibold">{t('mitra.lead')}</p>
       {q.isLoading && <Skeleton />}
