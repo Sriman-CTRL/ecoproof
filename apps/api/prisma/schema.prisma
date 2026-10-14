@@ -90,6 +90,10 @@ model Organisation {
   womenOwned        Boolean?  @map("women_owned")
   /// ADDITION: not in Doc 07, needed by ZED (+10% subsidy for SC/ST owned units)
   scStOwned         Boolean?  @map("sc_st_owned")
+  /// ADDITION: not in Doc 07, D89 "Add your unit's data" wizard: saved step and values (owner can come back)
+  onboardingJson    Json?     @map("onboarding_json")
+  /// ADDITION: not in Doc 07, D89: set when the owner finishes the wizard (null = send to /start/data)
+  onboardingDoneAt  DateTime? @map("onboarding_done_at")
   createdAt         DateTime  @default(now()) @map("created_at")
 
   sites                 Site[]
@@ -112,6 +116,8 @@ model Organisation {
   nonRoutineAdjustments NonRoutineAdjustment[]
   siteEquipment         SiteEquipment[]
   mitraSteps            MitraStep[]
+  businessChecks        BusinessCheck[]
+  energyMonthVersions   EnergyMonthVersion[]
 
   @@map("organisations")
 }
@@ -199,15 +205,19 @@ model Consent {
 }
 
 model Document {
-  id        String         @id @default(uuid()) @db.Uuid
-  orgId     String         @map("org_id") @db.Uuid
-  siteId    String         @map("site_id") @db.Uuid
-  kind      DocumentKind
-  fileKey   String         @map("file_key")
-  sha256    String
-  source    DocumentSource
-  status    String         @default("received")
-  createdAt DateTime       @default(now()) @map("created_at")
+  id            String         @id @default(uuid()) @db.Uuid
+  orgId         String         @map("org_id") @db.Uuid
+  siteId        String         @map("site_id") @db.Uuid
+  kind          DocumentKind
+  fileKey       String         @map("file_key")
+  sha256        String
+  source        DocumentSource
+  status        String         @default("received")
+  /// ADDITION: not in Doc 07, D89: how the bill came in ("discom_pdf" | "photo" | "typed" | "sample")
+  sourceKind    String?        @map("source_kind")
+  /// ADDITION: not in Doc 07, D89 check A4: PDF file flags read in memory ({ flags, meta })
+  fileCheckJson Json?          @map("file_check_json")
+  createdAt     DateTime       @default(now()) @map("created_at")
 
   org         Organisation @relation(fields: [orgId], references: [id])
   site        Site         @relation(fields: [siteId], references: [id])
@@ -217,6 +227,49 @@ model Document {
   @@unique([siteId, sha256])
   @@index([orgId])
   @@map("documents")
+}
+
+/// ADDITION: not in Doc 07, D89 (findings-data-intake D1/D2): append-only correction history of a
+/// month. No delete route; version 1 is the value as first confirmed.
+model EnergyMonthVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  orgId         String   @map("org_id") @db.Uuid
+  energyMonthId String   @map("energy_month_id") @db.Uuid
+  version       Int
+  valuesJson    Json     @map("values_json")
+  reason        String
+  createdBy     String?  @map("created_by") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  org         Organisation @relation(fields: [orgId], references: [id])
+  energyMonth EnergyMonth  @relation(fields: [energyMonthId], references: [id])
+
+  @@unique([energyMonthId, version])
+  @@index([orgId])
+  @@map("energy_month_versions")
+}
+
+/// ADDITION: not in Doc 07, D8/D89 business check (findings-business-check section 6). One row per
+/// org. Never stores Aadhaar, PAN (only pan_match), bank details, turnover or CIN, nor the file.
+model BusinessCheck {
+  id         String   @id @default(uuid()) @db.Uuid
+  orgId      String   @unique @map("org_id") @db.Uuid
+  udyamNo    String?  @map("udyam_no")
+  gstin      String?
+  consumerNo String?  @map("consumer_no")
+  /// "self_declared" | "matched_documents" (level 3 is not reachable yet)
+  level      String
+  /// Typed-number checks and document cross-checks: [{ code, result, detail }]
+  checksJson Json     @map("checks_json")
+  /// Business details read from the Udyam certificate (name, state, activity, number); no file kept
+  docJson    Json?    @map("doc_json")
+  isSample   Boolean  @default(false) @map("is_sample")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  org Organisation @relation(fields: [orgId], references: [id])
+
+  @@map("business_checks")
 }
 
 model Extraction {
@@ -257,10 +310,19 @@ model EnergyMonth {
   solarInstalledKwp Decimal?   @map("solar_installed_kwp") @db.Decimal(8, 2)
   otherChargesJson  Json?      @map("other_charges_json")
   qualityTag        QualityTag @map("quality_tag")
+  /// ADDITION: not in Doc 07, D89 data strength: "discom_pdf" | "photo" | "typed" | "sample"
+  sourceKind        String?    @map("source_kind")
+  /// ADDITION: not in Doc 07, D89 (findings-data-intake D3): the bill file this month came from
+  documentId        String?    @map("document_id") @db.Uuid
+  /// ADDITION: not in Doc 07, D89 lock (findings-data-intake D1): locked months are read-only
+  lockedAt          DateTime?  @map("locked_at")
+  /// ADDITION: not in Doc 07, D89: owner's reason when a month that "needs a second look" is locked
+  lockReason        String?    @map("lock_reason")
   createdAt         DateTime   @default(now()) @map("created_at")
 
-  org  Organisation @relation(fields: [orgId], references: [id])
-  site Site         @relation(fields: [siteId], references: [id])
+  org      Organisation         @relation(fields: [orgId], references: [id])
+  site     Site                 @relation(fields: [siteId], references: [id])
+  versions EnergyMonthVersion[]
 
   @@unique([siteId, periodStart])
   @@index([orgId])

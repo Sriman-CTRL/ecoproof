@@ -22,6 +22,7 @@ const HouseholdAfter = lazy(() => import('./pages/HouseholdAfter'));
 const HouseholdHome = lazy(() => import('./pages/HouseholdHome'));
 const HouseholdSolar = lazy(() => import('./pages/HouseholdSolar'));
 const Landing = lazy(() => import('./pages/Landing'));
+const Login = lazy(() => import('./pages/Login'));
 const Mitra = lazy(() => import('./pages/Mitra'));
 const NewBill = lazy(() => import('./pages/NewBill'));
 const Progress = lazy(() => import('./pages/Progress'));
@@ -32,6 +33,7 @@ const ShareView = lazy(() => import('./pages/ShareView'));
 const Savings = lazy(() => import('./pages/Savings'));
 const Schemes = lazy(() => import('./pages/Schemes'));
 const Start = lazy(() => import('./pages/Start'));
+const StartData = lazy(() => import('./pages/StartData'));
 const Verify = lazy(() => import('./pages/Verify'));
 // Public website pages (D6b).
 const SiteAbout = lazy(() => import('./pages/site/About'));
@@ -103,6 +105,7 @@ export default function App() {
           <Route path="/for-homes" element={<SiteForHomes />} />
           <Route path="/about" element={<SiteAbout />} />
           <Route path="/start" element={<Start />} />
+          <Route path="/login" element={<Login />} />
           {DevKit && <Route path="/dev/kit" element={<DevKit />} />}
           {/* Public: no login, no consent gate (a lender scanning the QR code). */}
           <Route path="/verify/:reportId" element={<Verify />} />
@@ -111,6 +114,7 @@ export default function App() {
             <Route path="/consent" element={<Consent />} />
             <Route element={<RequireConsent />}>
               <Route path="/home" element={<HomeRoute />} />
+              <Route path="/start/data" element={<StartData />} />
               <Route path="/household/solar" element={<HouseholdSolar />} />
               <Route path="/household/after" element={<HouseholdAfter />} />
               <Route path="/carbon" element={<Carbon />} />

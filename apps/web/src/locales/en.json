@@ -629,7 +629,8 @@
   "landing": {
     "nav": {
       "trySample": "Try the sample",
-      "myApp": "My app"
+      "myApp": "My app",
+      "signIn": "Sign in"
     },
     "hero": {
       "title": "See your factory's carbon footprint and the money hiding in your electricity bill.",
@@ -1414,6 +1415,159 @@
       "title": "Mitra",
       "body": "Mitra: connects you to real NGOs and government help, step by free step.",
       "note": "These are public programmes. EcoProof is not part of them; you contact them yourself."
+    }
+  },
+  "login": {
+    "title": "Sign in to your factory",
+    "phone": "Phone number",
+    "fillSample": "Fill sample number",
+    "sampleTag": "Sample",
+    "sendOtp": "Send OTP",
+    "otpLabel": "6-digit code",
+    "otpDigit": "Digit {{n}}",
+    "signIn": "Sign in",
+    "demoNote": "Demo mode: no SMS is sent. Use 123456. Real SMS sign-in comes after DLT registration.",
+    "signedInNote": "Demo: you are signed in to the sample foundry",
+    "wrongOtp": "That code is not right. In demo mode the code is 123456.",
+    "badPhone": "Enter a 10-digit mobile number.",
+    "codeSentTo": "Code for +91 {{phone}}",
+    "changeNumber": "Change number",
+    "justLooking": "Just looking? See the sample foundry",
+    "failed": "Could not sign in. Please try again."
+  },
+  "data": {
+    "title": "Add your unit's data",
+    "topLine": "Sign-in says who is typing. Your Udyam record says your business is real. Your bills say your carbon is real.",
+    "stepOf": "Step {{n}} of 5",
+    "steps": {
+      "1": "Business",
+      "2": "Electricity bills",
+      "3": "Fuels",
+      "4": "Production",
+      "5": "Review and lock"
+    },
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish: go to my dashboard",
+    "skip": "Skip to my dashboard",
+    "fillSample": "Fill with sample data",
+    "sampleTag": "Sample",
+    "saved": "Saved. You can leave and come back.",
+    "nextBlocked": "Next opens when this step's checks allow it.",
+    "results": {
+      "pass": "Pass",
+      "flag": "Needs a second look",
+      "cant_check": "Can't check"
+    },
+    "business": {
+      "intro": "Type the numbers from your Udyam certificate and your electricity bill.",
+      "udyam": "Udyam number",
+      "gstin": "GSTIN (optional)",
+      "consumer": "Electricity consumer (service) number",
+      "check": "Check these numbers",
+      "level": "Business check",
+      "ladder1": "Self-declared",
+      "ladder2": "Matched to documents",
+      "ladder3": "Checked with the government record",
+      "level3Locked": "Coming: checked with the government record through DigiLocker, after EcoProof is a registered company",
+      "uploadTitle": "Your Udyam certificate (PDF)",
+      "uploadHelp": "We read it, keep only the business details listed here, and do not keep the file. We never ask for Aadhaar.",
+      "uploadButton": "Upload the PDF",
+      "uploadSample": "Use the sample Udyam certificate",
+      "sampleRead": "Sample (demo mode): the sample certificate is read, not your file.",
+      "readTitle": "What we kept from the certificate",
+      "readName": "Name",
+      "readState": "State",
+      "readActivity": "Major activity",
+      "readUdyam": "Udyam number",
+      "selfTitle": "Check it yourself",
+      "selfUdyam": "Udyam portal: udyamregistration.gov.in, then Print / Verify, then Verify Udyam Registration Number.",
+      "selfGst": "GST portal: gst.gov.in, then Search Taxpayer.",
+      "selfNote": "EcoProof does not visit these sites for you.",
+      "codes": {
+        "udyam_format": "Udyam number",
+        "gstin_format": "GSTIN",
+        "meter_unique": "One meter, one business",
+        "udyam_match": "Udyam number matches",
+        "name_match": "Name matches",
+        "state_match": "State matches",
+        "pan_match": "PAN matches",
+        "manufacturing": "Manufacturing unit"
+      }
+    },
+    "bills": {
+      "intro": "Add your latest electricity bill. A PDF from the DISCOM website is best; a photo or typing it in also works.",
+      "useSample": "Use the sample Oct 2026 bill",
+      "tryEdited": "Try an edited bill",
+      "upload": "Upload a bill (PDF, photo)",
+      "typeIt": "Type it in",
+      "reading": "Reading the bill...",
+      "alreadyReceived": "Same file as before: it is not counted twice.",
+      "checksTitle": "Bill checks",
+      "methodTitle": "How we check",
+      "stripTitle": "Your last 12 months",
+      "gap": "gap",
+      "discard": "Remove this bill",
+      "discarded": "Bill removed. Try the sample bill.",
+      "keep": "This bill goes to step 5 for you to confirm and lock.",
+      "codes": {
+        "A1": "The bill adds up",
+        "A2": "kWh and kVAh fit",
+        "A3": "Fits the peak demand",
+        "A4": "PDF file check",
+        "A5": "Same file twice",
+        "B1": "Your consumer number",
+        "B2": "No gaps or overlaps",
+        "C1": "kWh per tonne"
+      }
+    },
+    "fuels": {
+      "intro": "Diesel used this month (generator, forklifts).",
+      "diesel": "Diesel, litres this month",
+      "invoice": "Diesel invoice (optional)",
+      "invoiceNote": "Kept with the month as your proof.",
+      "comingTitle": "Coming next",
+      "coke": "Coke (cupola): typed tonnes, or read from the invoice.",
+      "furnaceOil": "Furnace oil: litres from the invoice.",
+      "lpg": "LPG: cylinders or kg from the invoice.",
+      "comingTag": "coming"
+    },
+    "production": {
+      "intro": "Tonnes of good castings made this month. It sets your kWh per tonne.",
+      "tonnes": "Good castings, tonnes this month",
+      "c1Title": "kWh per tonne check"
+    },
+    "review": {
+      "intro": "Confirm the new bill, then lock each month. A locked month can only be corrected with a reason, and the old value stays visible.",
+      "pending": "New bill, not confirmed yet",
+      "confirm": "Confirm this bill",
+      "confirmNeedsProduction": "Add the tonnes in step 4 first.",
+      "lock": "Lock this month",
+      "locked": "Locked",
+      "lockReasonLabel": "This month needs a second look. Why lock it as it is?",
+      "lockWithReason": "Lock with this reason",
+      "correct": "Correct a value",
+      "reason": "Reason",
+      "reasonReissued": "bill re-issued by DISCOM",
+      "reasonTypo": "typing mistake",
+      "reasonOther": "other",
+      "reasonOtherText": "Say why",
+      "saveCorrection": "Save as a new version",
+      "history": "History",
+      "version": "Version {{n}}",
+      "noHistory": "No corrections. This is the value as first confirmed.",
+      "fileHash": "File SHA-256",
+      "showAll": "Show all {{n}} months",
+      "kwh": "kWh",
+      "kvah": "kVAh",
+      "md": "Max demand, kVA",
+      "energy": "Energy charge, Rs",
+      "demand": "Demand charge, Rs",
+      "checksPassed": "{{n}} of {{m}} checks passed"
+    },
+    "home": {
+      "title": "Business check",
+      "add": "Add your unit's data"
     }
   }
 }

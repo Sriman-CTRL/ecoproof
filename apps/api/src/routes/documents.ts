@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { Router } from 'express';
 import multer from 'multer';
+import { pdfFlags, readPdfMeta } from '@ecoproof/calc';
+import { Prisma } from '@prisma/client';
 import { ConfirmBody, ManualBody, POWER_BILL_FIELD_NAMES, PowerBillFields } from '@ecoproof/shared';
 import { config } from '../config.js';
 import { prisma } from '../db.js';
@@ -65,6 +67,14 @@ documentsRouter.post(
       res.status(200).json({ status: 'already_received', documentId: existing.id });
       return;
     }
+    // D89 A4: the PDF file check runs on the uploaded bytes in memory, even in demo mode.
+    const isPdf = req.file.mimetype === 'application/pdf';
+    const meta = isPdf ? readPdfMeta(req.file.buffer) : null;
+    const fileCheck = {
+      isPdf: meta != null,
+      flags: meta ? pdfFlags(meta, { periodStart: '0000-00-00' }) : [],
+      meta,
+    };
     const stored = storedFile(req.file);
     const key = `${orgId}/${sha}.${MIME_EXT[stored.mime]}`;
     await storage.put(key, stored.bytes, stored.mime);
@@ -77,6 +87,8 @@ documentsRouter.post(
         sha256: sha,
         source: 'web',
         status: 'received',
+        sourceKind: isPdf ? 'discom_pdf' : 'photo',
+        fileCheckJson: fileCheck as unknown as Prisma.InputJsonValue,
       },
     });
     void runJob('extract', { documentId: doc.id }).catch((e) => console.error('extract failed', e));
@@ -112,6 +124,7 @@ documentsRouter.post(
           sha256: sha,
           source: 'web',
           status: 'extracted',
+          sourceKind: 'typed',
         },
       });
       await tx.extraction.create({
@@ -221,6 +234,8 @@ documentsRouter.post('/documents/:id/confirm', requireAuth, async (req, res) => 
         demandCharges: f.demandCharges,
         otherChargesJson: f.otherCharges,
         qualityTag: 'measured',
+        sourceKind: doc.sourceKind,
+        documentId: doc.id,
       },
     });
     await tx.productionMonth.upsert({

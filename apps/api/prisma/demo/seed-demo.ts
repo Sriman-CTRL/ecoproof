@@ -138,6 +138,9 @@ async function seedOrg(opts: {
     commencedOn: new Date('2014-04-01T00:00:00Z'),
     womenOwned: false,
     scStOwned: false,
+    // D89: Demo A starts at "Add your unit's data" again after a reset.
+    onboardingJson: Prisma.DbNull,
+    onboardingDoneAt: null,
   };
   await prisma.organisation.upsert({
     where: { id: orgId },
@@ -159,7 +162,8 @@ async function seedOrg(opts: {
     lat: null,
     lng: null,
     discom: 'TGSPDCL',
-    consumerNo: 'SAMPLE-HT-0001',
+    // D89: one consumer number = one business, so the two sample units get their own numbers.
+    consumerNo: tag === 'A' ? 'SAMPLE-HT-0001' : 'SAMPLE-HT-0002',
     tariffCategory: 'HT-I(A)',
     contractedDemandKva: cd,
     sanctionedLoadKw: num('sanctionedLoadKw'),
@@ -217,6 +221,11 @@ async function seedOrg(opts: {
         _label: 'SYNTHETIC',
       },
       qualityTag: 'measured' as const,
+      // D89: the sample foundry's bills stand for DISCOM PDFs (SYNTHETIC; no file is stored).
+      sourceKind: 'discom_pdf',
+      documentId: null,
+      lockedAt: null,
+      lockReason: null,
     };
     await prisma.energyMonth.upsert({
       where: { id: emId },
@@ -495,6 +504,11 @@ async function seedHousehold() {
         tariffRuleIds: ruleIds,
       },
       qualityTag: 'measured' as const,
+      // D89: the sample foundry's bills stand for DISCOM PDFs (SYNTHETIC; no file is stored).
+      sourceKind: 'discom_pdf',
+      documentId: null,
+      lockedAt: null,
+      lockReason: null,
     };
     await prisma.energyMonth.upsert({
       where: { id: emId },
@@ -613,7 +627,13 @@ export async function resetDemo() {
       select: { fileKey: true },
     }),
   ]);
+  const billFiles = await prisma.document.findMany({
+    where: { ...where, fileKey: { not: '' } },
+    select: { fileKey: true },
+  });
   await prisma.$transaction([
+    prisma.energyMonthVersion.deleteMany({ where }),
+    prisma.businessCheck.deleteMany({ where }),
     prisma.mitraStep.deleteMany({ where }),
     prisma.savingsLedger.deleteMany({ where }),
     prisma.siteAction.deleteMany({ where }),
@@ -639,6 +659,7 @@ export async function resetDemo() {
   await storage.remove([
     ...steps.flatMap((s) => (s.proofFileKey ? [s.proofFileKey] : [])),
     ...mitraReports.map((r) => r.fileKey),
+    ...billFiles.map((d) => d.fileKey),
   ]);
 }
 

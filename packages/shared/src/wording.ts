@@ -34,6 +34,8 @@ export const ALLOWED = [
   // CERTIFICATE RULE (Sriman, 13 Oct 2026): only for a confirmed Mitra step. EcoProof never
   // certifies emissions, savings or green status.
   'Certificate of Participation',
+  // D89 (Sriman, 13 Oct 2026): the government's own Udyam document; EcoProof outputs are never certificates.
+  'Udyam certificate',
 ] as const;
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

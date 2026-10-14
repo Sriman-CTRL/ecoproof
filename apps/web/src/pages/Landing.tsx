@@ -63,6 +63,12 @@ function Hero() {
               {t('landing.hero.primary')}
             </Link>
             <Link
+              to="/login"
+              className={`${LINK_BTN} border border-green-200 text-white underline-offset-4 hover:underline`}
+            >
+              {t('landing.nav.signIn')}
+            </Link>
+            <Link
               to="/how-it-works"
               className={`${LINK_BTN} border border-green-200 text-white underline-offset-4 hover:underline`}
             >

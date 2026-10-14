@@ -167,6 +167,12 @@ function Header() {
             </Link>
           )}
           <Link
+            to="/login"
+            className="hidden min-h-12 items-center px-2 text-small underline underline-offset-4 sm:inline-flex"
+          >
+            {t('landing.nav.signIn')}
+          </Link>
+          <Link
             to="/start"
             className="hidden min-h-12 items-center rounded-button bg-copper-500 px-3 text-small font-semibold text-green-900 sm:inline-flex"
           >
@@ -194,6 +200,9 @@ function Header() {
           <div className="flex flex-wrap gap-3 pb-4">
             <Link to="/start" className={`${LINK_BTN} bg-copper-500 text-green-900`}>
               {t('landing.nav.trySample')}
+            </Link>
+            <Link to="/login" className={`${LINK_BTN} border border-green-200`}>
+              {t('landing.nav.signIn')}
             </Link>
             {signedIn && (
               <Link to="/home" className={`${LINK_BTN} border border-green-200`}>
