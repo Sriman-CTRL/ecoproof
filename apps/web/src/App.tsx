@@ -24,6 +24,7 @@ const HouseholdSolar = lazy(() => import('./pages/HouseholdSolar'));
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Mitra = lazy(() => import('./pages/Mitra'));
+const Community = lazy(() => import('./pages/Community'));
 const MitraIndex = lazy(() => import('./pages/MitraIndex'));
 const NewBill = lazy(() => import('./pages/NewBill'));
 const Progress = lazy(() => import('./pages/Progress'));
@@ -132,6 +133,7 @@ export default function App() {
               <Route path="/reports/:id" element={<Report />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/schemes" element={<Schemes />} />
+              <Route path="/community" element={<Community />} />
               <Route path="/mitra" element={<MitraIndex />} />
               <Route path="/mitra/:page" element={<Mitra />} />
             </Route>

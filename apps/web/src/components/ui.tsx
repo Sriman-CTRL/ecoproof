@@ -6,6 +6,7 @@ import { ArrowsLeftRight } from '@phosphor-icons/react/dist/csr/ArrowsLeftRight'
 import { Cloud } from '@phosphor-icons/react/dist/csr/Cloud';
 import { Files } from '@phosphor-icons/react/dist/csr/Files';
 import { Handshake } from '@phosphor-icons/react/dist/csr/Handshake';
+import { UsersThree } from '@phosphor-icons/react/dist/csr/UsersThree';
 import { House } from '@phosphor-icons/react/dist/csr/House';
 import { ListChecks } from '@phosphor-icons/react/dist/csr/ListChecks';
 import { Receipt } from '@phosphor-icons/react/dist/csr/Receipt';
@@ -114,7 +115,8 @@ export function SwitchSample() {
   );
 }
 
-export type TabId = 'home' | 'carbon' | 'bills' | 'plan' | 'mitra' | 'reports' | 'solar';
+export type TabId =
+  'home' | 'carbon' | 'bills' | 'plan' | 'mitra' | 'community' | 'reports' | 'solar';
 const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'home', to: '/home', icon: House, key: 'nav.home' },
   { id: 'carbon', to: '/carbon', icon: Cloud, key: 'nav.carbon' },
@@ -122,10 +124,11 @@ const TABS: Array<{ id: TabId; to: string; icon: Icon; key: string }> = [
   { id: 'plan', to: '/actions', icon: ListChecks, key: 'nav.plan' },
   { id: 'reports', to: '/reports', icon: Files, key: 'nav.reports' },
 ];
-/** Sidebar only: a sixth tab will not fit the 360px bar (Telugu labels), so Mitra sits between Plan and Reports here. */
+/** Sidebar only: a sixth tab will not fit the 360px bar (Telugu labels), so Mitra and Green Community sit between Plan and Reports here. */
 const SIDEBAR_TABS: typeof TABS = [
   ...TABS.slice(0, 4),
   { id: 'mitra', to: '/mitra', icon: Handshake, key: 'nav.mitra' },
+  { id: 'community', to: '/community', icon: UsersThree, key: 'nav.community' },
   TABS[4]!,
 ];
 /** Households have no plan or reports (HH-1): Home, Carbon, Bills, Solar. */
@@ -288,7 +291,7 @@ export function Page({
           </StickyPrimaryBar>
         )}
         <TabBar
-          active={tabs === 'mitra' ? 'reports' : tabs}
+          active={tabs === 'mitra' || tabs === 'community' ? 'reports' : tabs}
           wide={false}
           className="order-3 lg:hidden"
         />
